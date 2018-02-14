@@ -13,7 +13,6 @@
   "dependencies": {
     "blockdevice": "^0.5.1",
     "etc-passwd": "^0.1.1",
-    "node-app-http-client": "git+https://github.com/colo/node-app-http-client.git",
     "q": "^1.4.1",
     "uid-username": "0.0.2"
   },
