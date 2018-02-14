@@ -113,14 +113,17 @@ module.exports = new Class({
 			}
 			
 			
-			if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
-				resp = [resp];
-				
+			//if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
+				//resp = [resp];
+			
+			let doc = {};
+			doc[options.uri] = resp;
+			
 			this.fireEvent(
 				this[
 					'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
 				],
-				resp
+				doc
 			);
 			
 			
