@@ -117,7 +117,8 @@ module.exports = new Class({
 				//resp = [resp];
 			
 			let doc = {};
-			doc[options.uri] = resp;
+			doc['data'] = resp;
+			doc['id'] = options.uri;
 			
 			this.fireEvent(
 				this[
