@@ -24,7 +24,8 @@ module.exports = new Class({
 								data: {
 									endkey: ["periodical", "os", "\ufff0"],
 									startkey: ["periodical", "os", ""],
-									//limit: 2,
+									limit: 2,
+									//limit: 1024,
 									inclusive_end: true,
 									include_docs: true
 								}
@@ -89,6 +90,12 @@ module.exports = new Class({
 					////version: '',
 				//},
 			//],
+			remove: [
+				{
+					path: ':database',
+					callbacks: ['remove'],
+				}
+			],
 			view: [
 				{
 					path: ':database',
@@ -99,6 +106,14 @@ module.exports = new Class({
 		},
 		
   },
+  remove: function (err, resp, options){
+		debug('remove %o', resp);
+		debug('remove options %o', options);
+		
+		if(err)
+			debug('remove err %o', err);
+		
+	},
 	search: function (err, resp, options){
 		
 		debug('search %o', resp);
@@ -141,18 +156,44 @@ module.exports = new Class({
 				this.fireEvent('onGet', resp);
 			}
 			
-			
-			if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
+			let to_remove = [];
+			if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
+				Array.each(resp, function(doc){
+					to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
+				});
+				
 				resp = [resp];
 				
-			this.fireEvent(
-				this[
-					'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
-				],
-				resp
-			);
+				this.fireEvent(
+					this[
+						'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+					],
+					resp
+				);
+				
+				/**
+				* remove retrived docs
+				* 
+				* */
+				debug_internals('to remove %o',to_remove);
+
+				Array.each(to_remove, function(doc){
+					this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
+				}.bind(this));
+
+				/**
+				 * repeat the ON_ONCE search, to get next results
+				 * */
+				this.fireEvent(this.ON_ONCE, null);
+			}
+			else{//no docs
+				//to_remove.push({id: resp.doc._id, rev: resp.doc._rev});
+			}
 			
 			
+			
+			
+				
 		}
 	},
 	//info: function (err, resp){
