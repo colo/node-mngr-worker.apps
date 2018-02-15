@@ -15,28 +15,15 @@ module.exports = new Class({
 		
 		requests : {
 			once: [
-				{ info: {uri: 'dashboard'} },
-				//{ info: 
-					//function(req, next){
-						////console.log('--PRE FUNCTION---')
-						////console.log(req.opt);
-						//next({uri: 'dashboard'});
-					//}
-				//},
 				{
 					view: function(req, next){
-						//console.log('--PRE FUNCTION---')
-						//console.log(req.opt);
 						next(
 							{
 								uri: 'dashboard',
 								id: 'sort/by_path_host',
 								data: {
-									endkey: ["periodical", "os", "colo\ufff0"],
-									startkey: ["periodical", "os", "colo"],
-									//endkey: ["os", "localhost.colo", req.opt.range.end],
-									//startkey: ["os", "localhost.colo", req.opt.range.start],
-									//descending: true,
+									endkey: ["periodical", "os", "\ufff0"],
+									startkey: ["periodical", "os", ""],
 									//limit: 2,
 									inclusive_end: true,
 									include_docs: true
@@ -64,7 +51,7 @@ module.exports = new Class({
 									endkey: ["periodical", "os", "localhost.colo", req.opt.range.end],
 									startkey: ["periodical", "os", "localhost.colo", req.opt.range.start],
 									//descending: true,
-									//limit: 2,
+									limit: 2,
 									inclusive_end: true,
 									include_docs: true
 								}
@@ -90,18 +77,18 @@ module.exports = new Class({
 		},
 		
 		routes: {
-			info: [
-				{
-					path: ':database',
-					callbacks: ['info'],
-					//version: '',
-				},
-				{
-					path: '',
-					callbacks: ['info'],
-					//version: '',
-				},
-			],
+			//info: [
+				//{
+					//path: ':database',
+					//callbacks: ['info'],
+					////version: '',
+				//},
+				//{
+					//path: '',
+					//callbacks: ['info'],
+					////version: '',
+				//},
+			//],
 			view: [
 				{
 					path: ':database',
@@ -115,7 +102,6 @@ module.exports = new Class({
 	search: function (err, resp, options){
 		
 		debug('search %o', resp);
-		console.log(resp);
 		debug('search type %o', typeof(resp));
 		debug('search options %o', options);
 		
@@ -169,10 +155,10 @@ module.exports = new Class({
 			
 		}
 	},
-	info: function (err, resp){
-		debug_internals('info %o', resp);
-		debug_internals('info err %o', err);
-	},
+	//info: function (err, resp){
+		//debug_internals('info %o', resp);
+		//debug_internals('info err %o', err);
+	//},
   initialize: function(options){
 	
 	
