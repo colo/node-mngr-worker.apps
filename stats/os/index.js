@@ -14,7 +14,29 @@ module.exports = new Class({
 		id: 'os.stats',
 		
 		requests : {
-			once: [
+			//once: [
+				//{
+					//view: function(req, next){
+						//next(
+							//{
+								//uri: 'dashboard',
+								//id: 'sort/by_path_host',
+								//data: {
+									//endkey: ["periodical", "os", "\ufff0"],
+									//startkey: ["periodical", "os", ""],
+									////limit: 2,
+									//limit: 1024,
+									//inclusive_end: true,
+									//include_docs: true
+								//}
+							//}
+							
+						//);
+					//}
+				//},
+				
+			//],
+			periodical: [
 				{
 					view: function(req, next){
 						next(
@@ -25,7 +47,7 @@ module.exports = new Class({
 									endkey: ["periodical", "os", "\ufff0"],
 									startkey: ["periodical", "os", ""],
 									//limit: 2,
-									limit: 1024,
+									limit: 60, //60 docs = 1 minute of docs
 									inclusive_end: true,
 									include_docs: true
 								}
@@ -184,7 +206,7 @@ module.exports = new Class({
 				/**
 				 * repeat the ON_ONCE search, to get next results
 				 * */
-				this.fireEvent(this.ON_ONCE, null);
+				//this.fireEvent(this.ON_ONCE, null);
 			}
 			else{//no docs
 				//to_remove.push({id: resp.doc._id, rev: resp.doc._rev});
