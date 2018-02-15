@@ -24,8 +24,8 @@ module.exports = new Class({
 								data: {
 									endkey: ["periodical", "os", "\ufff0"],
 									startkey: ["periodical", "os", ""],
-									limit: 2,
-									//limit: 1024,
+									//limit: 2,
+									limit: 1024,
 									inclusive_end: true,
 									include_docs: true
 								}
