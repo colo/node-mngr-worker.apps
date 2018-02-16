@@ -197,11 +197,11 @@ module.exports = new Class({
 				* remove retrived docs
 				* 
 				* */
-				debug_internals('to remove %o',to_remove);
+				//debug_internals('to remove %o',to_remove);
 
-				Array.each(to_remove, function(doc){
-					this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
-				}.bind(this));
+				//Array.each(to_remove, function(doc){
+					//this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
+				//}.bind(this));
 
 				/**
 				 * repeat the ON_ONCE search, to get next results
