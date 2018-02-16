@@ -6,6 +6,56 @@ var debug = require('debug')('Server:Apps:OSStats');
 var debug_internals = require('debug')('Server:Apps:OSStats:Internals');
 var debug_events = require('debug')('Server:Apps:OSStats:Events');
 
+let Stats = new Class({//cradle client to check "stats" db
+  Extends: App,
+  
+  options: {
+		host: '192.168.0.180',
+		port: 5984,
+		db: 'stats',
+		opts: {
+			cache: true,
+			raw: false,
+			forceSave: true,
+		},
+		routes:{
+			view: [
+				{
+					path: ':database',
+					callbacks: ['search'],
+					//version: '',
+				},
+			]
+		}
+	},
+	search: function (err, resp, options){
+		
+		debug('Stats search %o', resp);
+		debug('Stats search type %o', typeof(resp));
+		debug('Stats search options %o', options);
+	},
+	get_last: function(cb){
+		this.view({
+			uri: 'stats',
+			id: 'sort/os_stats_by_host',
+			data: {
+				//endkey: ["\ufff0"],
+				//startkey: [""],
+				reduce: true, //avoid geting duplicate host
+				group: true,
+				//limit: 1,
+				//limit: 60, //60 docs = 1 minute of docs
+				inclusive_end: true,
+				//include_docs: true
+			}
+		});
+	}
+	
+});
+
+
+		
+		
 module.exports = new Class({
   Extends: App,
   
@@ -38,9 +88,9 @@ module.exports = new Class({
 			//],
 			periodical: [
 				{
-					view: function(req, next){
-						next(
-							{
+					//view: function(req, next){
+						//next(
+						view:	{
 								uri: 'dashboard',
 								id: 'sort/by_path_host',
 								data: {
@@ -53,8 +103,8 @@ module.exports = new Class({
 								}
 							}
 							
-						);
-					}
+						//);
+					//}
 				},
 				
 			],
@@ -226,6 +276,9 @@ module.exports = new Class({
 	
 	
 		this.parent(options);//override default options
+		
+		let stats = new Stats();
+		stats.get_last();
 		
 		this.log('os-stats', 'info', 'os-stats started');
 
