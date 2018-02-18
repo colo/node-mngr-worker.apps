@@ -9,8 +9,11 @@ var debug_events = require('debug')('Server:Apps:OSStats:Events');
 let Stats = new Class({//cradle client to check "stats" db
   Extends: App,
   
+  historical: null,
+  
   options: {
-		host: '192.168.0.180',
+		//host: '192.168.0.180',
+		host: '127.0.0.1',
 		port: 5984,
 		db: 'stats',
 		opts: {
@@ -23,18 +26,104 @@ let Stats = new Class({//cradle client to check "stats" db
 				{
 					path: ':database',
 					callbacks: ['search'],
-					//version: '',
 				},
 			]
 		}
 	},
-	search: function (err, resp, options){
-		
-		debug('Stats search %o', resp);
-		debug('Stats search type %o', typeof(resp));
-		debug('Stats search options %o', options);
+	initialize: function(historical){
+		this.historical = historical;
+		this.parent();
 	},
-	get_last: function(cb){
+	search: function (err, resp, info){
+		
+		debug_internals('Stats search %o', resp);
+		debug_internals('Stats search info %o', info);
+		
+		if(err){
+			debug('Stats search err %o', err);
+		}
+		else{
+			if(resp.length == 0){//there no matching stats, so start the view from 0
+				//this._add_periodical(host, 0, Date.now());
+				throw new Error('implement');
+			}
+			if(info.options.data.reduce == true && info.options.data.include_docs != true){//comes from get_hosts
+				Array.each(resp, function(doc){
+					debug_internals('Stats search doc %o', doc);
+					this.get_last(doc.key);
+				}.bind(this));
+			}
+			else{//from get_last
+				debug_internals('Stats search doc %o', resp[0].doc.metadata.range.end);
+				let host = resp[0].doc.metadata.host;
+				let last = resp[0].doc.metadata.range.end;
+				
+				/**
+				 * now that we have the last stats doc for this host,
+				 * we can build our "perdiodical" requests
+				 * */
+				this._add_periodical(host, last, Date.now());
+						
+				
+			}
+		}
+		
+			
+		//throw new Error();
+	},
+	_add_periodical: function(host, start, end){
+		debug_internals('_add_periodical %s %d %d', host, start, end);
+		
+		let limit = 2;
+		
+		this.historical.options.requests.periodical.push({
+			view: function(req, next){
+				//debug_internals("dinamically generated view %d", last);
+				next(
+					{
+						uri: 'dashboard',
+						id: 'sort/by_path_host',
+						data: {
+							endkey: ["periodical", "os", host, end],
+							startkey: ["periodical", "os", host, start],
+							limit: limit,
+							//limit: 60, //60 docs = 1 minute of docs
+							inclusive_end: true,
+							include_docs: true
+						}
+					}
+				)
+				
+				start = Date.now();//update timestamp, so next time runs from this point
+				end = Date.now() + limit * 1000;//update timestamp, so next time runs from this point
+			}
+		});
+		
+		//debug_internals('_add_periodical %o', this.historical);
+		
+		if(this.historical)
+			this.historical.fireEvent('onPeriodicalRequestsUpdated');
+	},
+	get_last: function(host){
+		debug_internals('get_last %s', host);
+		
+		this.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
+			uri: 'stats',
+			id: 'sort/os_stats_by_date',
+			data: {
+				startkey: [host, Date.now()],
+				endkey: [ host, 0],
+				limit: 1,
+				descending: true,
+				inclusive_end: true,
+				include_docs: true
+			}
+		});
+	},
+	get_hosts: function(){
+		
+		debug_internals('get_hosts');
+		
 		this.view({
 			uri: 'stats',
 			id: 'sort/os_stats_by_host',
@@ -64,11 +153,11 @@ module.exports = new Class({
 		id: 'os.stats',
 		
 		requests : {
-			//once: [
+			once: [
 				//{
-					//view: function(req, next){
-						//next(
-							//{
+					////view: function(req, next){
+						////next(
+							//view: {
 								//uri: 'dashboard',
 								//id: 'sort/by_path_host',
 								//data: {
@@ -81,33 +170,34 @@ module.exports = new Class({
 								//}
 							//}
 							
-						//);
-					//}
+						////);
+					////}
+				//},
+				
+			],
+			periodical: [],
+			//periodical: [
+				//{
+					////view: function(req, next){
+						////next(
+						//view:	{
+								//uri: 'dashboard',
+								//id: 'sort/by_path_host',
+								//data: {
+									//endkey: ["periodical", "os", "\ufff0"],
+									//startkey: ["periodical", "os", ""],
+									////limit: 2,
+									//limit: 60, //60 docs = 1 minute of docs
+									//inclusive_end: true,
+									//include_docs: true
+								//}
+							//}
+							
+						////);
+					////}
 				//},
 				
 			//],
-			periodical: [
-				{
-					//view: function(req, next){
-						//next(
-						view:	{
-								uri: 'dashboard',
-								id: 'sort/by_path_host',
-								data: {
-									endkey: ["periodical", "os", "\ufff0"],
-									startkey: ["periodical", "os", ""],
-									//limit: 2,
-									limit: 60, //60 docs = 1 minute of docs
-									inclusive_end: true,
-									include_docs: true
-								}
-							}
-							
-						//);
-					//}
-				},
-				
-			],
 			range: [
 				//{ get: {uri: 'dashboard/cache', doc: 'localhost.colo.os.blockdevices@1515636560970'} },
 				{
@@ -277,8 +367,8 @@ module.exports = new Class({
 	
 		this.parent(options);//override default options
 		
-		let stats = new Stats();
-		stats.get_last();
+		let stats = new Stats(this);
+		stats.get_hosts();
 		
 		this.log('os-stats', 'info', 'os-stats started');
 
