@@ -71,8 +71,8 @@ var ddoc = [
 		}
 	}
 ]
-//let host = '192.168.0.180';
-let host = '127.0.0.1';
+let host = '192.168.0.180';
+//let host = '127.0.0.1';
 
 var db = new(cradle.Connection)(host, 5984).database('stats');
 
