@@ -27,7 +27,7 @@ module.exports = new Class({
 						let now = new Date();
 						debug_internals('fetch_history time %s', now);
 						
-						let limit = 60;//60 docs = 1 minute of historical data
+						let limit = 60;//60 docs = 1 hour of historical data
 						
 						let views = [];
 						
@@ -41,11 +41,11 @@ module.exports = new Class({
 								
 								let cb = next.pass(
 									app.view({
-										uri: 'dashboard',
-										id: 'sort/by_path',
+										uri: 'stats',
+										id: 'sort/by_type',
 										data: {
-											startkey: ["os", host, "periodical", value],
-											endkey: ["os", host, "periodical", Date.now()],
+											startkey: ["minute", host, value],
+											endkey: ["minute", host, Date.now()],
 											limit: limit,
 											//limit: 60, //60 docs = 1 minute of docs
 											inclusive_end: true,
@@ -94,10 +94,10 @@ module.exports = new Class({
 							let cb = next.pass(
 								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
 									uri: 'stats',
-									id: 'sort/by_host',
+									id: 'sort/by_type',
 									data: {
-										startkey: [host, Date.now()],
-										endkey: [ host, 0],
+										startkey: ["hour", host, Date.now()],
+										endkey: ["hour", host, 0],
 										limit: 1,
 										descending: true,
 										inclusive_end: true,
@@ -138,6 +138,8 @@ module.exports = new Class({
 		debug('search %o', resp);
 		debug('search info %o', info);
 		
+		
+		
 		if(err){
 			debug('search err %o', err);
 			
@@ -162,7 +164,7 @@ module.exports = new Class({
 		else{
 			
 			//if(info.options.data.reduce == true && info.options.data.include_docs != true){
-			if(info.uri == 'dashboard' && info.options.id == 'search/hosts'){//comes from search/hosts
+			if(info.uri == 'stats' && info.options.id == 'search/hosts'){//comes from search/hosts
 				//this.hosts = {};
 				
 				if(Object.getLength(resp) == 0){//there are no docs.metadata.host yet
@@ -187,12 +189,12 @@ module.exports = new Class({
 					debug_internals('HOSTs %o', this.hosts);
 				}
 			}
-			else if(info.uri == 'stats' && info.options.id == 'sort/by_host'){//_get_last_stat
+			else if(info.uri == 'stats' && info.options.id == 'sort/by_type' && info.options.data.startkey[0] == 'hour'){//_get_last_stat
 				//this.options.requests.periodical = [];
 				
 				//console.log(Object.getLength(resp));
 				if(Object.getLength(resp) == 0){//there are no stats for this host yet
-					let host = info.options.data.startkey[0];
+					let host = info.options.data.startkey[1];
 					this.hosts[host] = 0;
 					
 					debug_internals('No stats for host %o', host);
@@ -225,6 +227,9 @@ module.exports = new Class({
 			}
 			else{//from periodical views
 				
+				debug_internals('minute stats %o', resp);
+				debug_internals('minute stats %o',  Array.isArray(resp));
+				
 				this.hosts = {};
 				
 				if(info.uri != ''){
@@ -234,12 +239,12 @@ module.exports = new Class({
 					this.fireEvent('onGet', resp);
 				}
 				
-				let to_remove = [];
+				//let to_remove = [];
 				
 				if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
-					Array.each(resp, function(doc){
-						to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
-					});
+					//Array.each(resp, function(doc){
+						//to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
+					//});
 					
 					resp = [resp];
 					
@@ -251,21 +256,6 @@ module.exports = new Class({
 					);
 					
 					
-					//this._get_last_stat(info.options.data.startkey[1]);//host
-					/**
-					* remove retrived docs
-					* 
-					* */
-					//debug_internals('to remove %o',to_remove);
-
-					//Array.each(to_remove, function(doc){
-						//this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
-					//}.bind(this));
-
-					/**
-					 * repeat the ON_ONCE search, to get next results
-					 * */
-					//this.fireEvent(this.ON_ONCE, null);
 				}
 				else{//no docs
 					//to_remove.push({id: resp.doc._id, rev: resp.doc._rev});
