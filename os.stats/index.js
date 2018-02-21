@@ -424,7 +424,7 @@ module.exports = new Class({
 					debug_internals('HOSTs %o', this.hosts);
 				}
 			}
-			else if(info.uri == 'stats' && info.options.id == 'sort/by_host'){//_get_last_stat
+			else if(info.uri == 'stats' && info.options.id == 'sort/by_type'){//_get_last_stat
 				//this.options.requests.periodical = [];
 				
 				//console.log(Object.getLength(resp));
