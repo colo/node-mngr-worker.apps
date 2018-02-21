@@ -239,10 +239,10 @@ module.exports = new Class({
 							let cb = next.pass(
 								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
 									uri: 'stats',
-									id: 'sort/by_host',
+									id: 'sort/by_type',
 									data: {
-										startkey: [host, Date.now()],
-										endkey: [ host, 0],
+										startkey: ["minute", host, Date.now()],
+										endkey: ["minute", host, 0],
 										limit: 1,
 										descending: true,
 										inclusive_end: true,
