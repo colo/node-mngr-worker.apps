@@ -429,7 +429,7 @@ module.exports = new Class({
 				
 				//console.log(Object.getLength(resp));
 				if(Object.getLength(resp) == 0){//there are no stats for this host yet
-					let host = info.options.data.startkey[0];
+					let host = info.options.data.startkey[1];
 					this.hosts[host] = 0;
 					
 					debug_internals('No stats for host %o', host);
