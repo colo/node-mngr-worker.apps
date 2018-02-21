@@ -52,6 +52,29 @@ var ddoc = [
 					//return null;
 				//}.toString()
 			},
+			by_type: {
+				map: function (doc) {
+					
+					if (doc.metadata.path == 'os.stats') {
+						var date = 0;
+						
+						if(!doc.metadata.timestamp){
+							var id = doc._id.split('@');//get host.path | timestamp
+							date = parseInt(id[1]);
+						}
+						else{
+							date = parseInt(doc.metadata.timestamp);
+						}
+						
+
+						emit([doc.metadata.type, doc.metadata.host, date], null);
+					}
+					
+				}.toString(),
+				//reduce: function(keys, values) {
+					//return null;
+				//}.toString()
+			},
 		}
 	},
 	{
