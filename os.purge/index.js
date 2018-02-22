@@ -40,7 +40,7 @@ module.exports = new Class({
 								
 								debug_internals('fetch from %s', new Date(Date.now()));
 								//debug_internals('fetch from %s', new Date(Date.now() - 86400000));
-								debug_internals('fetch from %s', new Date(Date.now() - 3600000));
+								debug_internals('fetch from %s', new Date(Date.now() - 360000));
 								debug_internals('fetch to %s', new Date(value));
 								
 								let cb = next.pass(
