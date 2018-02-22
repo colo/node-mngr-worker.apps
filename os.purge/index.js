@@ -101,10 +101,10 @@ module.exports = new Class({
 							let cb = next.pass(
 								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
 									uri: 'stats',
-									id: 'sort/by_host',
+									id: 'sort/by_type',
 									data: {
-										startkey: [host, 0],
-										endkey: [ host, Date.now()],
+										startkey: ['minute', host, 0],
+										endkey: ['minute',  host, Date.now()],
 										limit: 1,
 										//descending: true,
 										inclusive_end: true,
@@ -265,12 +265,12 @@ module.exports = new Class({
 					debug_internals('HOSTs %o', this.hosts);
 				}
 			}
-			else if(info.uri == 'stats' && info.options.id == 'sort/by_host'){//_get_first_stat
+			else if(info.uri == 'stats' && info.options.id == 'sort/by_type'){//_get_first_stat
 				//this.options.requests.periodical = [];
 				
 				//console.log(Object.getLength(resp));
 				if(Object.getLength(resp) == 0){//there are no stats for this host yet
-					let host = info.options.data.startkey[0];
+					let host = info.options.data.startkey[1];
 					this.hosts[host] = 0;
 					
 					debug_internals('No stats for host %o', host);
