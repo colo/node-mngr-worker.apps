@@ -50,7 +50,7 @@ module.exports = new Class({
 										data: {
 											//startkey: ["os", host, "periodical",  Date.now() - 86400000],//always keep last day
 											startkey: ["os", host, "periodical",  value],//test, keep last hour
-											endkey: ["os", host, "periodical", Date.now() - 36000],
+											endkey: ["os", host, "periodical", Date.now() - 360000],
 											//descending: true,
 											//limit: limit,
 											//limit: 60, //60 docs = 1 minute of docs
