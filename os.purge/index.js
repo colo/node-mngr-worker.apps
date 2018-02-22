@@ -49,8 +49,10 @@ module.exports = new Class({
 										id: 'sort/by_path',
 										data: {
 											//startkey: ["os", host, "periodical",  Date.now() - 86400000],//always keep last day
-											startkey: ["os", host, "periodical",  value],//test, keep last hour
-											endkey: ["os", host, "periodical", Date.now() - 3600000],
+											//startkey: ["os", host, "periodical",  value],//test, keep last hour
+											//endkey: ["os", host, "periodical", Date.now() - 3600000],
+											startkey: ["os", host, "periodical",  0],//test, keep last hour
+											endkey: ["os", host, "periodical", Date.now()],
 											//descending: true,
 											//limit: limit,
 											//limit: 60, //60 docs = 1 minute of docs
@@ -338,7 +340,7 @@ module.exports = new Class({
 					debug_internals('to remove %o',to_remove);
 
 					Array.each(to_remove, function(doc){
-						this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
+						//this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
 					}.bind(this));
 
 					/**
