@@ -10,9 +10,6 @@ module.exports = new Class({
   
   options: {
 		
-		id: 'os',
-		path: '/os',
-		
 		requests : {
 			once: [
 				{ api: { get: {uri: ''} } },
