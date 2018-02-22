@@ -40,7 +40,7 @@ module.exports = new Class({
 								
 								debug_internals('fetch from %s', new Date(Date.now()));
 								//debug_internals('fetch from %s', new Date(Date.now() - 86400000));
-								debug_internals('fetch from %s', new Date(Date.now() - 360000));
+								debug_internals('fetch from %s', new Date(Date.now() - 3600000));
 								debug_internals('fetch to %s', new Date(value));
 								
 								let cb = next.pass(
@@ -50,7 +50,7 @@ module.exports = new Class({
 										data: {
 											//startkey: ["os", host, "periodical",  Date.now() - 86400000],//always keep last day
 											startkey: ["os", host, "periodical",  value],//test, keep last hour
-											endkey: ["os", host, "periodical", Date.now() - 360000],
+											endkey: ["os", host, "periodical", Date.now() - 3600000],
 											//descending: true,
 											//limit: limit,
 											//limit: 60, //60 docs = 1 minute of docs
@@ -301,6 +301,8 @@ module.exports = new Class({
 				
 			}
 			else{//from periodical views
+				
+				debug_internals('found resp %o',resp);
 				
 				this.hosts = {};
 				
