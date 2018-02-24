@@ -26,7 +26,7 @@ module.exports = new Class({
 						let now = new Date();
 						debug_internals('fetch_history time %s', now);
 						
-						//let limit = 60;//60 docs = 1 minute of historical data
+						let limit = 300;//60 docs = 1 minute of historical data
 						
 						let views = [];
 						
@@ -34,7 +34,8 @@ module.exports = new Class({
 							debug_internals('fetch_history value %d', value);
 							//console.log(value);
 							
-							let range = Date.now() - 86400000;//always keep last day
+							//let range = Date.now() - 86400000;//always keep last day
+							let range = Date.now() - 43200000;//always keep last 12hs
 							
 							debug_internals('fetch NOW %s', new Date(Date.now()));
 							debug_internals('fetch range %s', new Date(range));
@@ -53,10 +54,10 @@ module.exports = new Class({
 											startkey: ["os", host, "periodical", range],
 											endkey: ["os", host, "periodical", value],
 											descending: true,
-											//limit: limit,
+											limit: limit,
 											//limit: 60, //60 docs = 1 minute of docs
 											inclusive_end: true,
-											include_docs: true
+											//include_docs: true
 										}
 									})
 								);
@@ -303,6 +304,8 @@ module.exports = new Class({
 			}
 			else{//from periodical views
 				
+				debug_internals('from fetch hist %o', resp);
+				
 				this.hosts = {};
 				
 				//if(info.uri != ''){
@@ -316,7 +319,7 @@ module.exports = new Class({
 				
 				if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
 					Array.each(resp, function(doc){
-						to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
+						to_remove.push({id: doc.id, rev: doc.value});
 					});
 					
 					//resp = [resp];
