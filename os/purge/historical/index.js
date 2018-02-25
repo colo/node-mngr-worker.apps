@@ -332,7 +332,7 @@ module.exports = new Class({
 				
 				if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
 					Array.each(resp, function(doc, index){
-						to_remove.push({_id: doc.id, _rev: doc.value, _deleted = true});
+						to_remove.push({_id: doc.id, _rev: doc.value, _deleted: true});
 						//doc._deleted = true;
 						
 						if(index == resp.length - 1){
