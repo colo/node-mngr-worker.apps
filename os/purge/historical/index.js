@@ -315,13 +315,26 @@ module.exports = new Class({
 					//this.fireEvent('onGet', resp);
 				//}
 				
-				let to_remove = [];
+				//let to_remove = [];
 				
 				if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
-					Array.each(resp, function(doc){
-						to_remove.push({id: doc.id, rev: doc.value});
+					Array.each(resp, function(doc, index){
+						//to_remove.push({id: doc.id, rev: doc.value});
+						doc._deleted = true;
+						
+						if(index == resp.length - 1){
+							resp = [resp];
+						
+							this.fireEvent(
+								this[
+									'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+								],
+								resp
+							);
+						}
 					});
 					
+				
 					//resp = [resp];
 					
 					//this.fireEvent(
@@ -339,9 +352,9 @@ module.exports = new Class({
 					* */
 					debug_internals('to remove %o',to_remove);
 
-					Array.each(to_remove, function(doc){
+					/*Array.each(to_remove, function(doc){
 						this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
-					}.bind(this));
+					}.bind(this));*/
 
 					/**
 					 * repeat the ON_ONCE search, to get next results
