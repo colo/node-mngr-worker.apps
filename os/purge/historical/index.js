@@ -54,8 +54,7 @@ module.exports = new Class({
 											startkey: ["os", host, "periodical", range],
 											endkey: ["os", host, "periodical", value],
 											descending: true,
-											limit: limit,
-											//limit: 60, //60 docs = 1 minute of docs
+											//limit: limit,
 											inclusive_end: true,
 											//include_docs: true
 										}
@@ -181,6 +180,12 @@ module.exports = new Class({
 					////version: '',
 				//},
 			//],
+			save: [
+				{
+					path: ':database',
+					callbacks: ['save'],
+				}
+			],
 			remove: [
 				{
 					path: ':database',
@@ -210,6 +215,14 @@ module.exports = new Class({
 		
 		if(err)
 			debug('remove err %o', err);
+		
+	},
+	save: function (err, resp, options){
+		debug('save %o', resp);
+		debug('save options %o', options);
+		
+		if(err)
+			debug('save err %o', err);
 		
 	},
 	search: function (err, resp, info){
@@ -323,14 +336,15 @@ module.exports = new Class({
 						doc._deleted = true;
 						
 						if(index == resp.length - 1){
-							resp = [resp];
+							//resp = [resp];
 						
-							this.fireEvent(
-								this[
-									'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
-								],
-								resp
-							);
+							//this.fireEvent(
+								//this[
+									//'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+								//],
+								//resp
+							//);
+							this.save({uri: 'dashboard', data: [resp]});
 						}
 					});
 					
