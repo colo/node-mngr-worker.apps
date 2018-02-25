@@ -328,12 +328,12 @@ module.exports = new Class({
 					//this.fireEvent('onGet', resp);
 				//}
 				
-				//let to_remove = [];
+				let to_remove = [];
 				
 				if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
 					Array.each(resp, function(doc, index){
-						//to_remove.push({id: doc.id, rev: doc.value});
-						doc._deleted = true;
+						to_remove.push({_id: doc.id, _rev: doc.value, _deleted = true});
+						//doc._deleted = true;
 						
 						if(index == resp.length - 1){
 							//resp = [resp];
@@ -344,9 +344,9 @@ module.exports = new Class({
 								//],
 								//resp
 							//);
-							this.save({uri: 'dashboard', data: [resp]});
+							this.save({uri: 'dashboard', data: to_remove});
 						}
-					});
+					}.bind(this));
 					
 				
 					//resp = [resp];
@@ -364,7 +364,7 @@ module.exports = new Class({
 					* remove retrived docs
 					* 
 					* */
-					debug_internals('to remove %o',to_remove);
+					//debug_internals('to remove %o',to_remove);
 
 					/*Array.each(to_remove, function(doc){
 						this.remove({uri: 'dashboard', id: doc.id, rev: doc.rev});
