@@ -75,6 +75,27 @@ var ddoc = [
 					//return null;
 				//}.toString()
 			},
+			by_path: {
+				map: function (doc) {
+					if (doc.metadata.path == 'os.stats') {
+						
+						var date = 0;
+						
+						if(!doc.metadata.timestamp){
+							var id = doc._id.split('@');//get host.path | timestamp
+							date = parseInt(id[1]);
+						}
+						else{
+							date = parseInt(doc.metadata.timestamp);
+						}
+						
+						//emit([doc.metadata.type, doc.metadata.path, host, date], null);
+						emit([doc.metadata.path, doc.metadata.host, doc.metadata.type, date], doc._rev);
+						
+					}
+
+				}.toString()
+			}
 		}
 	},
 	{
@@ -94,7 +115,9 @@ var ddoc = [
 		}
 	}
 ]
-let host = '192.168.0.180';
+
+let host = '192.168.0.40';
+//let host = '192.168.0.180';
 //let host = '127.0.0.1';
 
 var db = new(cradle.Connection)(host, 5984).database('stats');
