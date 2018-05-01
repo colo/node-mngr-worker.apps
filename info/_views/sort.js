@@ -80,6 +80,9 @@ var ddoc = [
 						//emit([doc.metadata.type, doc.metadata.path, host, date], null);
 						emit([doc.metadata.path, doc.metadata.host, doc.metadata.type, date], doc._rev);
 					//}
+				}.toString(),
+				reduce: function(keys, values) {
+					return null;
 				}.toString()
 			}
 		}

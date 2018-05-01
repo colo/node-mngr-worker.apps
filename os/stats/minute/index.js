@@ -192,6 +192,7 @@ module.exports = new Class({
 											startkey: ["os", host, "periodical", value],
 											endkey: ["os", host, "periodical", Date.now()],
 											limit: limit,
+											reduce: false,
 											//limit: 60, //60 docs = 1 minute of docs
 											inclusive_end: true,
 											include_docs: true
@@ -635,6 +636,7 @@ module.exports = new Class({
 							startkey: ["os", host, "periodical", start],
 							endkey: ["os", host, "periodical", end],
 							limit: limit,
+							reduce: false,
 							//limit: 60, //60 docs = 1 minute of docs
 							inclusive_end: true,
 							include_docs: true
