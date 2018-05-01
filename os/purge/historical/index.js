@@ -53,7 +53,6 @@ module.exports = new Class({
 										data: {
 											startkey: ["os", host, "periodical", range],
 											endkey: ["os", host, "periodical", value],
-											reduce: false,
 											descending: true,
 											//limit: limit,
 											inclusive_end: true,
