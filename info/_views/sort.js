@@ -95,7 +95,7 @@ var ddoc = [
 					return null;
 				}.toString()
 			},
-			path: {
+			paths: {
 				map: function (doc) {
 					emit(doc.metadata.path, null);
 				}.toString(),
