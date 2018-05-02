@@ -95,7 +95,14 @@ var ddoc = [
 					return null;
 				}.toString()
 			},
-			
+			path: {
+				map: function (doc) {
+					emit(doc.metadata.path, null);
+				}.toString(),
+				reduce: function(keys, values) {
+					return null;
+				}.toString()
+			},
 		}
 	}
 ]
