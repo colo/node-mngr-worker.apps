@@ -208,7 +208,7 @@ module.exports = new Class({
 		else{
 
 			//if(info.options.data.reduce == true && info.options.data.include_docs != true){
-			if(info.uri == 'dashboard' && info.options.id == 'search/hosts'){//comes from search/hosts
+			if(info.uri == this.options.db && info.options.id == 'search/hosts'){//comes from search/hosts
 				//this.hosts = {};
 
 				if(Object.getLength(resp) == 0){//there are no docs.metadata.host yet
