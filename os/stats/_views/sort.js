@@ -1,9 +1,9 @@
 var path = require('path');
 
 var cradle = require('cradle-pouchdb-server');
-		
 
-		
+
+
 // create a design doc
 var ddoc = [
 	{
@@ -11,10 +11,10 @@ var ddoc = [
 		views: {
 			by_date: {
 				map: function (doc) {
-					
+
 					if (doc.metadata.path == 'os.stats') {
 						var date = 0;
-						
+
 						if(!doc.metadata.timestamp){
 							var id = doc._id.split('@');//get host.path | timestamp
 							date = parseInt(id[1]);
@@ -22,19 +22,19 @@ var ddoc = [
 						else{
 							date = parseInt(doc.metadata.timestamp);
 						}
-						
+
 
 						emit([date, doc.metadata.host], null);
 					}
-					
+
 				}.toString()
 			},
 			by_host: {
 				map: function (doc) {
-					
+
 					if (doc.metadata.path == 'os.stats') {
 						var date = 0;
-						
+
 						if(!doc.metadata.timestamp){
 							var id = doc._id.split('@');//get host.path | timestamp
 							date = parseInt(id[1]);
@@ -42,11 +42,11 @@ var ddoc = [
 						else{
 							date = parseInt(doc.metadata.timestamp);
 						}
-						
+
 
 						emit([doc.metadata.host, date], null);
 					}
-					
+
 				}.toString(),
 				//reduce: function(keys, values) {
 					//return null;
@@ -54,10 +54,10 @@ var ddoc = [
 			},
 			by_type: {
 				map: function (doc) {
-					
+
 					if (doc.metadata.path == 'os.stats') {
 						var date = 0;
-						
+
 						if(!doc.metadata.timestamp){
 							var id = doc._id.split('@');//get host.path | timestamp
 							date = parseInt(id[1]);
@@ -65,11 +65,11 @@ var ddoc = [
 						else{
 							date = parseInt(doc.metadata.timestamp);
 						}
-						
+
 
 						emit([doc.metadata.type, doc.metadata.host, date], null);
 					}
-					
+
 				}.toString(),
 				//reduce: function(keys, values) {
 					//return null;
@@ -78,9 +78,9 @@ var ddoc = [
 			by_path: {
 				map: function (doc) {
 					if (doc.metadata.path == 'os.stats') {
-						
+
 						var date = 0;
-						
+
 						if(!doc.metadata.timestamp){
 							var id = doc._id.split('@');//get host.path | timestamp
 							date = parseInt(id[1]);
@@ -88,10 +88,10 @@ var ddoc = [
 						else{
 							date = parseInt(doc.metadata.timestamp);
 						}
-						
+
 						//emit([doc.metadata.type, doc.metadata.path, host, date], null);
 						emit([doc.metadata.path, doc.metadata.host, doc.metadata.type, date], doc._rev);
-						
+
 					}
 
 				}.toString()
@@ -111,7 +111,14 @@ var ddoc = [
 					return null;
 				}.toString()
 			},
-			
+			paths: {
+				map: function (doc) {
+					emit(doc.metadata.path, null);
+				}.toString(),
+				reduce: function(keys, values) {
+					return null;
+				}.toString()
+			}
 		}
 	}
 ]
@@ -134,7 +141,7 @@ var save_views = function(){
 		}
 	});
 };
-		
+
 db.exists(function (err, exists) {
 	if (err) {
 		console.log('error', err);
@@ -146,12 +153,11 @@ db.exists(function (err, exists) {
 					save_views();
 				}
 			});
-			
+
 		}
 		else{
 			save_views();
 		}
-		
+
 	}
 }.bind(this));
-		
