@@ -17,26 +17,26 @@ module.exports = new Class({
 
   options: {
 
-		id: 'os.stats',
+		id: 'stats.os',
 
 		requests : {
 
 			periodical: [
 				{
-					{
-						view: function(req, next, app){
-							debug_internals('search_hosts');
-							next({
-								uri: app.options.db,
-								id: 'search/hosts',
-								data: {
-									reduce: true, //avoid geting duplicate host
-									group: true,
-									inclusive_end: true,
-								}
-							})
-						}
-					},
+					view: function(req, next, app){
+						debug_internals('search_hosts');
+						next({
+							uri: app.options.db,
+							id: 'search/hosts',
+							data: {
+								reduce: true, //avoid geting duplicate host
+								group: true,
+								inclusive_end: true,
+							}
+						})
+					}
+				},
+				{
 					view: function(req, next, app){
 						let now = new Date();
 						debug_internals('fetch_history time %s', now);
@@ -99,8 +99,8 @@ module.exports = new Class({
 									data: {
 										// startkey: ["hour", host, Date.now()],
 										// endkey: ["hour", host, 0],
-										startkey: ["stats.os", host, "minute", Date.now()],
-										endkey: ["stats.os", host, "minute", 0],
+										startkey: ["stats.os", host, "hour", Date.now()],
+										endkey: ["stats.os", host, "hour", 0],
 										limit: 1,
 										descending: true,
 										inclusive_end: true,
@@ -167,7 +167,7 @@ module.exports = new Class({
 		else{
 
 			//if(info.options.data.reduce == true && info.options.data.include_docs != true){
-			if(info.uri == 'stats' && info.options.id == 'search/hosts'){//comes from search/hosts
+			if(info.uri == this.options.db && info.options.id == 'search/hosts'){//comes from search/hosts
 				//this.hosts = {};
 
 				if(Object.getLength(resp) == 0){//there are no docs.metadata.host yet
@@ -192,7 +192,12 @@ module.exports = new Class({
 					debug_internals('HOSTs %o', this.hosts);
 				}
 			}
-			else if(info.uri == 'stats' && info.options.id == 'sort/by_type' && info.options.data.startkey[0] == 'hour'){//_get_last_stat
+			// else if(info.uri == 'stats' && info.options.id == 'sort/by_type' && info.options.data.startkey[0] == 'hour'){//_get_last_stat
+			else if(
+				info.options.id == 'sort/by_path'
+				&& info.options.data.startkey[0] == "stats.os"
+				&& info.options.data.startkey[2] == 'hour'
+			){//_get_last_stat
 				//this.options.requests.periodical = [];
 
 				//console.log(Object.getLength(resp));

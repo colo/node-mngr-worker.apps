@@ -21,20 +21,6 @@ module.exports = new Class({
 			periodical: [
 				{
 					view: function(req, next, app){
-						// debug_internals('search_hosts', app.options);
-						next({
-							uri: app.options.db,
-							id: 'search/hosts',
-							data: {
-								reduce: true, //avoid geting duplicate host
-								group: true,
-								inclusive_end: true,
-							}
-						})
-					}
-				},
-				{
-					view: function(req, next, app){
 						let now = new Date();
 						debug_internals('fetch_history time %s', now);
 
@@ -79,6 +65,20 @@ module.exports = new Class({
 					}
 
 				},
+        {
+					view: function(req, next, app){
+						// debug_internals('search_hosts', app.options);
+						next({
+							uri: app.options.db,
+							id: 'search/hosts',
+							data: {
+								reduce: true, //avoid geting duplicate host
+								group: true,
+								inclusive_end: true,
+							}
+						})
+					}
+				},
 				{
 					view: function(req, next, app){
 						//debug_internals('_get_last_stat %o', next);
@@ -90,11 +90,14 @@ module.exports = new Class({
 
 							let cb = next.pass(
 								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
-									uri: 'stats',
-									id: 'sort/by_type',
+									// uri: 'stats',
+                  uri: app.options.db,
+									id: 'sort/by_path',
 									data: {
-										startkey: ["minute", host, Date.now()],
-										endkey: ["minute", host, 0],
+										// startkey: ["minute", host, Date.now()],
+										// endkey: ["minute", host, 0],
+                    startkey: ["stats.os", host, "minute", Date.now()],
+                    endkey: ["stats.os", host, "minute", 0],
 										limit: 1,
 										descending: true,
 										inclusive_end: true,
@@ -230,7 +233,8 @@ module.exports = new Class({
 					debug_internals('HOSTs %o', this.hosts);
 				}
 			}
-			else if(info.uri == 'stats' && info.options.id == 'sort/by_type'){//_get_last_stat
+			// else if(info.uri == 'stats' && info.options.id == 'sort/by_path'){//_get_last_stat
+      else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0] == "stats.os"){//_get_last_stat
 				//this.options.requests.periodical = [];
 
 				//console.log(Object.getLength(resp));
