@@ -82,20 +82,7 @@ var ddoc = [
 					//}
 				}.toString()
 			}
-		},
-		lists : {
-			type: function(head, req) {
-				var type = (req.query) ? req.query.path : '';
-
-				var rows = [];
-				while(row = getRow()) {
-					if(type == row.key[0])
-						rows.push(row)
-				}
-
-				send(rows)
-			}.toString()
-   	}
+		}
 	},
 	{
 		_id: '_design/search',

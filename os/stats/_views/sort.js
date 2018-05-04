@@ -12,7 +12,7 @@ var ddoc = [
 			by_date: {
 				map: function (doc) {
 
-					if (doc.metadata.path == 'os.stats') {
+					if (doc.metadata.path == 'stats.os') {
 						var date = 0;
 
 						if(!doc.metadata.timestamp){
@@ -32,7 +32,7 @@ var ddoc = [
 			by_host: {
 				map: function (doc) {
 
-					if (doc.metadata.path == 'os.stats') {
+					if (doc.metadata.path == 'stats.os') {
 						var date = 0;
 
 						if(!doc.metadata.timestamp){
@@ -55,7 +55,7 @@ var ddoc = [
 			by_type: {
 				map: function (doc) {
 
-					if (doc.metadata.path == 'os.stats') {
+					if (doc.metadata.path == 'stats.os') {
 						var date = 0;
 
 						if(!doc.metadata.timestamp){
@@ -77,7 +77,7 @@ var ddoc = [
 			},
 			by_path: {
 				map: function (doc) {
-					if (doc.metadata.path == 'os.stats') {
+					if (doc.metadata.path == 'stats.os') {
 
 						var date = 0;
 
