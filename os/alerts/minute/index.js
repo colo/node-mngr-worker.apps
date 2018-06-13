@@ -18,37 +18,37 @@ module.exports = new Class({
 		id: 'os.alerts.historical',
 
 		requests : {
-      once: [
-        {
-					view: function(req, next, app){
-						// debug_internals('search_hosts', app.options);
-						next({
-							uri: app.options.db,
-							id: 'search/hosts',
-							data: {
-								reduce: true, //avoid geting duplicate host
-								group: true,
-								inclusive_end: true,
-							}
-						})
-					}
-				},
-      ],
+      // once: [
+      //   {
+			// 		view: function(req, next, app){
+			// 			// debug_internals('search_hosts', app.options);
+			// 			next({
+			// 				uri: app.options.db,
+			// 				id: 'search/hosts',
+			// 				data: {
+			// 					reduce: true, //avoid geting duplicate host
+			// 					group: true,
+			// 					inclusive_end: true,
+			// 				}
+			// 			})
+			// 		}
+			// 	},
+      // ],
 			periodical: [
-        {
-					view: function(req, next, app){
-						// debug_internals('search_hosts', app.options);
-						next({
-							uri: app.options.db,
-							id: 'search/hosts',
-							data: {
-								reduce: true, //avoid geting duplicate host
-								group: true,
-								inclusive_end: true,
-							}
-						})
-					}
-				},
+        // {
+				// 	view: function(req, next, app){
+				// 		// debug_internals('search_hosts', app.options);
+				// 		next({
+				// 			uri: app.options.db,
+				// 			id: 'search/hosts',
+				// 			data: {
+				// 				reduce: true, //avoid geting duplicate host
+				// 				group: true,
+				// 				inclusive_end: true,
+				// 			}
+				// 		})
+				// 	}
+				// },
 				// {
 				// 	view: function(req, next, app){
 				// 		let now = new Date();
@@ -113,6 +113,10 @@ module.exports = new Class({
 									data: {
 										// startkey: ["minute", host, Date.now()],
 										// endkey: ["minute", host, 0],
+                    // startkey: ["os.historical", host, "minute", Date.now() - 90000],//90 secs
+                    /**
+                    * last available
+                    */
                     startkey: ["os.historical", host, "minute"],
                     endkey: ["os.historical", host, "minute\ufff0"],
 										limit: 1,
@@ -268,7 +272,7 @@ module.exports = new Class({
 					// //this._add_periodical(host, last, Date.now());
 
           if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
-    			
+
     					resp = [resp];
 
     					this.fireEvent(

@@ -55,7 +55,7 @@ module.exports = new Class({
 										uri: app.options.db,
 										id: 'sort/by_path',
 										data: {
-											startkey: ["os", host, "periodical"],
+											startkey: ["os", host, "periodical", Date.now() - 1500],//1.5 sec
 											endkey: ["os", host, "periodical\ufff0"],
 											limit: limit,
 											//limit: 60, //60 docs = 1 minute of docs
