@@ -117,10 +117,10 @@ module.exports = new Class({
                     /**
                     * last available
                     */
-                    startkey: ["os.historical", host, "minute"],
-                    endkey: ["os.historical", host, "minute\ufff0"],
+                    startkey: ["os.historical", host, "minute\ufff0"],
+                    endkey: ["os.historical", host, "minute"],
 										limit: 1,
-										// descending: true,
+										descending: true,
 										inclusive_end: true,
 										include_docs: true
 									}

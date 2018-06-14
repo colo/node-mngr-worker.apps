@@ -15,35 +15,36 @@ module.exports = {
     //   ]
     // },
 
-    // {
-    //   '%hosts': {
-    //     'os' : {
-    //       'loadavg': {
-    //         '$payload': {
-    //           'buffer': [],
-    //           'counter': 0,
-    //           '$extra':{
-    //             'tabular': [{
-    //               '%hosts': {
-    //                 'os' : {
-    //                   'loadavg': (value, payload) => {
-    //                     console.log('$playload loadavg alert', value)
-    //                     return { 'value': value, 'property': payload.property }
-    //                   }
-    //                 }
-    //               }
-    //             }]
-    //           }
-    //         },
-    //         '$callback': (value, payload) => {
-    //           payload.counter++
-    //           console.log('payload.extra[0]', payload.extra[0][0].value)
-    //           console.log('loadavg alert', value, payload)
-    //         }
-    //       }
-    //     }
-    //   }
-    // },
+    {
+      '%hosts': {
+        'os' : {
+          'loadavg': {
+            '$payload': {
+              'buffer': [],
+              'counter': 0,
+              '$extra':{
+                'tabular': [{
+                  '%hosts': {
+                    'os' : {
+                      'loadavg': (value, payload) => {
+                        console.log('$playload loadavg alert', value)
+                        return { 'value': value, 'property': payload.property }
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            '$callback': (value, payload) => {
+              payload.counter++
+              // console.log('payload.extra[0]', payload.extra[0][0].value)
+              // console.log('loadavg alert', value, payload)
+              console.log('loadavg alert', payload.property)
+            }
+          }
+        }
+      }
+    },
 
     // {
     //   '%hosts': {
