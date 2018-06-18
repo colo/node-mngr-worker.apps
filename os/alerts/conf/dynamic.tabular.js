@@ -89,7 +89,7 @@ module.exports = {
         * returns  a bigger array (values.length * samples.length) and add each property
         */
         transform: function(values){
-          console.log('cpus_minute_percentage transform: ', values[0].value)
+          console.log('cpus_minute_percentage transform: ', values)
 
 
           // let transformed = []
