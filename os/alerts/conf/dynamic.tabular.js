@@ -14,7 +14,7 @@ module.exports = {
       /**
       * @var: save prev cpu data, need to calculate current cpu usage
       **/
-      prev: {idle: 0, total: 0, timestamp: 0 },
+      prev: {idle: 0, total: 0, timestamp: 0, value: { times: { usage: 0} } },
       /** **/
       watch: {
         merge: true,
@@ -31,34 +31,43 @@ module.exports = {
             let transform = {timestamp: val.timestamp, value: { times: { usage: 0} } }
             let current = {idle: 0, total: 0, timestamp: val.timestamp }
 
-            // if(index == 0){
-            Object.each(val.value.times, function(stat, key){
-              if(key == 'idle')
-                current.idle += stat
+            if(current.timestamp > chart.prev.timestamp){
+              // if(index == 0){
+              Object.each(val.value.times, function(stat, key){
+                if(key == 'idle')
+                  current.idle += stat
 
-                current.total += stat
-            })
+                  current.total += stat
+              })
 
 
-            let diff_time = current.timestamp - chart.prev.timestamp
-            let diff_total = current.total - chart.prev.total;
-            let diff_idle = current.idle - chart.prev.idle;
+              let diff_time = current.timestamp - chart.prev.timestamp
+              let diff_total = current.total - chart.prev.total;
+              let diff_idle = current.idle - chart.prev.idle;
 
-            // //////console.log('transform: ', current, chart.prev)
+              // //////console.log('transform: ', current, chart.prev)
 
-            //algorithm -> https://github.com/pcolby/scripts/blob/master/cpu.sh
-            let percentage =  (diff_time * (diff_total - diff_idle) / diff_total ) / (diff_time * 0.01)
+              //algorithm -> https://github.com/pcolby/scripts/blob/master/cpu.sh
+              let percentage =  (diff_time * (diff_total - diff_idle) / diff_total ) / (diff_time * 0.01)
 
-            if(percentage > 100){
-              //console.log('cpu transform: ', diff_time, diff_total, diff_idle)
+              if(percentage > 100){
+                //console.log('cpu transform: ', diff_time, diff_total, diff_idle)
+              }
+
+              transform.value.times.usage = (percentage > 100) ? 100 : percentage
+
+
+              chart.prev = Object.merge(chart.prev, Object.clone(current))
+              chart.prev.value.times.usage = percentage
+            }
+            else{
+              transform.timestamp = chart.prev.timestamp
+              transform.value = chart.prev.value
             }
 
-            transform.value.times.usage = (percentage > 100) ? 100 : percentage
-
-
-            chart.prev = Object.clone(current)
             transformed.push(transform)
           })
+
           return transformed
         }
       },
@@ -89,7 +98,7 @@ module.exports = {
         * returns  a bigger array (values.length * samples.length) and add each property
         */
         transform: function(values, caller, chart){
-          // console.log('cpus_minute_percentage transform: ', values)
+          console.log('cpus_minute_percentage transform: ', values)
 
 
           let transformed = []
