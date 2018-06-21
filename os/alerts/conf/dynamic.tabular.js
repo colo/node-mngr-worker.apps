@@ -1,9 +1,27 @@
 let DefaultTabular = require('./default.tabular')
 
 module.exports = {
-  blacklist: /totalmem/, //don't add charts automatically for this os[key]
-  whitelist: null,
+  // blacklist: /totalmem/, //don't add charts automatically for this os[key]
+  blacklist: undefined,
+  whitelist: undefined,
   rules: {
+    "loadavg": Object.merge(Object.clone(DefaultTabular),{
+      match: /os\.loadavg$/,
+      watch: {
+        merge: true,
+        transform: function(values){
+          let transformed = []
+
+          Array.each(values, function(val, index){
+            let transform = { timestamp: val.timestamp, value: val.value[0] }
+            transformed.push(transform)
+          })
+
+          return transformed
+        }
+      },
+
+    }),
     "cpus_percentage": Object.merge(Object.clone(DefaultTabular),{
       name: function(name, chart, stats){
         // console.log('NAME', name)
@@ -23,7 +41,7 @@ module.exports = {
         * @trasnform: diff between each value against its prev one
         */
         transform: function(values, caller, chart){
-          // console.log('transform: ', values)
+          // console.log('transform: ', values[0].value.times)
 
           let transformed = []
           // let prev = {idle: 0, total: 0, timestamp: 0 },
@@ -98,7 +116,7 @@ module.exports = {
         * returns  a bigger array (values.length * samples.length) and add each property
         */
         transform: function(values, caller, chart){
-          console.log('cpus_minute_percentage transform: ', values)
+          // console.log('cpus_minute_percentage transform: ', values)
 
 
           let transformed = []
@@ -159,80 +177,88 @@ module.exports = {
       },
 
     }),
-    "loadavg": Object.merge(Object.clone(DefaultTabular),{
-      match: /os\.loadavg$/,
+    "uptime_minute": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\.minute\.uptime$/,
       watch: {
-        merge: true,
-        transform: function(values){
-          let transformed = []
-
-          Array.each(values, function(val, index){
-            let transform = { timestamp: val.timestamp, value: val.value[0] }
-            transformed.push(transform)
-          })
-
-          return transformed
-        }
+        // value: 'median',
+        exclude: /samples/
       },
 
     }),
-    // "loadavg_minute": Object.merge(Object.clone(DefaultTabular),{
-    //   match: /minute\.loadavg.*/,
-    //   watch: {
-    //     // exclude: /samples/,
-    //     exclude: /range|mode/,
-    //
-    //     /**
-    //     * returns  a bigger array (values.length * samples.length) and add each property
-    //     */
-    //     transform: function(values){
-    //       //console.log('loadavg_minute transform: ', values)
-    //
-    //
-    //       let transformed = []
-    //
-    //       Array.each(values, function(val, index){
-    //         // let transform = { timestamp: val.timestamp, value: (val.value / 1024) / 1024 }
-    //         // transformed.push(transform)
-    //
-    //         let last_sample = null
-    //         let counter = 0
-    //         Object.each(val.value.samples, function(sample, timestamp){
-    //           let transform = {timestamp: timestamp * 1, value: {samples: sample}}
-    //
-    //           if(counter == Object.getLength(val.value.samples) -1)
-    //             last_sample = sample
-    //
-    //           Object.each(val.value, function(data, property){
-    //             if(property != 'samples')
-    //               transform.value[property] = data
-    //           })
-    //
-    //           transformed.push(transform)
-    //           counter++
-    //         })
-    //
-    //         let timestamp = val.timestamp
-    //         let transform = {timestamp: timestamp * 1, value: {}}
-    //
-    //         Object.each(val.value, function(data, property){
-    //           if(property != 'samples'){
-    //             transform.value[property] = data
-    //           }
-    //           else{
-    //             transform.value['samples'] = last_sample
-    //           }
-    //         })
-    //         transformed.push(transform)
-    //       })
-    //
-    //       // //console.log('transformed: ', transformed)
-    //       //
-    //       return transformed
-    //       // return values
-    //     }
-    //   },
-    //
-    // }),
+    "freemem_minute": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\.minute\.freemem$/,
+      watch: {
+        // value: 'median',
+        exclude: /samples/
+      },
+
+    }),
+    "loadavg_minute": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\.minute\.loadavg$/,
+      watch: {
+        // value: 'median',
+        exclude: /samples/
+      },
+
+    }),
+    "blockdevices_stats": Object.merge(Object.clone(DefaultTabular),{
+      match: /os\.blockdevices.*$/,
+      /**
+      * @var: save prev cpu data, need to calculate current cpu usage
+      **/
+      prev: { timestamp: 0, value: { stats: {} } },
+      prev_transformed: { timestamp: 0, value: { stats: {} } },
+
+      watch: {
+        value: 'stats',
+        /**
+        * @trasnform: diff between each value against its prev one
+        */
+        transform: function(values, caller, chart){
+          // console.log('blockdevices transform: ', values[0].value)
+          // console.log('blockdevices transform: ', chart.prev)
+
+          let transformed = []
+          // let prev = null
+          Array.each(values, function(val, index){
+            // let transform = {timestamp: val.timestamp, value: { stats: {} } }
+            let transform = Object.clone(chart.prev)
+
+            if(val.timestamp > chart.prev.timestamp){
+                Object.each(val.value.stats, function(stat, key){
+                  let value = ((stat - chart.prev.value.stats[key]) > 0) ? stat - chart.prev.value.stats[key] : 0
+                  transform.value.stats[key] = value
+                })
+              // }
+              chart.prev = Object.clone(val)
+              chart.prev_transformed = Object.clone(transform)
+            }
+            else{
+              transform = Object.clone(chart.prev_transformed)
+            }
+
+            transformed.push(transform)
+          })
+          return transformed
+        }
+      }
+
+    }),
+    "mounts_percentage": Object.merge(Object.clone(DefaultTabular),{
+      match: /os\.mounts\.(0|[1-9][0-9]*)$/,
+      watch: {
+        // merge: true,
+        filters: [{
+          type: /ext.*/
+        }],
+        value: 'percentage',
+        // transform: function(values, caller, chart){
+        //   console.log('mounts_percentage transform: ', values)
+        //
+        //   return values
+        // }
+      },
+
+    }),
   }
 }
