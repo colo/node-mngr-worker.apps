@@ -260,5 +260,171 @@ module.exports = {
       },
 
     }),
+    "networkInterfaces": Object.merge(Object.clone(DefaultTabular), {
+      match: /networkInterfaces/,
+      /**
+      * @var: save prev cpu data, need to calculate current cpu usage
+      **/
+      prev: {},
+      prev_diff: {},
+      // prev_transformed: { timestamp: 0, value: { stats: {} } },
+
+      watch: {
+        managed: true,
+        transform: function(networkInterfaces, vm, chart, updater_callback){
+          let watcher = chart.watch || {}
+
+
+
+
+          // if(networkInterfaces.getLast() !== null){
+
+            let val = networkInterfaces.getLast().value
+            let ifaces = Object.keys(val)
+            let properties = Object.keys(val[ifaces[0]])
+            let messures = Object.keys(val[ifaces[0]][properties[1]])//properties[0] is "if", we want recived | transmited
+
+            // let chart = Object.clone(DefaultTabular)
+
+
+            Array.each(ifaces, function(iface){
+              // if(!vm.stats.networkInterfaces+'.'+iface)
+              //   vm.$set(vm.stats, 'networkInterfaces.'+iface, {})
+
+
+              /**
+              * turn data property->messure (ex: transmited { bytes: .. }),
+              * to: messure->property (ex: bytes {transmited:.., recived: ... })
+              **/
+              Array.each(messures, function(messure){// "bytes" | "packets"
+                // if(!vm.stats[vm.host+'_os.networkInterfaces.'+iface+'.'+messure]){
+                //
+                //   ->vm.add_chart(vm.host+'_os.networkInterfaces.'+iface+'.'+messure, chart)
+                // }
+                if(!vm.charts[vm.host+'.os.networkInterfaces.'+iface+'.'+messure]){
+                  vm.charts[vm.host+'.os.networkInterfaces.'+iface+'.'+messure] = chart
+                  // vm.stats[vm.host+'.os.networkInterfaces.'+iface+'.'+messure] = {}
+                }
+
+                if(!chart.prev[iface]){
+                  chart.prev[iface] = {}
+                  chart.prev_diff[iface] = {}
+
+                  if(!chart.prev[iface][messure]){
+                    chart.prev[iface][messure] = Object.clone({recived: undefined, transmited: undefined, timestamp: 0})
+                    chart.prev_diff[iface][messure] = Object.clone({recived: undefined, transmited: undefined, timestamp: 0})
+                  }
+
+                }
+
+                let data = []
+
+                console.log('networkInterfaces', networkInterfaces)
+
+                Array.each(networkInterfaces, function(stats, index){
+                  let timestamp = undefined
+
+                  // console.log('networkInterfaces transform: ', timestamp, stats.timestamp, chart.prev.timestamp)
+                  let recived = 0
+                  let transmited = 0
+                  // let chart.prev.recived = 0
+                  // let chart.prev.transmited = 0
+                  if(stats.value[iface] !== undefined && stats.timestamp >= chart.prev[iface][messure].timestamp){
+
+
+                    let current_recived = stats.value[iface]['recived'][messure]
+                    let current_transmited = stats.value[iface]['transmited'][messure]
+
+
+                    // if(index > 0 && networkInterfaces[index - 1].value[iface]){
+                    //  -> chart.prev.recived = networkInterfaces[index - 1].value[iface]['recived'][messure]
+                    //  -> chart.prev.transmited = networkInterfaces[index - 1].value[iface]['transmited'][messure]
+                    // }
+
+
+                    if(stats.timestamp != chart.prev[iface][messure].timestamp){
+                      /**
+                      * don't use negative, that's just for timelines graph
+                      **/
+                      // recived = (chart.prev[iface][messure].recived == 0) ? 0 : 0 - (current_recived - chart.prev[iface][messure].recived)//negative, so it end up ploting under X axis
+                      recived = (chart.prev[iface][messure].recived == undefined) ? 0 : current_recived * 1 - chart.prev[iface][messure].recived * 1
+
+                      transmited = (chart.prev[iface][messure].transmited == undefined) ? 0: current_transmited * 1 - chart.prev[iface][messure].transmited * 1
+
+                      // if(messure == 'bytes'){ //bps -> Kbps
+                      //     transmited = transmited / 128
+                      //     recived = recived / 128
+                      // }
+
+                      chart.prev[iface][messure] = Object.clone({
+                        recived: current_recived * 1,
+                        transmited: current_transmited *1,
+                      })
+
+                      chart.prev[iface][messure].timestamp = stats.timestamp
+
+                      chart.prev_diff[iface][messure] = Object.clone({
+                        recived: recived * 1,
+                        transmited: transmited *1,
+                      })
+
+                      chart.prev_diff[iface][messure].timestamp = stats.timestamp
+
+                      timestamp = new Date(stats.timestamp)
+
+
+
+                    }
+                    else{
+                      timestamp = new Date(chart.prev_diff[iface][messure].timestamp)
+                      recived = chart.prev_diff[iface][messure].recived
+                      transmited = chart.prev_diff[iface][messure].transmited
+                    }
+
+                    data.push([timestamp, recived, transmited])
+
+
+
+
+                  }
+                  // else{
+                  // //   // console.log('networkInterfaces transform: ', timestamp, stats.timestamp, chart.prev.timestamp)
+                  //   data = []
+                  // //   console.log(chart.prev)
+                  // //   // // timestamp = chart.prev.timestamp
+                  // //   Object.each(chart.prev, function(iface_val, iface){
+                  // //     let val = []
+                  // //     Object.each(iface_val, function(messure_val, messure){
+                  // //       val = [new Date(messure_val.timestamp), messure_val.recived, messure_val.transmited]
+                  // //
+                  // //     })
+                  // //     data.push(val)
+                  // //   })
+                  //   ////////////////console.log('stats.value[iface] undefined', iface)
+                  //   /**
+                  //   * should notify error??
+                  //   **/
+                  // }
+                })
+
+                // vm.$set(vm.stats['os.networkInterfaces.'+iface+'.'+messure], 'data', data)
+                // -> vm.update_chart_stat(vm.host+'_os.networkInterfaces.'+iface+'.'+messure, data)
+                console.log('gonna update', vm.host+'.os.networkInterfaces.'+iface+'.'+messure)
+                updater_callback(vm.host+'.os.networkInterfaces.'+iface+'.'+messure, data)
+              })
+
+            })
+
+
+
+
+          // }
+
+          // return values
+        }
+
+      }
+
+    }),
   }
 }

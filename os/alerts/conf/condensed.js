@@ -164,12 +164,21 @@ module.exports = {
   //   console.log('tabular os.blockdevices_stats alert', value, payload)
   // },
 
-  'data[].%hosts.os.mounts': (value, payload) => {
-    console.log('data os.mounts alert', value[4][0].value, payload)
-  },
+  // 'data[].%hosts.os.mounts': (value, payload) => {
+  //   console.log('data os.mounts alert', value[4][0].value, payload)
+  // },
+  //
+  // 'tabular[].%hosts.os.mounts': (value, payload) => {
+  //   console.log('tabular os.mounts alert', value, payload)
+  // },
 
-  'tabular[].%hosts.os.mounts': (value, payload) => {
-    console.log('tabular os.mounts alert', value, payload)
+  // 'data[].%hosts.os.networkInterfaces': (value, payload) => {
+  //   console.log('data os.networkInterfaces alert', value[0].value.lo, payload)
+  // },
+
+  'tabular[].%hosts.os.networkInterfaces': (value, payload) => {
+    // if(value.enp2s0)
+    console.log('tabular os.networkInterfaces alert', value.lo, payload)
   },
 
 /**

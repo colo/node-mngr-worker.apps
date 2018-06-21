@@ -429,7 +429,14 @@ module.exports = {
 
             if(index == arr_name.length -1 && found_stat == true){
               // console.log('found', stat_name, chart_name, find_stats)
-              generic_data_watcher(find_stats, chart, chart_name, update_tabular_stat)
+
+              // generic_data_watcher(find_stats, chart, chart_name, update_tabular_stat)
+              generic_data_watcher.attempt([find_stats, chart, chart_name, update_tabular_stat], {
+                charts: charts,
+                // stats: stats,
+                host: chart_name.split('.')[0]
+              })
+
             }
 
           })

@@ -58,7 +58,7 @@ module.exports = new Class({
 
 						let views = [];
 
-            console.log('sort by path', app.paths)
+            // console.log('sort by path', app.paths)
 
 						Object.each(app.hosts, function(value, host){
 							debug_internals('fetch_history value %d', value);
