@@ -152,10 +152,10 @@ module.exports = {
   // 'data[].%hosts.os.cpus': (value, payload) => {
   //   console.log('data os.cpus alert', value, payload)
   // },
-  // 'tabular[].%hosts.os.cpus_percentage': (value, payload) => {
-  //   console.log('tabular os.cpus_percentage alert', value, payload)
-  // },
-
+  'tabular[].%hosts.os.cpus_percentage': (value, payload) => {
+    console.log('tabular os.cpus_percentage alert', value, payload)
+  },
+  //
   // 'data[].%hosts.os.blockdevices': (value, payload) => {
   //   console.log('data os.blockdevices alert', value, payload)
   // },
@@ -163,7 +163,7 @@ module.exports = {
   // 'tabular[].%hosts.os.blockdevices': (value, payload) => {
   //   console.log('tabular os.blockdevices_stats alert', value, payload)
   // },
-
+  //
   // 'data[].%hosts.os.mounts': (value, payload) => {
   //   console.log('data os.mounts alert', value[4][0].value, payload)
   // },
@@ -171,15 +171,15 @@ module.exports = {
   // 'tabular[].%hosts.os.mounts': (value, payload) => {
   //   console.log('tabular os.mounts alert', value, payload)
   // },
-
-  'data[].%hosts.os.networkInterfaces': (value, payload) => {
-    console.log('data os.networkInterfaces alert', value[0].value.lo, payload)
-  },
-
-  'tabular[].%hosts.os.networkInterfaces': (value, payload) => {
-    // if(value.enp2s0)
-    console.log('tabular os.networkInterfaces alert', value.lo, payload)
-  },
+  //
+  // 'data[].%hosts.os.networkInterfaces': (value, payload) => {
+  //   console.log('data os.networkInterfaces alert', value[0].value.lo, payload)
+  // },
+  //
+  // 'tabular[].%hosts.os.networkInterfaces': (value, payload) => {
+  //   // if(value.enp2s0)
+  //   console.log('tabular os.networkInterfaces alert', value.lo, payload)
+  // },
 
 /**
 * @minute
@@ -255,10 +255,88 @@ module.exports = {
   //   console.log('data os.minute.cpus alert', value, payload)
   // },
   //
-  // 'tabular[].%hosts.os.minute.cpus_percentage': (value, payload) => {
-  //   console.log('tabular os.minute.cpus_percentage alert', value, payload)
+  'tabular[].%hosts.os.minute.cpus_percentage': (value, payload) => {
+    console.log('tabular os.minute.cpus_percentage alert', value, payload)
+  },
+
+  /**
+  * @hour
+  **/
+
+  // 'data[].%hosts.os.hour.loadavg': (value, payload) => {
+  //   console.log('data os.hour.loadavg alert', value, payload)
   // },
   //
+  // 'tabular[].%hosts.os.hour.loadavg': (value, payload) => {
+  //   console.log('tabular os.hour.loadavg alert', value, payload)
+  // },
+  //
+  // 'data[].%hosts.os.hour.uptime': (value, payload) => {
+  //   console.log('data os.hour.uptime alert', value, payload)
+  // },
+
+  // 'tabular[].%hosts.os.hour.uptime': (value, payload) => {
+  //   console.log('tabular os.hour.uptime alert', value, payload)
+  // },
+
+  // 'data[].%hosts.os.hour.freemem':{
+  //   '$payload': {
+  //       '$extra':
+  //       // [
+  //         {
+  //           'tabular.%hosts.os.totalmem': (value, payload) => {
+  //             // console.log('$playload loadavg alert', payload)
+  //             return { 'value': value, 'property': payload.property }
+  //           }
+  //         },
+  //         // {
+  //         //   'data.%hosts.os/minute.loadavg': (value, payload) => {
+  //         //     // console.log('$playload loadavg alert', payload)
+  //         //     return { 'value': 2, 'property': payload.property }
+  //         //   }
+  //         // }
+  //       // ],
+  //   },
+  //   '$callback': (value, payload) => {
+  //     let totlamem = payload.extra[0].value
+  //
+  //     console.log('data os.hour.freemem alert', value, payload)
+  //   },
+  // },
+
+  // 'tabular[].%hosts.os.hour.freemem':{
+  //   '$payload': {
+  //       '$extra':
+  //       // [
+  //         {
+  //           'tabular.%hosts.os.totalmem': (value, payload) => {
+  //             // console.log('$playload loadavg alert', payload)
+  //             return { 'value': value, 'property': payload.property }
+  //           }
+  //         },
+  //         // {
+  //         //   'data.%hosts.os/minute.loadavg': (value, payload) => {
+  //         //     // console.log('$playload loadavg alert', payload)
+  //         //     return { 'value': 2, 'property': payload.property }
+  //         //   }
+  //         // }
+  //       // ],
+  //   },
+  //   '$callback': (value, payload) => {
+  //     let totlamem = payload.extra[0].value
+  //
+  //     console.log('tabular os.hour.freemem alert', value, payload)
+  //   },
+  // },
+
+  // 'data[].%hosts.os.hour.cpus': (value, payload) => {
+  //   console.log('data os.hour.cpus alert', value, payload)
+  // },
+
+  'tabular[].%hosts.os.hour.cpus_percentage': (value, payload) => {
+    console.log('tabular os.hour.cpus_percentage alert', value, payload)
+  },
+
 
 
 }

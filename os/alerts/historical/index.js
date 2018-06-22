@@ -14,6 +14,7 @@ module.exports = new Class({
   periodicals: {},
 
   options: {
+    paths: ['minute', 'hour'],
 
 		id: 'os.alerts.historical',
 
@@ -105,30 +106,35 @@ module.exports = new Class({
 						Object.each(app.hosts, function(value, host){
 							debug_internals('_get_last_stat %s', host);
 
-							let cb = next.pass(
-								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
-									// uri: 'alerts',
-                  uri: app.options.db,
-									id: 'sort/by_path',
-									data: {
-										// startkey: ["minute", host, Date.now()],
-										// endkey: ["minute", host, 0],
-                    // startkey: ["os.historical", host, "minute", Date.now() - 90000],//90 secs
-                    /**
-                    * last available
-                    */
-                    startkey: ["os.historical", host, "minute\ufff0"],
-                    endkey: ["os.historical", host, "minute"],
-										limit: 1,
-										descending: true,
-										inclusive_end: true,
-										include_docs: true
-									}
-								})
-							);
+              Array.each(app.options.paths, function(path){
+                
+  							let cb = next.pass(
+  								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
+  									// uri: 'alerts',
+                    uri: app.options.db,
+  									id: 'sort/by_path',
+  									data: {
+  										// startkey: ["minute", host, Date.now()],
+  										// endkey: ["minute", host, 0],
+                      // startkey: ["os.historical", host, "minute", Date.now() - 90000],//90 secs
+                      /**
+                      * last available
+                      */
+                      // startkey: ["os.historical", host, "minute\ufff0"],
+                      // endkey: ["os.historical", host, "minute"],
+                      startkey: ["os.historical", host, path+"\ufff0"],
+                      endkey: ["os.historical", host, path],
+  										limit: 1,
+  										descending: true,
+  										inclusive_end: true,
+  										include_docs: true
+  									}
+  								})
+  							);
 
-							views.push(cb);
+  							views.push(cb);
 
+              })
 
 						});
 

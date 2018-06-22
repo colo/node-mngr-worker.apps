@@ -92,13 +92,13 @@ module.exports = {
 
 
     }),
-    "cpus_minute_percentage": Object.merge(Object.clone(DefaultTabular),{
+    "cpus_historical_percentage": Object.merge(Object.clone(DefaultTabular),{
       name: function(name, chart, stats){
         // console.log('NAME', name)
         // return vm.host+'_os.cpus_times'
         return name+'_percentage'
       },
-      match: /^.*os\.minute\.cpus$/,
+      match: /^.*os\..+\.cpus$/,
       /**
       * @var: save prev cpu data, need to calculate current cpu usage
       **/
@@ -177,24 +177,24 @@ module.exports = {
       },
 
     }),
-    "uptime_minute": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\.minute\.uptime$/,
+    "uptime_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.uptime$/,
       watch: {
         // value: 'median',
         exclude: /samples/
       },
 
     }),
-    "freemem_minute": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\.minute\.freemem$/,
+    "freemem_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.freemem$/,
       watch: {
         // value: 'median',
         exclude: /samples/
       },
 
     }),
-    "loadavg_minute": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\.minute\.loadavg$/,
+    "loadavg_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.loadavg$/,
       watch: {
         // value: 'median',
         exclude: /samples/

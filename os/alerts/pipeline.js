@@ -284,7 +284,7 @@ module.exports = {
   },
   {
    poll: {
-     id: "input.os.alerts.minute.cradle",
+     id: "input.os.alerts.historical.cradle",
      conn: [
        {
          scheme: 'cradle',
@@ -293,7 +293,7 @@ module.exports = {
          port: 5984 ,
          db: 'dashboard',
          module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
-         load: ['apps/os/alerts/minute']
+         load: ['apps/os/alerts/historical']
        }
      ],
      requests: {
@@ -324,8 +324,8 @@ module.exports = {
         extracted = Object.clone(extract_data_os(doc))
         extracted.path = extracted.path.split('/')
 
-        if(!pipeline.inputs[1].conn_pollers[0].minute.hosts[extracted.host])
-          pipeline.inputs[1].conn_pollers[0].minute.hosts[extracted.host] = 1
+        if(!pipeline.inputs[1].conn_pollers[0].historical.hosts[extracted.host])
+          pipeline.inputs[1].conn_pollers[0].historical.hosts[extracted.host] = 1
 
         // process_os_doc(doc, opts, next, pipeline)
 
@@ -461,8 +461,8 @@ module.exports = {
         /**
         * clean hosts property on each iteration, so we only search on current hosts availables
         **/
-        Object.each(pipeline.inputs[1].conn_pollers[0].minute.hosts, function(value, host){
-          delete pipeline.inputs[1].conn_pollers[0].minute.hosts[host]
+        Object.each(pipeline.inputs[1].conn_pollers[0].historical.hosts, function(value, host){
+          delete pipeline.inputs[1].conn_pollers[0].historical.hosts[host]
         })
 
         // process_historical_minute_doc(doc, opts, next, pipeline)
@@ -633,7 +633,7 @@ module.exports = {
       // // Object.merge(expanded_alerts, _alerts)
 
       // console.log('ALL alerts', all_alerts.tabular[0]['%hosts'].os.loadavg['$payload'])
-      // console.log('ALL alerts', doc.tabular.elk)
+      console.log('ALL alerts', doc.data.elk.os.hour)
 
       let original_doc = doc//needed to recurse $payload
 
