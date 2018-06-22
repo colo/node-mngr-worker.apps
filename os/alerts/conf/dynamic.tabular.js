@@ -297,6 +297,8 @@ module.exports = {
               * to: messure->property (ex: bytes {transmited:.., recived: ... })
               **/
               Array.each(messures, function(messure){// "bytes" | "packets"
+              // console.log('networkInterfaces', networkInterfaces, iface, messure)
+
                 // if(!vm.stats[vm.host+'_os.networkInterfaces.'+iface+'.'+messure]){
                 //
                 //   ->vm.add_chart(vm.host+'_os.networkInterfaces.'+iface+'.'+messure, chart)
@@ -309,17 +311,14 @@ module.exports = {
                 if(!chart.prev[iface]){
                   chart.prev[iface] = {}
                   chart.prev_diff[iface] = {}
+                }
 
-                  if(!chart.prev[iface][messure]){
-                    chart.prev[iface][messure] = Object.clone({recived: undefined, transmited: undefined, timestamp: 0})
-                    chart.prev_diff[iface][messure] = Object.clone({recived: undefined, transmited: undefined, timestamp: 0})
-                  }
-
+                if(!chart.prev[iface][messure]){
+                  chart.prev[iface][messure] = {recived: undefined, transmited: undefined, timestamp: 0}
+                  chart.prev_diff[iface][messure] = {recived: undefined, transmited: undefined, timestamp: 0}
                 }
 
                 let data = []
-
-                console.log('networkInterfaces', networkInterfaces)
 
                 Array.each(networkInterfaces, function(stats, index){
                   let timestamp = undefined
@@ -341,7 +340,7 @@ module.exports = {
                     //  -> chart.prev.transmited = networkInterfaces[index - 1].value[iface]['transmited'][messure]
                     // }
 
-
+                    // console.log('chart.prev[iface][messure].timestamp', stats.timestamp, chart.prev)
                     if(stats.timestamp != chart.prev[iface][messure].timestamp){
                       /**
                       * don't use negative, that's just for timelines graph
@@ -373,7 +372,7 @@ module.exports = {
                       timestamp = new Date(stats.timestamp)
 
 
-
+                  //
                     }
                     else{
                       timestamp = new Date(chart.prev_diff[iface][messure].timestamp)
@@ -387,29 +386,29 @@ module.exports = {
 
 
                   }
-                  // else{
-                  // //   // console.log('networkInterfaces transform: ', timestamp, stats.timestamp, chart.prev.timestamp)
-                  //   data = []
-                  // //   console.log(chart.prev)
-                  // //   // // timestamp = chart.prev.timestamp
-                  // //   Object.each(chart.prev, function(iface_val, iface){
-                  // //     let val = []
-                  // //     Object.each(iface_val, function(messure_val, messure){
-                  // //       val = [new Date(messure_val.timestamp), messure_val.recived, messure_val.transmited]
-                  // //
-                  // //     })
-                  // //     data.push(val)
-                  // //   })
-                  //   ////////////////console.log('stats.value[iface] undefined', iface)
-                  //   /**
-                  //   * should notify error??
-                  //   **/
-                  // }
+                  // // else{
+                  // // //   // console.log('networkInterfaces transform: ', timestamp, stats.timestamp, chart.prev.timestamp)
+                  // //   data = []
+                  // // //   console.log(chart.prev)
+                  // // //   // // timestamp = chart.prev.timestamp
+                  // // //   Object.each(chart.prev, function(iface_val, iface){
+                  // // //     let val = []
+                  // // //     Object.each(iface_val, function(messure_val, messure){
+                  // // //       val = [new Date(messure_val.timestamp), messure_val.recived, messure_val.transmited]
+                  // // //
+                  // // //     })
+                  // // //     data.push(val)
+                  // // //   })
+                  // //   ////////////////console.log('stats.value[iface] undefined', iface)
+                  // //   /**
+                  // //   * should notify error??
+                  // //   **/
+                  // // }
                 })
 
                 // vm.$set(vm.stats['os.networkInterfaces.'+iface+'.'+messure], 'data', data)
                 // -> vm.update_chart_stat(vm.host+'_os.networkInterfaces.'+iface+'.'+messure, data)
-                console.log('gonna update', vm.host+'.os.networkInterfaces.'+iface+'.'+messure)
+                // console.log('gonna update', vm.host+'.os.networkInterfaces.'+iface+'.'+messure, data)
                 updater_callback(vm.host+'.os.networkInterfaces.'+iface+'.'+messure, data)
               })
 

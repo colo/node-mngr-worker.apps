@@ -172,9 +172,9 @@ module.exports = {
   //   console.log('tabular os.mounts alert', value, payload)
   // },
 
-  // 'data[].%hosts.os.networkInterfaces': (value, payload) => {
-  //   console.log('data os.networkInterfaces alert', value[0].value.lo, payload)
-  // },
+  'data[].%hosts.os.networkInterfaces': (value, payload) => {
+    console.log('data os.networkInterfaces alert', value[0].value.lo, payload)
+  },
 
   'tabular[].%hosts.os.networkInterfaces': (value, payload) => {
     // if(value.enp2s0)
