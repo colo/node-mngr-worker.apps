@@ -633,7 +633,7 @@ module.exports = {
       // // Object.merge(expanded_alerts, _alerts)
 
       // console.log('ALL alerts', all_alerts.tabular[0]['%hosts'].os.loadavg['$payload'])
-      console.log('ALL alerts', doc.data.elk.os.hour)
+      // console.log('ALL alerts', doc.data.elk.os.hour)
 
       let original_doc = doc//needed to recurse $payload
 

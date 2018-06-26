@@ -188,16 +188,16 @@ module.exports = {
     "freemem_historical": Object.merge(Object.clone(DefaultTabular),{
       match: /^.*os\..+\.freemem$/,
       watch: {
-        // value: 'median',
-        exclude: /samples/
+        value: 'median',
+        // exclude: /samples/
       },
 
     }),
     "loadavg_historical": Object.merge(Object.clone(DefaultTabular),{
       match: /^.*os\..+\.loadavg$/,
       watch: {
-        // value: 'median',
-        exclude: /samples/
+        value: 'median',
+        // exclude: /samples/
       },
 
     }),
