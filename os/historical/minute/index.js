@@ -10,6 +10,8 @@ module.exports = new Class({
   Extends: App,
 
   hosts: {},
+  blacklist_path: /historical|os\.mounts/,
+  paths: [],
 
   periodicals: {},
 
@@ -19,6 +21,20 @@ module.exports = new Class({
 
 		requests : {
 			periodical: [
+        {
+					view: function(req, next, app){
+						// debug_internals('search_hosts', app.options);
+						next({
+							uri: app.options.db,
+							id: 'search/paths',
+							data: {
+								reduce: true, //avoid geting duplicate host
+								group: true,
+								inclusive_end: true,
+							}
+						})
+					}
+				},
 				{
 					view: function(req, next, app){
 						let now = new Date();
@@ -36,24 +52,27 @@ module.exports = new Class({
 
 								debug_internals('fetch_history %s', host);
 
-								let cb = next.pass(
-									app.view({
-										uri: app.options.db,
-										id: 'sort/by_path',
-										data: {
-											startkey: ["os", host, "periodical", value],
-											endkey: ["os", host, "periodical", Date.now()],
-											limit: limit,
-											//limit: 60, //60 docs = 1 minute of docs
-											inclusive_end: true,
-											include_docs: true
-										}
-									})
-								);
+                Array.each(app.paths, function(path){
+  								let cb = next.pass(
+  									app.view({
+  										uri: app.options.db,
+  										id: 'sort/by_path',
+  										data: {
+  											startkey: [path, host, "periodical", value],
+  											endkey: [path, host, "periodical", Date.now()],
+  											limit: limit,
+  											//limit: 60, //60 docs = 1 minute of docs
+  											inclusive_end: true,
+  											include_docs: true
+  										}
+  									})
+  								);
 
-								views.push(cb);
+  								views.push(cb);
 
-							}
+                })
+							}//if value
+
 						}.bind(app));
 
 						Array.each(views, function(view){
@@ -231,6 +250,30 @@ module.exports = new Class({
 					}.bind(this));
 
 					debug_internals('HOSTs %o', this.hosts);
+				}
+			}
+      else if(info.uri == this.options.db && info.options.id == 'search/paths'){//comes from search/hosts
+				//this.hosts = {};
+
+				if(Object.getLength(resp) == 0){
+					debug_internals('No paths yet');
+				}
+				else{
+
+          this.paths = []
+
+					Array.each(resp, function(doc){
+						debug_internals('Path %s', doc.key);
+						//this.hosts.push({name: doc.key, last: null});
+
+						// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
+            if(this.blacklist_path.test(doc.key) == false)
+              this.paths.push(doc.key)
+
+					}.bind(this));
+
+					// debug_internals('HOSTs %o', this.paths);
+          // console.log('historical PATHS', this.paths);
 				}
 			}
 			// else if(info.uri == 'historical' && info.options.id == 'sort/by_path'){//_get_last_stat
