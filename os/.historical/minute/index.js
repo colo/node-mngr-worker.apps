@@ -10,7 +10,7 @@ module.exports = new Class({
   Extends: App,
 
   hosts: {},
-  blacklist_path: /historical/,
+  blacklist_path: /historical|os\.mounts/,
   paths: [],
 
   periodicals: {},
