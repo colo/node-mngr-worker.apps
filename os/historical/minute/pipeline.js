@@ -30,8 +30,8 @@ module.exports = {
 				// periodical: function(dispatch){
 				// 	return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
 				// }
-				//periodical: 20000,
-				periodical: 1000,//test
+				periodical: 15000,
+				// periodical: 1000,//test
 			},
 
 		},
