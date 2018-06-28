@@ -12,7 +12,7 @@ module.exports = {
 			conn: [
 				{
 					scheme: 'cradle',
-					host:'192.168.0.180',
+					host:'elk',
 					//host:'127.0.0.1',
 					port: 5984 ,
 					db: 'dashboard',
@@ -46,11 +46,11 @@ module.exports = {
 		//require('./snippets/output.stdout.template'),
 		{
 			cradle: {
-				id: "output.os.historical.cradle",
+				id: "output.historical.os.cradle",
 				conn: [
 					{
 						//host: '127.0.0.1',
-						host: '192.168.0.180',
+						host: 'elk',
 						port: 5984,
 						db: 'dashboard',
 						opts: {
