@@ -23,6 +23,7 @@ module.exports = function(doc, opts, next){
 
 		Array.each(doc, function(d){
 			let data = d.doc.data;
+			let timestamp = d.doc.metadata.timestamp;
 			let path = d.key[0];
 			let host = d.key[1];
 
@@ -37,11 +38,19 @@ module.exports = function(doc, opts, next){
 
 					// debug_internals('os.mounts %o', host, path, key)
 
-					if(!values[host][path][key]) values[host][path][key] = [];
+					// if(!values[host][path][key]) values[host][path][key] = [];
+					if(!values[host][path][key] && key == 'cpus'){
+						values[host][path][key] = [];
+					}
+					else if(!values[host][path][key]){
+						values[host][path][key] = {};
+						// values[host][key] = [];
+					}
 
 					if(key == 'cpus' ){
 						Array.each(value, function(cpu, core){
-							if(!values[host][path][key][core]) values[host][path][key][core] = [];
+							if(!values[host][path][key][core]) values[host][path][key][core] = {};
+								// values[host][path][key][core] = [];
 
 							let data = {};
 							data = {
@@ -50,11 +59,13 @@ module.exports = function(doc, opts, next){
 							};
 
 							// debug_internals('os-stats filter core %d', core);
-							values[host][path][key][core].push(data);
+							// values[host][path][key][core].push(data);
+							values[host][path][key][core][timestamp] = data
 						});//iterate on each core
 					}
 					else if(key == 'loadavg'){//keep only "last minute" value
-						values[host][path][key].push(value[0]);
+						// values[host][path][key].push(value[0]);
+						values[host][path][key][timestamp] = value[0];
 					}
 					else if (path == 'os.blockdevices') {//keep only stats, partitions may be done in the future
 						delete values[host][path]
@@ -70,7 +81,8 @@ module.exports = function(doc, opts, next){
 
 							let key = value.fs.replace('/dev/', '')
 
-							if(!values[host][path][key]) values[host][path][key] = []
+							if(!values[host][path][key]) values[host][path][key] = {}
+								// values[host][path][key] = []
 
 							let data = {};
 
@@ -82,7 +94,8 @@ module.exports = function(doc, opts, next){
 								percentage: value.percentage * 1
 							}
 
-							values[host][path][key].push(data);
+							// values[host][path][key].push(data);
+							values[host][path][key][timestamp] = data;
 						}
 						// else{
             //
@@ -92,7 +105,8 @@ module.exports = function(doc, opts, next){
 					}
 					else{
 
-						values[host][path][key].push(value);
+						// values[host][path][key].push(value);
+						values[host][path][key][timestamp] = value;
 
 					}
 
@@ -113,21 +127,24 @@ module.exports = function(doc, opts, next){
 					debug_internals('os-stats filter value %o', key, value);
 
 					if(key == 'cpus' ){
-						let speed = [];
+						let speed = {};
 						let times = {};
 						Array.each(value, function(sample){
-							Array.each(sample, function(cpu, core){
-								//if(!speed[core]) speed[core] = [];
 
-								// debug_internals('os-stats filter speed %o', cpu);
+							// Array.each(sample, function(cpu, core){
+							Object.each(sample, function(cpu, timestamp){
 
-								//speed[core].push(cpu.speed)
-								speed.push(cpu.speed);
+								// speed.push(cpu.speed);
+								speed[timestamp] = cpu.speed
 
 								let sample_time = {};
 								Object.each(cpu.times, function(time, key){//user,nice..etc
-									if(!times[key]) times[key] = [];
-									times[key].push(time);
+									if(!times[key]) times[key] = {};
+										// times[key] = [];
+
+									// times[key].push(time);
+									times[key][timestamp] = time;
+
 								});
 
 							});
@@ -135,34 +152,39 @@ module.exports = function(doc, opts, next){
 						});
 
 						Object.each(times, function(time, key){//user,nice..etc
-							let min = ss.min(time);
-							let max = ss.max(time);
+							let data_values = Object.values(time);
+
+							let min = ss.min(data_values);
+							let max = ss.max(data_values);
 
 							let data = {
 								samples: time,
-								min : ss.min(time),
-								max : ss.max(time),
-								mean : ss.mean(time),
-								median : ss.median(time),
-								mode : ss.mode(time),
+								min : ss.min(data_values),
+								max : ss.max(data_values),
+								mean : ss.mean(data_values),
+								median : ss.median(data_values),
+								mode : ss.mode(data_values),
 								range: max - min,
 							};
 
 							times[key] = data;
 						});
 
-						let min = ss.min(speed);
-						let max = ss.max(speed);
+						//console.log('SPEED', speed)
+						let data_values = Object.values(speed);
+
+						let min = ss.min(data_values);
+						let max = ss.max(data_values);
 
 						new_doc['data'][key] = {
 							//samples: value,
 							speed: {
 								samples: speed,
-								min : ss.min(speed),
-								max : ss.max(speed),
-								mean : ss.mean(speed),
-								median : ss.median(speed),
-								mode : ss.mode(speed),
+								min : ss.min(data_values),
+								max : ss.max(data_values),
+								mean : ss.mean(data_values),
+								median : ss.median(data_values),
+								mode : ss.mode(data_values),
 								range: max - min,
 							},
 							times: times
@@ -172,26 +194,31 @@ module.exports = function(doc, opts, next){
 
 						let mount = {}
 
-						Array.each(value, function(sample){
-							Object.each(sample, function(val, prop){
-								if(!mount[prop]) mount[prop] = [];
+						console.log('os.mounts', value)
 
-								mount[prop].push(val)
+						Object.each(value, function(sample, timestamp){
+							Object.each(sample, function(val, prop){
+								if(!mount[prop]) mount[prop] = {};
+									// mount[prop] = [];
+
+								// mount[prop].push(val)
+								mount[prop][timestamp] = val
 							});
 						});
 
 						let mount_data = {}
 						Object.each(mount, function(val, key){//user,nice..etc
-							let min = ss.min(val);
-							let max = ss.max(val);
+							let data_values = Object.values(val);
+							let min = ss.min(data_values);
+							let max = ss.max(data_values);
 
 							let data = {
 								samples: val,
-								min : ss.min(val),
-								max : ss.max(val),
-								mean : ss.mean(val),
-								median : ss.median(val),
-								mode : ss.mode(val),
+								min : ss.min(data_values),
+								max : ss.max(data_values),
+								mean : ss.mean(data_values),
+								median : ss.median(data_values),
+								mode : ss.mode(data_values),
 								range: max - min,
 							};
 
@@ -203,16 +230,17 @@ module.exports = function(doc, opts, next){
 						// debug_internals('os.mounts data %s %o', key, new_doc['data'][key])
 					}
 					else{
-						let min = ss.min(value);
-						let max = ss.max(value);
+						let data_values = Object.values(value);
+						let min = ss.min(data_values);
+						let max = ss.max(data_values);
 
 						new_doc['data'][key] = {
 							samples : value,
 							min : min,
 							max : max,
-							mean : ss.mean(value),
-							median : ss.median(value),
-							mode : ss.mode(value),
+							mean : ss.mean(data_values),
+							median : ss.median(data_values),
+							mode : ss.mode(data_values),
 							range: max - min
 						};
 					}
@@ -237,7 +265,7 @@ module.exports = function(doc, opts, next){
 				});
 
 				next(new_doc, opts);
-				
+
 			})
 		});
 
