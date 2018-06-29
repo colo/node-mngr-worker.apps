@@ -104,15 +104,13 @@ module.exports = function(doc, opts, next){
 
 		Object.each(values, function(host_data, host){
 
+			let new_doc = {data: {}, metadata: {range: {start: null, end: null}}};
+
 			Object.each(host_data, function(data, path){
-
-
-
-				let new_doc = {data: {}, metadata: {range: {start: null, end: null}}};
 
 				Object.each(data, function(value, key){
 
-					debug_internals('os-stats filter value %o', value);
+					debug_internals('os-stats filter value %o', key, value);
 
 					if(key == 'cpus' ){
 						let speed = [];
@@ -121,7 +119,7 @@ module.exports = function(doc, opts, next){
 							Array.each(sample, function(cpu, core){
 								//if(!speed[core]) speed[core] = [];
 
-								debug_internals('os-stats filter speed %o', cpu);
+								// debug_internals('os-stats filter speed %o', cpu);
 
 								//speed[core].push(cpu.speed)
 								speed.push(cpu.speed);
@@ -235,9 +233,11 @@ module.exports = function(doc, opts, next){
 					};
 
 
-					next(new_doc, opts);
+
 				});
 
+				next(new_doc, opts);
+				
 			})
 		});
 

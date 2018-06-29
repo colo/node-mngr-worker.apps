@@ -17,7 +17,7 @@ module.exports = new Class({
 
   options: {
 
-		id: 'os.historical',
+		id: 'os.historical.minute',
 
 		requests : {
 			periodical: [
