@@ -15,7 +15,12 @@ module.exports = function(doc, opts, next){
 	// debug_internals('os-stats filter length %o', doc.length);
 	// debug_internals('os-stats filter->next %o', next);
 
-	if(typeof(doc) == 'array' || doc instanceof Array || Array.isArray(doc)){
+	if(
+			typeof(doc) == 'array'
+			|| doc instanceof Array
+			|| Array.isArray(doc)
+			&& doc[0].doc && doc[0].doc.metadata
+		){
 		let first = doc[0].doc.metadata.timestamp;
 		let last = doc[doc.length - 1].doc.metadata.timestamp;
 
@@ -68,8 +73,14 @@ module.exports = function(doc, opts, next){
 						values[host][path][key][timestamp] = value[0];
 					}
 					else if (path == 'os.blockdevices') {//keep only stats, partitions may be done in the future
-						delete values[host][path]
+						// delete values[host][path][key]
 						// values[host][path][key].push(value.stats);
+						// values[host][path][key][timestamp] = value.stats
+						if(!values[host][path][key][timestamp]) values[host][path][key][timestamp] = {}
+						Object.each(value.stats, function(val, prop){
+							values[host][path][key][timestamp][prop] = val * 1
+						})
+						debug_internals('os.blockdevices %o',values[host][path][key][timestamp])
 					}
 					else if (path == 'os.mounts') {//keep only stats, partitions may be done in the future
 						// values[host][path][key].push(value.stats);
@@ -170,7 +181,7 @@ module.exports = function(doc, opts, next){
 							times[key] = data;
 						});
 
-						//console.log('SPEED', speed)
+						////console.log('SPEED', speed)
 						let data_values = Object.values(speed);
 
 						let min = ss.min(data_values);
@@ -190,11 +201,11 @@ module.exports = function(doc, opts, next){
 							times: times
 						};
 					}
-					else if (path == 'os.mounts') {
+					else if (path == 'os.mounts' || path == 'os.blockdevices') {
 
 						let mount = {}
 
-						console.log('os.mounts', value)
+						// //console.log('os.mounts', value)
 
 						Object.each(value, function(sample, timestamp){
 							Object.each(sample, function(val, prop){

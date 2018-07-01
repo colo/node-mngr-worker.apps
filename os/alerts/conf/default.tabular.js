@@ -48,10 +48,14 @@ module.exports = {
               if(chart.watch.value[0] instanceof RegExp){
                 Object.each(stat[0].value, function(val, key){
                   /**
-                  * watch out to have a good RegExp, or may keep matching keeps 'til last one
+                  * watch out to have a good RegExp, or may keep matching 'til last one
                   **/
-                  if(chart.watch.value[0].test(key))
-                    obj = stat[0].value[key]
+                  // if(chart.watch.value[0].test(key))
+                  //   obj = stat[0].value[key]
+                  /**
+                  * from default.dygraph.line
+                  */
+                  if(chart.watch.value[0].test(key)) obj[key] = stat[0].value[key]
                 })
               }
               else{

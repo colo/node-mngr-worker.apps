@@ -44,34 +44,36 @@ module.exports = new Class({
 
 						let views = [];
 
-						Object.each(app.hosts, function(value, host){
-							debug_internals('fetch_history value %d', value);
+						Object.each(app.hosts, function(data, host){
+							debug_internals('fetch_history value %d', data);
 							//console.log(value);
 
-							if(value >= 0){
+
 
 								debug_internals('fetch_history %s', host);
 
-                Array.each(app.paths, function(path){
-  								let cb = next.pass(
-  									app.view({
-  										uri: app.options.db,
-  										id: 'sort/by_path',
-  										data: {
-  											startkey: [path, host, "periodical", value],
-  											endkey: [path, host, "periodical", Date.now()],
-  											limit: limit,
-  											//limit: 60, //60 docs = 1 minute of docs
-  											inclusive_end: true,
-  											include_docs: true
-  										}
-  									})
-  								);
+                Object.each(data, function(value, path){
+                // Array.each(app.paths, function(path){
+                  if(value >= 0){
+    								let cb = next.pass(
+    									app.view({
+    										uri: app.options.db,
+    										id: 'sort/by_path',
+    										data: {
+    											startkey: [path, host, "periodical", value],
+    											endkey: [path, host, "periodical", Date.now()],
+    											limit: limit,
+    											//limit: 60, //60 docs = 1 minute of docs
+    											inclusive_end: true,
+    											include_docs: true
+    										}
+    									})
+    								);
 
-  								views.push(cb);
-
+    								views.push(cb);
+                  }//if value
                 })
-							}//if value
+
 
 						}.bind(app));
 
@@ -107,26 +109,29 @@ module.exports = new Class({
 						Object.each(app.hosts, function(value, host){
 							debug_internals('_get_last_stat %s', host);
 
-							let cb = next.pass(
-								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
-									// uri: 'historical',
-                  uri: app.options.db,
-									id: 'sort/by_path',
-									data: {
-										// startkey: ["minute", host, Date.now()],
-										// endkey: ["minute", host, 0],
-                    startkey: ["os.historical", host, "minute", Date.now()],
-                    endkey: ["os.historical", host, "minute", 0],
-										limit: 1,
-										descending: true,
-										inclusive_end: true,
-										include_docs: true
-									}
-								})
-							);
+              Array.each(app.paths, function(path){
 
-							views.push(cb);
+  							let cb = next.pass(
+  								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
+  									// uri: 'historical',
+                    uri: app.options.db,
+  									id: 'sort/by_path',
+  									data: {
+  										// startkey: ["minute", host, Date.now()],
+  										// endkey: ["minute", host, 0],
+                      startkey: ['historical.'+path, host, "minute", Date.now()],
+                      endkey: ['historical.'+path, host, "minute", 0],
+  										limit: 1,
+  										descending: true,
+  										inclusive_end: true,
+  										include_docs: true
+  									}
+  								})
+  							);
 
+  							views.push(cb);
+
+              })
 
 						});
 
@@ -230,29 +235,38 @@ module.exports = new Class({
 			if(info.uri == this.options.db && info.options.id == 'search/hosts'){//comes from search/hosts
 				//this.hosts = {};
 
+
 				if(Object.getLength(resp) == 0){//there are no docs.metadata.host yet
 					//this._add_periodical(host, 0, Date.now());
 					//throw new Error('No hosts yet: implement');
 					debug_internals('No hosts yet');
 				}
 				else{
-					//Array.each(resp, function(doc){
-						//debug_internals('Historical search doc %o', doc);
-						////this.hosts.push(doc.key);
-						//this._get_last_stat(doc.key);//doc.key == host
-					//}.bind(this));
-					Array.each(resp, function(doc){
-						debug_internals('Host %s', doc.key);
-						//this.hosts.push({name: doc.key, last: null});
+					// Array.each(resp, function(doc){
+					// 	debug_internals('Historical search doc %o', doc);
+					// 	//this.hosts.push(doc.key);
+					// 	this._get_last_stat(doc.key);//doc.key == host
+					// }.bind(this));
+					Array.each(resp, function(data){
+            let host = data.key
+            // let path = data.doc.metadata.path.replace('historical.', '')
+						// debug_internals('Host %s', host);
+						// //this.hosts.push({name: doc.key, last: null});
 
-						if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
+						if(this.hosts[host] == undefined) this.hosts[host] = {}
+            // debug_internals('search/hosts', resp, this.paths)
+            // throw new Error()
+
+            // if(this.hosts[host][path] == undefined) this.hosts[host][path] = -1
+
+            // this.hosts[doc.key] = -1;
 
 					}.bind(this));
 
 					debug_internals('HOSTs %o', this.hosts);
 				}
 			}
-      else if(info.uri == this.options.db && info.options.id == 'search/paths'){//comes from search/hosts
+      else if(info.uri == this.options.db && info.options.id == 'search/paths'){//comes from search/paths
 				//this.hosts = {};
 
 				if(Object.getLength(resp) == 0){
@@ -277,13 +291,17 @@ module.exports = new Class({
 				}
 			}
 			// else if(info.uri == 'historical' && info.options.id == 'sort/by_path'){//_get_last_stat
-      else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0] == "os.historical"){//_get_last_stat
-				//this.options.requests.periodical = [];
+      else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0].indexOf('historical.') >= 0){//_get_last_stat
 
-				//console.log(Object.getLength(resp));
+        debug_internals('_get_last_stat', resp[0]);
+
 				if(Object.getLength(resp) == 0){//there are no historical for this host yet
 					let host = info.options.data.startkey[1];
-					this.hosts[host] = 0;
+          let path = info.options.data.startkey[0].replace('historical.', '');
+
+          if(!this.hosts[host]) this.hosts[host] = {}
+
+          this.hosts[host][path] = 0;
 
 					debug_internals('No historical for host %o', host);
 					debug_internals('HOSTs %o', this.hosts);
@@ -293,10 +311,14 @@ module.exports = new Class({
 				else{//if there are historical already, add perdiocal starting from "end"
 					//throw new Error('there are historical already:implement');
 					let host = resp[0].doc.metadata.host;
+          let path = resp[0].doc.metadata.path.replace('historical.', '');
 					let last = resp[0].doc.metadata.range.end + 1;
 
-					this.hosts[host] = last;
-					debug_internals('Hosts %o', this.hosts);
+          if(!this.hosts[host]) this.hosts[host] = {}
+
+					this.hosts[host][path] = last;
+
+          debug_internals('Hosts %o', this.hosts);
 
 					/**
 					 * now that we have the last historical doc for this host,
