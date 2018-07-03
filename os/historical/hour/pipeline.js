@@ -26,18 +26,18 @@ module.exports = {
 				 * needs 3 runs to start analyzing from last historical (or from begining)
 				 * it takes 60 min to complete, so it makes historical each hour
 				 * */
-				// periodical: 1200000,
-				//periodical: 2000,//test
-        periodical: function(dispatch){
-					return cron.schedule('19,39,59 * * * *', dispatch);//every 20 min
-				}
+				periodical: 60000,
+				// periodical: 1000,//test
+        // periodical: function(dispatch){
+				// 	return cron.schedule('19,39,59 * * * *', dispatch);//every 20 min
+				// }
 			},
 		},
 	}
  ],
  filters: [
-		require('./snippets/filter.os.historical.hour.template'),
-		require('./snippets/filter.sanitize.template'),
+		require('./filter'),
+		sanitize = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
 	],
 	output: [
 		//require('./snippets/output.stdout.template'),

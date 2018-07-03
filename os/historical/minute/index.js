@@ -35,7 +35,21 @@ module.exports = new Class({
 						})
 					}
 				},
-				{
+        {
+					view: function(req, next, app){
+						// debug_internals('search_hosts', app.options);
+						next({
+							uri: app.options.db,
+							id: 'search/hosts',
+							data: {
+								reduce: true, //avoid geting duplicate host
+								group: true,
+								inclusive_end: true,
+							}
+						})
+					}
+				},
+        {
 					view: function(req, next, app){
 						let now = new Date();
 						debug_internals('fetch_history time %s', now);
@@ -85,20 +99,6 @@ module.exports = new Class({
 						//app.hosts = {};
 					}
 
-				},
-        {
-					view: function(req, next, app){
-						// debug_internals('search_hosts', app.options);
-						next({
-							uri: app.options.db,
-							id: 'search/hosts',
-							data: {
-								reduce: true, //avoid geting duplicate host
-								group: true,
-								inclusive_end: true,
-							}
-						})
-					}
 				},
 				{
 					view: function(req, next, app){
@@ -291,7 +291,11 @@ module.exports = new Class({
 				}
 			}
 			// else if(info.uri == 'historical' && info.options.id == 'sort/by_path'){//_get_last_stat
-      else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0].indexOf('historical.') >= 0){//_get_last_stat
+      else if(
+        info.options.id == 'sort/by_path'
+        && info.options.data.startkey[0].indexOf('historical.') >= 0
+        && info.options.data.startkey[2] == 'minute'
+      ){//_get_last_stat
 
         debug_internals('_get_last_stat', resp[0]);
 
