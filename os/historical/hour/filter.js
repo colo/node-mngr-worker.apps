@@ -42,8 +42,10 @@ module.exports = function(doc, opts, next){
 					// if(!values[host][path][key] && key == 'cpus'){
 					// 	values[host][path][key] = {};
 					// }
-					// else if(!values[host][path][key]){
-						values[host][path][key] = {};
+					// else
+
+					if(!values[host][path][key]) values[host][path][key] = {}
+
 					// }
 
 					if(key == 'cpus' ){
@@ -70,6 +72,8 @@ module.exports = function(doc, opts, next){
 						});//iterate on each core
 					}
 					else if(!value['mean']){//os.blockdevices / os.mounts...
+						debug_internals('NO MEAN %s %s', path, key);
+
 						Object.each(value, function(internal_value, internal_key){
 							if(!values[host][path][key][internal_key]) values[host][path][key][internal_key] = {}
 								values[host][path][key][internal_key][timestamp] = internal_value['mean']

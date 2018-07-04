@@ -26,11 +26,11 @@ module.exports = {
 				 * needs 3 runs to start analyzing from last historical (or from begining)
 				 * it takes 60 min to complete, so it makes historical each hour
 				 * */
-				periodical: 60000,
+				// periodical: 60000,
 				// periodical: 1000,//test
-        // periodical: function(dispatch){
-				// 	return cron.schedule('19,39,59 * * * *', dispatch);//every 20 min
-				// }
+        periodical: function(dispatch){
+					return cron.schedule('19,39,59 * * * *', dispatch);//every 20 min
+				}
 			},
 		},
 	}
