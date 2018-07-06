@@ -10,6 +10,7 @@ module.exports = new Class({
   Extends: App,
 
   hosts: {},
+  paths: [],
 
   periodicals: {},
 
@@ -104,39 +105,41 @@ module.exports = new Class({
 
 						let views = [];
 						Object.each(app.hosts, function(value, host){
-							debug_internals('_get_last_stat %s', host);
+							debug_internals('_get_last_stat %s', host, app.paths);
 
-              Array.each(app.options.paths, function(path){
-                
-  							let cb = next.pass(
-  								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
-  									// uri: 'alerts',
-                    uri: app.options.db,
-  									id: 'sort/by_path',
-  									data: {
-  										// startkey: ["minute", host, Date.now()],
-  										// endkey: ["minute", host, 0],
-                      // startkey: ["os.historical", host, "minute", Date.now() - 90000],//90 secs
-                      /**
-                      * last available
-                      */
-                      // startkey: ["os.historical", host, "minute\ufff0"],
-                      // endkey: ["os.historical", host, "minute"],
-                      startkey: ["os.historical", host, path+"\ufff0"],
-                      endkey: ["os.historical", host, path],
-  										limit: 1,
-  										descending: true,
-  										inclusive_end: true,
-  										include_docs: true
-  									}
-  								})
-  							);
+              Array.each(app.paths, function(path){
 
-  							views.push(cb);
+                Array.each(app.options.paths, function(op_path){
 
-              })
+    							let cb = next.pass(
+    								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
+    									// uri: 'alerts',
+                      uri: app.options.db,
+    									id: 'sort/by_path',
+    									data: {
+    										// startkey: ["minute", host, Date.now()],
+    										// endkey: ["minute", host, 0],
+                        // startkey: ["os.historical", host, "minute", Date.now() - 90000],//90 secs
+                        /**
+                        * last available
+                        */
+                        startkey: ["historical."+path, host, op_path+"\ufff0"],
+                        endkey: ["historical."+path, host, op_path],
+    										limit: 1,
+    										descending: true,
+    										inclusive_end: true,
+    										include_docs: true
+    									}
+    								})
+    							);
 
-						});
+    							views.push(cb);
+
+                })//each->app.options.paths
+
+              })//each->app.paths
+
+						});//each->app.hosts
 
 						Array.each(views, function(view){
 							view.attempt();
@@ -243,7 +246,7 @@ module.exports = new Class({
 				}
 			}
 
-      else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0] == "os.historical"){//_get_last_stat
+      else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0].indexOf("historical") > -1 ){//_get_last_stat
 				//this.options.requests.periodical = [];
 
 				//console.log(Object.getLength(resp));

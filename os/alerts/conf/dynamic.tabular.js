@@ -202,7 +202,7 @@ module.exports = {
 
     }),
     "blockdevices_stats": Object.merge(Object.clone(DefaultTabular),{
-      match: /os\.blockdevices.*$/,
+      match: /^os\.blockdevices.*$/,
       /**
       * @var: save prev cpu data, need to calculate current cpu usage
       **/
@@ -244,6 +244,34 @@ module.exports = {
       }
 
     }),
+    "blockdevices_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.blockdevices$/,
+      watch: {
+        // exclude: /samples/,
+      //   // // exclude: /range|mode/,
+        value: [/^[a-zA-Z0-9_]+$/, 'median'],
+
+        // transform: function(values){
+        //   // console.log('transform minute.blockdevices: ', values)
+        //   let transformed = []
+        //
+        //   Array.each(values, function(val, index){
+        //     let transform = { timestamp: val.timestamp, value: {} }
+        //     Object.each(val.value, function(value, prop){
+        //       prop = prop.replace('.median', '')
+        //       transform.value[prop] = value * 1
+        //     })
+        //     transformed.push(transform)
+        //   })
+        //
+        //   // console.log('transform minute.blockdevices: ', transformed)
+        //
+        //   return transformed
+        //   // return values
+        // }
+      },
+
+    }),
     "mounts_percentage": Object.merge(Object.clone(DefaultTabular),{
       match: /os\.mounts\.(0|[1-9][0-9]*)$/,
       watch: {
@@ -261,7 +289,7 @@ module.exports = {
 
     }),
     "networkInterfaces": Object.merge(Object.clone(DefaultTabular), {
-      match: /networkInterfaces/,
+      match: /os\.networkInterfaces/,
       /**
       * @var: save prev cpu data, need to calculate current cpu usage
       **/

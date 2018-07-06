@@ -17,9 +17,9 @@ module.exports = function(doc, opts, next){
 			typeof(doc) == 'array'
 			|| doc instanceof Array
 			|| Array.isArray(doc)
-			&& doc.length > 0 && doc[0].doc && doc[0].doc.metadata
-			&& doc[doc.length - 1] && doc[doc.length - 1].doc && doc[doc.length - 1].doc.metadata
-	){
+			&& doc.length > 0 && doc[0].doc && doc[0].doc != null
+			&& doc[doc.length - 1] && doc[doc.length - 1].doc && doc[doc.length - 1].doc != null
+		){
 		let first = doc[0].doc.metadata.timestamp;
 		let last = doc[doc.length - 1].doc.metadata.timestamp;
 

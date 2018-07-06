@@ -42,7 +42,7 @@ module.exports = {
           let obj = {}
 
           if(chart.watch && chart.watch.value){
-
+            // console.log('OBJ', stat[0], chart.watch.value)
             if(Array.isArray(chart.watch.value)){
     					// chart_watch_value = chart.watch.value.split('/')
               if(chart.watch.value[0] instanceof RegExp){
@@ -77,6 +77,8 @@ module.exports = {
           else{
             obj = stat[0].value
           }
+
+
 
           Object.each(obj, function(tmp, tmp_key){
             if(

@@ -346,67 +346,69 @@ module.exports = {
   'tabular[].%hosts.os.blockdevices': (value, payload) => {
     // console.log('tabular os.blockdevices_stats alert', value, payload)
   },
-  */
 
   'data[].%hosts.os.mounts': (value, payload) => {
     //console.log('data os.mounts alert', value[4][0].value, payload)
   },
+  */
+
+
 
   /* *
   * @todo need os.historical data
   **/
-  // 'tabular[].%hosts.os.mounts': {
-  //   '$payload': {
-  //       '$extra': {
-  //         'tabular.%hosts.os.minute.mounts': (value, payload) => {
-  //           let last_minute = new Date(Date.now() - (60 * 1000))
-  //
-  //           let result = undefined
-  //           Array.each(value, function(val){ // [timestamp, percentage]
-  //             if(val[0] >= last_minute)
-  //               result = val
-  //           })
-  //
-  //           console.log('tabular.%hosts.os.minute.mounts', value, result)
-  //           return { 'value': result, 'property': payload.property }
-  //         }
-  //       },
-  //   },
-  //   '$callback': (value, payload) => {
-  //     // let last_minute = new Date(Date.now() - (60 * 1000))
-  //     let host = payload.property.split('.')[1]
-  //
-  //     // let last_hour_cpu_percentage = 0
-  //     let last_minute_cpu_percentage = 0
-  //     let cpu_percentage = value[0][1]//only one val (0), with [timestamp, percentage] format
-  //
-  //     /**
-  //     * last minute cpu_percentage for this host
-  //     **/
-  //     Array.each(payload.extra, function(extra){//get hour.cpu_percentage from matching host
-  //       if(extra.property){
-  //         let extra_host = extra.property.split('.')[1]
-  //
-  //         if(extra_host == host && extra.value.length > 0) //extra.value = [timestamp,percentage]
-  //           last_minute_cpu_percentage = extra.value[1]
-  //       }
-  //     })
-  //
-  //
-  //
-  //     if(cpu_percentage > (last_minute_cpu_percentage + CPU_PERCENTAGE_THRESHOLD))
-  //       console.log('CPU_PERCENTAGE_THRESHOLD', last_minute_cpu_percentage, cpu_percentage)
-  //
-  //     if(cpu_percentage > CPU_PERCENTAGE_CRIT)
-  //       console.log('CPU_PERCENTAGE_CRIT', cpu_percentage)
-  //
-  //     else if(cpu_percentage > CPU_PERCENTAGE_WARN)
-  //       console.log('CPU_PERCENTAGE_WARN', cpu_percentage)
-  //
-  //     console.log('tabular[].%hosts.os.mounts alert', value, payload.extra)
-  //   }
-  // },
-  //
+  'tabular[].%hosts.os.mounts': {
+    '$payload': {
+        '$extra': {
+          'tabular.%hosts.os.minute.mounts': (value, payload) => {
+            let last_minute = new Date(Date.now() - (60 * 1000))
+
+            let result = undefined
+            Array.each(value, function(val){ // [timestamp, percentage]
+              if(val[0] >= last_minute)
+                result = val
+            })
+
+            console.log('tabular.%hosts.os.minute.mounts', value, result)
+            return { 'value': result, 'property': payload.property }
+          }
+        },
+    },
+    '$callback': (value, payload) => {
+      // // let last_minute = new Date(Date.now() - (60 * 1000))
+      // let host = payload.property.split('.')[1]
+      //
+      // // let last_hour_cpu_percentage = 0
+      // let last_minute_cpu_percentage = 0
+      // let cpu_percentage = value[0][1]//only one val (0), with [timestamp, percentage] format
+      //
+      // /**
+      // * last minute cpu_percentage for this host
+      // **/
+      // Array.each(payload.extra, function(extra){//get hour.cpu_percentage from matching host
+      //   if(extra.property){
+      //     let extra_host = extra.property.split('.')[1]
+      //
+      //     if(extra_host == host && extra.value.length > 0) //extra.value = [timestamp,percentage]
+      //       last_minute_cpu_percentage = extra.value[1]
+      //   }
+      // })
+
+
+
+      // if(cpu_percentage > (last_minute_cpu_percentage + CPU_PERCENTAGE_THRESHOLD))
+      //   console.log('CPU_PERCENTAGE_THRESHOLD', last_minute_cpu_percentage, cpu_percentage)
+      //
+      // if(cpu_percentage > CPU_PERCENTAGE_CRIT)
+      //   console.log('CPU_PERCENTAGE_CRIT', cpu_percentage)
+      //
+      // else if(cpu_percentage > CPU_PERCENTAGE_WARN)
+      //   console.log('CPU_PERCENTAGE_WARN', cpu_percentage)
+
+      console.log('tabular[].%hosts.os.mounts alert', value, payload.extra)
+    }
+  },
+
   // 'data[].%hosts.os.networkInterfaces': (value, payload) => {
   //   //console.log('data os.networkInterfaces alert', value[0].value.lo, payload)
   // },

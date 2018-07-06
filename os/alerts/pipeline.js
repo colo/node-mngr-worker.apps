@@ -1,3 +1,6 @@
+var debug = require('debug')('pipeline:os-alerts');
+var debug_internals = require('debug')('pipeline:os-alerts:Internals');
+
 'use stric'
 
 const path = require('path')
@@ -320,12 +323,17 @@ module.exports = {
 		function(doc, opts, next, pipeline){
       let extracted = {}
 
-      if(doc[0].doc && doc[0].doc.metadata.path != 'os.historical'){
+      if(doc[0].doc && doc[0].doc.metadata.path.indexOf('historical') < 0 ){
         extracted = Object.clone(extract_data_os(doc))
-        extracted.path = extracted.path.split('/')
+
 
         if(!pipeline.inputs[1].conn_pollers[0].historical.hosts[extracted.host])
           pipeline.inputs[1].conn_pollers[0].historical.hosts[extracted.host] = 1
+
+        if(!pipeline.inputs[1].conn_pollers[0].historical.paths.contains(extracted.path.replace('/', '.')))
+          pipeline.inputs[1].conn_pollers[0].historical.paths.push(extracted.path.replace('/', '.'))
+
+        extracted.path = extracted.path.split('/')
 
         // process_os_doc(doc, opts, next, pipeline)
 
@@ -633,7 +641,7 @@ module.exports = {
       // // Object.merge(expanded_alerts, _alerts)
 
       // console.log('ALL alerts', all_alerts.tabular[0]['%hosts'].os.loadavg['$payload'])
-      // console.log('ALL alerts', doc.data.elk.os.hour)
+      debug_internals('ALL alerts %O', doc.data.elk)
 
       let original_doc = doc//needed to recurse $payload
 
