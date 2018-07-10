@@ -9,16 +9,16 @@ module.exports = function(doc, opts, next){
 
 	var ss = require('simple-statistics');
 
-	debug_internals('os-hour-stats filter doc %o', doc);
-	debug_internals('os-hour-stats filter length %o', doc.length);
-	//debug_internals('os-hour-stats filter->next %o', next);
+	//debug_internals('os-hour-stats filter doc %o', doc);
+	//debug_internals('os-hour-stats filter length %o', doc.length);
+	////debug_internals('os-hour-stats filter->next %o', next);
 
 	if(
 			typeof(doc) == 'array'
 			|| doc instanceof Array
 			|| Array.isArray(doc)
-			&& doc.length > 0 && doc[0].doc && doc[0].doc != null
-			&& doc[doc.length - 1] && doc[doc.length - 1].doc && doc[doc.length - 1].doc != null
+			&& doc.length > 0 && doc[0].doc && doc[0].doc !== null
+			&& doc[doc.length - 1] && doc[doc.length - 1].doc && doc[doc.length - 1].doc !== null
 		){
 		let first = doc[0].doc.metadata.timestamp;
 		let last = doc[doc.length - 1].doc.metadata.timestamp;
@@ -31,7 +31,7 @@ module.exports = function(doc, opts, next){
 			let path = row.key[0];
 			let host = row.key[1];
 
-			//debug_internals('os-hour-stats filter row %s - %o', host, data);
+			////debug_internals('os-hour-stats filter row %s - %o', host, data);
 
 			if(!values[host]) values[host] = {};
 
@@ -72,8 +72,26 @@ module.exports = function(doc, opts, next){
 
 						});//iterate on each core
 					}
+					else if(key == 'networkInterfaces' ){
+						Object.each(value, function(iface_value, iface){
+							if(!values[host][path][key][iface]) values[host][path][key][iface] = {}
+
+							Object.each(iface_value, function(prop_value, prop){
+								if(!values[host][path][key][iface][prop]) values[host][path][key][iface][prop] = {}
+
+								Object.each(prop_value, function(status_value, status){
+									if(!values[host][path][key][iface][prop][status]) values[host][path][key][iface][prop][status] = {}
+
+									values[host][path][key][iface][prop][status][timestamp] = status_value['mean']
+
+								})
+
+							})
+
+						})
+					}
 					else if(!value['mean']){//os.blockdevices / os.mounts...
-						debug_internals('NO MEAN %s %s', path, key);
+						//debug_internals('NO MEAN %s %s', path, key);
 
 						Object.each(value, function(internal_value, internal_key){
 							if(!values[host][path][key][internal_key]) values[host][path][key][internal_key] = {}
@@ -92,7 +110,7 @@ module.exports = function(doc, opts, next){
 			});
 		});
 
-		debug_internals('values %O', values);
+		//debug_internals('values %O', values);
 		// throw new Error()
 
 		Object.each(values, function(host_data, host){
@@ -102,7 +120,7 @@ module.exports = function(doc, opts, next){
 
 				Object.each(data, function(value, key){
 
-					debug_internals('os-hour-stats filter value %O %s', value, path);
+					//debug_internals('os-hour-stats filter value %O %s', value, path);
 
 					// throw new Error()
 
@@ -158,16 +176,53 @@ module.exports = function(doc, opts, next){
 						};
 					}
 					// else if (path.indexOf('os.mounts') > -1 || path.indexOf('os.blockdevices') > -1) {
-					// 	debug_internals('os-hour-stats filter value %O', value);
+					// 	//debug_internals('os-hour-stats filter value %O', value);
 					// 	throw new Error()
 					// }
+					else if(key == 'networkInterfaces' ){
+						debug_internals('networkInterfaces %O', value);
+
+						let networkInterfaces = {}
+						Object.each(value, function(iface_data, iface){
+							if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
+
+							Object.each(iface_data, function(prop_data, prop){
+								if(!networkInterfaces[iface][prop]) networkInterfaces[iface][prop] = {}
+
+								Object.each(prop_data, function(status_data, status){
+									if(!networkInterfaces[iface][prop][status]) networkInterfaces[iface][prop][status] = {}
+
+									let data_values = Object.values(status_data);
+									let min = ss.min(data_values);
+									let max = ss.max(data_values);
+
+									let data = {
+										samples: status_data,
+										min : min,
+										max : max,
+										mean : ss.mean(data_values),
+										median : ss.median(data_values),
+										mode : ss.mode(data_values),
+										range: max - min,
+									};
+
+									networkInterfaces[iface][prop][status] = data
+
+								})
+							})
+						})
+
+						new_doc['data'][key] = Object.clone(networkInterfaces)
+
+
+					}
 					else{
 						let num_key = Object.keys(value)[0] * 1
 
 						if(isNaN(num_key)){//compex Object lie blockdevices (key is not timestamp)
 							// let obj = {}
 
-							debug_internals('os-hour-stats NOT num_key %o', value);
+							//debug_internals('os-hour-stats NOT num_key %o', value);
 
 							// Object.each(value, function(data, prop){
 							// 	Object.each(data, function(sample, timestamp){
@@ -245,7 +300,7 @@ module.exports = function(doc, opts, next){
 				});//each->data
 
 			})//each->host_data
-			// debug_internals('os-hour-stats filter value %o', new_doc);
+			// //debug_internals('os-hour-stats filter value %o', new_doc);
 
 			//throw new Error();
 			next(new_doc, opts);

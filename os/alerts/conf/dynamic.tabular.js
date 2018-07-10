@@ -6,7 +6,7 @@ module.exports = {
   whitelist: undefined,
   rules: {
     "loadavg": Object.merge(Object.clone(DefaultTabular),{
-      match: /os\.loadavg$/,
+      match: /^.*os\.loadavg$/,
       watch: {
         merge: true,
         transform: function(values){
@@ -92,117 +92,8 @@ module.exports = {
 
 
     }),
-    "cpus_historical_percentage": Object.merge(Object.clone(DefaultTabular),{
-      name: function(name, chart, stats){
-        // console.log('NAME', name)
-        // return vm.host+'_os.cpus_times'
-        return name+'_percentage'
-      },
-      match: /^.*os\..+\.cpus$/,
-      /**
-      * @var: save prev cpu data, need to calculate current cpu usage
-      **/
-      prev: {idle: 0, total: 0, timestamp: 0, value: 0 },
-      /** **/
-      watch: {
-        /**
-        * @array allows only 3 leves deep, for anything more coplex used "managed"
-        **/
-        value: ['times', /^[a-zA-Z0-9_]+$/, 'median'],
-        // exclude: /samples/,
-        // exclude: /range|mode/,
-
-        /**
-        * returns  a bigger array (values.length * samples.length) and add each property
-        */
-        transform: function(values, caller, chart){
-          // console.log('cpus_minute_percentage transform: ', values)
-
-
-          let transformed = []
-          // let prev = {idle: 0, total: 0, timestamp: 0 },
-          Array.each(values, function(val, index){
-            let transform = {timestamp: val.timestamp, value: 0 }
-            let current = {idle: 0, total: 0, timestamp: val.timestamp }
-
-            if(current.timestamp > chart.prev.timestamp){
-              // if(index == 0){
-              Object.each(val.value, function(stat, key){
-                key = key.replace('times.', '').replace('.median', '')
-
-                if(key == 'idle')
-                  current.idle += stat
-
-                  current.total += stat
-              })
-
-
-              let diff_time = current.timestamp - chart.prev.timestamp
-              let diff_total = current.total - chart.prev.total;
-              let diff_idle = current.idle - chart.prev.idle;
-
-              // console.log('transform: ', current, chart.prev)
-
-              //algorithm -> https://github.com/pcolby/scripts/blob/master/cpu.sh
-              let percentage =  (diff_time * (diff_total - diff_idle) / diff_total ) / (diff_time * 0.01)
-
-              // if(percentage > 100){
-              //   //console.log('cpu transform: ', diff_time, diff_total, diff_idle)
-              // }
-
-              transform.value = (percentage > 100) ? 100 : percentage
-
-
-              chart.prev = Object.clone(current)
-              chart.prev.value = percentage
-
-
-            }
-            else{
-              transform.timestamp = chart.prev.timestamp
-              transform.value = chart.prev.value
-            }
-
-            transformed.push(transform)
-            // console.log('KEY', transform)
-
-          })
-
-
-          // if(chart.prev.timestamp != current.timestamp){
-          return transformed
-
-
-        }
-      },
-
-    }),
-    "uptime_historical": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\..+\.uptime$/,
-      watch: {
-        // value: 'median',
-        exclude: /samples/
-      },
-
-    }),
-    "freemem_historical": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\..+\.freemem$/,
-      watch: {
-        value: 'median',
-        // exclude: /samples/
-      },
-
-    }),
-    "loadavg_historical": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\..+\.loadavg$/,
-      watch: {
-        value: 'median',
-        // exclude: /samples/
-      },
-
-    }),
     "blockdevices_stats": Object.merge(Object.clone(DefaultTabular),{
-      match: /^os\.blockdevices.*$/,
+      match: /^.*os\.blockdevices\.([a-zA-Z0-9_]*)/,
       /**
       * @var: save prev cpu data, need to calculate current cpu usage
       **/
@@ -244,34 +135,6 @@ module.exports = {
       }
 
     }),
-    "blockdevices_historical": Object.merge(Object.clone(DefaultTabular),{
-      match: /^.*os\..+\.blockdevices$/,
-      watch: {
-        // exclude: /samples/,
-      //   // // exclude: /range|mode/,
-        value: [/^[a-zA-Z0-9_]+$/, 'median'],
-
-        // transform: function(values){
-        //   // console.log('transform minute.blockdevices: ', values)
-        //   let transformed = []
-        //
-        //   Array.each(values, function(val, index){
-        //     let transform = { timestamp: val.timestamp, value: {} }
-        //     Object.each(val.value, function(value, prop){
-        //       prop = prop.replace('.median', '')
-        //       transform.value[prop] = value * 1
-        //     })
-        //     transformed.push(transform)
-        //   })
-        //
-        //   // console.log('transform minute.blockdevices: ', transformed)
-        //
-        //   return transformed
-        //   // return values
-        // }
-      },
-
-    }),
     "mounts_percentage": Object.merge(Object.clone(DefaultTabular),{
       match: /os\.mounts\.(0|[1-9][0-9]*)$/,
       watch: {
@@ -289,7 +152,12 @@ module.exports = {
 
     }),
     "networkInterfaces": Object.merge(Object.clone(DefaultTabular), {
-      match: /os\.networkInterfaces/,
+      // name: function(name, chart, stats){
+      //   console.log('NAME', name)
+      //   // return vm.host+'_os.cpus_times'
+      //   return name
+      // },
+      match: /^.*os\.networkInterfaces$/,
       /**
       * @var: save prev cpu data, need to calculate current cpu usage
       **/
@@ -453,5 +321,218 @@ module.exports = {
       }
 
     }),
+    /**
+    * historical
+    **/
+    "cpus_historical_percentage": Object.merge(Object.clone(DefaultTabular),{
+      name: function(name, chart, stats){
+        // console.log('NAME', name)
+        // return vm.host+'_os.cpus_times'
+        return name+'_percentage'
+      },
+      match: /^.*os\..+\.cpus$/,
+      /**
+      * @var: save prev cpu data, need to calculate current cpu usage
+      **/
+      prev: {idle: 0, total: 0, timestamp: 0, value: 0 },
+      /** **/
+      watch: {
+        /**
+        * @array allows only 3 leves deep, for anything more coplex used "managed"
+        **/
+        value: ['times', /^[a-zA-Z0-9_]+$/, 'median'],
+        // exclude: /samples/,
+        // exclude: /range|mode/,
+
+        /**
+        * returns  a bigger array (values.length * samples.length) and add each property
+        */
+        transform: function(values, caller, chart){
+          // console.log('cpus_minute_percentage transform: ', values)
+
+
+          let transformed = []
+          // let prev = {idle: 0, total: 0, timestamp: 0 },
+          Array.each(values, function(val, index){
+            let transform = {timestamp: val.timestamp, value: 0 }
+            let current = {idle: 0, total: 0, timestamp: val.timestamp }
+
+            if(current.timestamp > chart.prev.timestamp){
+              // if(index == 0){
+              Object.each(val.value, function(stat, key){
+                key = key.replace('times.', '').replace('.median', '')
+
+                if(key == 'idle')
+                  current.idle += stat
+
+                  current.total += stat
+              })
+
+
+              let diff_time = current.timestamp - chart.prev.timestamp
+              let diff_total = current.total - chart.prev.total;
+              let diff_idle = current.idle - chart.prev.idle;
+
+              // console.log('transform: ', current, chart.prev)
+
+              //algorithm -> https://github.com/pcolby/scripts/blob/master/cpu.sh
+              let percentage =  (diff_time * (diff_total - diff_idle) / diff_total ) / (diff_time * 0.01)
+
+              // if(percentage > 100){
+              //   //console.log('cpu transform: ', diff_time, diff_total, diff_idle)
+              // }
+
+              transform.value = (percentage > 100) ? 100 : percentage
+
+
+              chart.prev = Object.clone(current)
+              chart.prev.value = percentage
+
+
+            }
+            else{
+              transform.timestamp = chart.prev.timestamp
+              transform.value = chart.prev.value
+            }
+
+            transformed.push(transform)
+            // console.log('KEY', transform)
+
+          })
+
+
+          // if(chart.prev.timestamp != current.timestamp){
+          return transformed
+
+
+        }
+      },
+
+    }),
+    "uptime_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.uptime$/,
+      watch: {
+        // value: 'median',
+        exclude: /samples/
+      },
+
+    }),
+    "freemem_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.freemem$/,
+      watch: {
+        value: 'median',
+        // exclude: /samples/
+      },
+
+    }),
+    "loadavg_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.loadavg$/,
+      watch: {
+        value: 'median',
+        // exclude: /samples/
+      },
+
+    }),
+    "mounts_historical_percentage": Object.merge(Object.clone(DefaultTabular),{
+      // name: function(name, chart, stats){
+      //   console.log('NAME', name)
+      //   // return vm.host+'_os.cpus_times'
+      //   return name
+      // },
+      match: /^.*os\..+\.mounts\.([a-zA-Z0-9_]*)$/,
+      watch: {
+        // merge: true,
+        // filters: [{
+        //   type: /ext.*/
+        // }],
+        value: ['percentage', 'median'],
+        transform: function(values, caller, chart){
+          // console.log('mounts_percentage transform: ', values)
+          return values
+        }
+      },
+
+    }),
+    "blockdevices_historical": Object.merge(Object.clone(DefaultTabular),{
+      match: /^.*os\..+\.blockdevices\.([a-zA-Z0-9_]*)/,
+      watch: {
+        // exclude: /samples/,
+      //   // // exclude: /range|mode/,
+        value: [/^[a-zA-Z0-9_]+$/, 'median'],
+
+        // transform: function(values){
+        //   console.log('transform blockdevices_historical: ', values)
+        //   // let transformed = []
+        //   //
+        //   // Array.each(values, function(val, index){
+        //   //   let transform = { timestamp: val.timestamp, value: {} }
+        //   //   Object.each(val.value, function(value, prop){
+        //   //     prop = prop.replace('.median', '')
+        //   //     transform.value[prop] = value * 1
+        //   //   })
+        //   //   transformed.push(transform)
+        //   // })
+        //   //
+        //   // // console.log('transform minute.blockdevices: ', transformed)
+        //   //
+        //   // return transformed
+        //   return values
+        // }
+      },
+
+    }),
+    "networkInterfaces_historical": Object.merge(Object.clone(DefaultTabular),{
+      // name: function(name, chart, stats){
+      //   console.log('NAME', name)
+      //   // return vm.host+'_os.cpus_times'
+      //   return name
+      // },
+      match: /^.*os\..+\.networkInterfaces/,
+      watch: {
+        // exclude: /samples/,
+      //   // // exclude: /range|mode/,
+        value: [/^[a-zA-Z0-9_]+$/, /^[a-zA-Z0-9_]+$/, /recived|transmited/, 'median'],
+
+        // transform: function(values){
+        //   // console.log('transform networkInterfaces_historical: ', values)
+        //   let transformed = []
+        //
+        //   Array.each(values, function(val, index){
+        //     let transform = { timestamp: val.timestamp, value: {} }
+        //
+        //     Object.each(val.value, function(value, prop){
+        //       prop = prop.replace('.median', '')
+        //       // let keys = prop.split('.')
+        //       //
+        //       // let obj = transform.value
+        //       //
+        //       // Array.each(keys, function(key, index){
+        //       //   // console.log('transform networkInterfaces_historical: ', obj)
+        //       //
+        //       //   if(index == keys.length -1){
+        //       //     obj[key] = value * 1
+        //       //   }
+        //       //   else{
+        //       //     if(!obj[key]) obj[key] = {}
+        //       //
+        //       //     obj = obj[key]
+        //       //   }
+        //       //
+        //       // })
+        //
+        //       transform.value[prop] = value * 1
+        //     })
+        //     transformed.push(transform)
+        //   })
+        //
+        //   // console.log('transform networkInterfaces_historical: ', transformed)
+        //
+        //   return transformed
+        //   // return values
+        // }
+      },
+
+    }),
+
   }
 }
