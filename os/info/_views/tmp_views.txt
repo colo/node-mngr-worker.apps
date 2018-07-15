@@ -1,0 +1,7 @@
+function (doc) {
+
+if(doc.metadata.type && doc.metadata.type == 'minute'){
+	emit([doc.metadata.path, doc.metadata.host, doc.metadata.type], doc._rev);
+}
+		
+}

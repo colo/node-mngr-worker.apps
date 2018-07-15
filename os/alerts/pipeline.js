@@ -1,6 +1,8 @@
 var debug = require('debug')('pipeline:os-alerts');
 var debug_internals = require('debug')('pipeline:os-alerts:Internals');
 
+// var sanitize_filter = require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
+
 'use stric'
 
 const path = require('path')
@@ -641,7 +643,8 @@ module.exports = {
       // // Object.merge(expanded_alerts, _alerts)
 
       // console.log('ALL alerts', all_alerts.tabular[0]['%hosts'].os.loadavg['$payload'])
-      debug_internals('ALL alerts %O', doc.data.elk)
+      if(doc.data && doc.data.colo && doc.data.colo.os && doc.data.colo.os.procs)
+        debug_internals('ALL alerts %O', doc.data.colo.os.procs)
 
       let original_doc = doc//needed to recurse $payload
 
@@ -788,12 +791,13 @@ module.exports = {
       // recurse_alerts(expanded_alerts, doc, null)
       // recurse_alerts(_alerts, doc, null)
     },
-    sanitize = require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
+    require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
+
 	],
 	output: [
-    function(doc){
-      //console.log('os alerts output',JSON.decode(doc))
-    },
+    // function(doc){
+    //   //console.log('os alerts output',JSON.decode(doc))
+    // },
     //require('./snippets/output.stdout.template'),
     // {
     // 	cradle: {
