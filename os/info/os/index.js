@@ -80,33 +80,44 @@ module.exports = new Class({
 		else{
 			////console.log('success');
 
-			if(req.uri != ''){
-				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), JSON.decode(body));//capitalize first letter
-			}
-			else{
-				this.fireEvent('onGet', JSON.decode(body));
-			}
+      try{
+        let decoded_body = {}
+        decoded_body = JSON.decode(body)
 
-			//this.fireEvent(this.ON_DOC, JSON.decode(body));
+        if(req.uri != ''){
+  				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), decoded_body);//capitalize first letter
+  			}
+  			else{
+  				this.fireEvent('onGet', );
+  			}
 
-			if(this.options.requests.current.type == 'once'){
-				this.fireEvent(this.ON_ONCE_DOC, JSON.decode(body));
-			}
-			else{
-				var original = JSON.decode(body);
-				var doc = {};
+  			//this.fireEvent(this.ON_DOC, JSON.decode(body));
 
-				doc.loadavg = original.loadavg;
-				doc.uptime = original.uptime;
-				doc.freemem = original.freemem;
-				doc.totalmem = original.totalmem;
-				doc.cpus = original.cpus;
-				doc.networkInterfaces = original.networkInterfaces;
+  			if(this.options.requests.current.type == 'once'){
+  				this.fireEvent(this.ON_ONCE_DOC, decoded_body);
+  			}
+  			else{
+  				// var original = JSON.decode(body);
+  				var doc = {};
 
-				this.fireEvent(this.ON_PERIODICAL_DOC, doc);
+  				doc.loadavg = decoded_body.loadavg;
+  				doc.uptime = decoded_body.uptime;
+  				doc.freemem = decoded_body.freemem;
+  				doc.totalmem = decoded_body.totalmem;
+  				doc.cpus = decoded_body.cpus;
+  				doc.networkInterfaces = decoded_body.networkInterfaces;
 
-				////console.log('STATUS');
-			}
+  				this.fireEvent(this.ON_PERIODICAL_DOC, doc);
+
+  				////console.log('STATUS');
+  			}
+
+      }
+      catch(e){
+        console.log(e)
+      }
+
+
 
 
 		}

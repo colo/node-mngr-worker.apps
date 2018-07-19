@@ -260,7 +260,7 @@ module.exports = new Class({
 
 					}.bind(this));
 
-					debug_internals('HOSTs %o', this.paths);
+					debug_internals('PATHs %o', this.paths);
 				}
 			}
       // else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0] == "os.alerts"){//_get_last_stat

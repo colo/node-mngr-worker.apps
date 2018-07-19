@@ -1,15 +1,75 @@
 var debug = require('debug')('filter:os-stats');
 var debug_internals = require('debug')('filter:os-stats:Internals');
+var ss = require('simple-statistics');
 
 os_mounts_type_filter = /ext.*/
+
+// var lzstring_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzstring.decompress'))
+// var decompress = require('lz-string').decompress
+// var decompress = require('lzutf8').decompress
+// var decompress = require('zipson').parse;
+
+var value_to_data = function(value){
+
+	let obj = {}
+
+	/**
+	* may include keys starting with '_' (let's call'em hidden keys),
+	* wich are not processed for stats
+	*/
+
+	Object.each(value, function(sample, timestamp){
+		Object.each(sample, function(val, prop){
+
+			if(prop.indexOf('_') != 0){
+				if(!obj[prop]) obj[prop] = {};
+				obj[prop][timestamp] = val
+			}
+
+		});
+	});
+
+	let obj_data = {}
+	Object.each(obj, function(val, prop){//user,nice..etc
+		let data_values = Object.values(val);
+		let min = ss.min(data_values);
+		let max = ss.max(data_values);
+
+		let data = {
+			samples: val,
+			min : min,
+			max : max,
+			mean : ss.mean(data_values),
+			median : ss.median(data_values),
+			mode : ss.mode(data_values),
+			range: max - min,
+		};
+
+		obj_data[prop] = data;
+	});
+
+	/**
+	* add the "hidden" keys
+	*/
+	Object.each(value, function(sample, timestamp){
+		Object.each(sample, function(val, prop){
+
+			if(prop.indexOf('_') == 0){
+				if(!obj_data[prop]) obj_data[prop] = val
+			}
+
+		});
+	});
+
+	return obj_data
+}
+
 
 /**
  * recives an array of OS docs and does some statictics
  *
  **/
 module.exports = function(doc, opts, next){
-
-	var ss = require('simple-statistics');
 
 	// //debug_internals('os-stats filter doc %o', doc);
 	// //debug_internals('os-stats filter length %o', doc.length);
@@ -29,7 +89,11 @@ module.exports = function(doc, opts, next){
 			let networkInterfaces = {} //temp obj to save data
 
 			Array.each(doc, function(d){
-				let data = d.doc.data;
+				// let data = JSON.decode(decompress(d.doc.data, {inputEncoding: "Base64"}))
+				// let data = decompress(d.doc.data)
+				// debug_internals('decompressed ', data)
+				let data = d.doc.data
+
 				let timestamp = d.doc.metadata.timestamp;
 				let path = d.key[0];
 				let host = d.key[1];
@@ -142,6 +206,58 @@ module.exports = function(doc, opts, next){
 
 
 						}
+						else if (path == 'os.procs') {
+							// delete values[host][path][key]
+
+							if(key == 'pids'){//stats only for 'pids' key...'uid' sorted is avoided
+								Object.each(value, function(proc, pid){
+
+									let prop = pid+':'+proc['ppid']+':'+proc['command'][0] //pid + ppid + command
+
+									if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
+
+									let data = {
+										// '_pid': proc['pid'],
+										// '_ppid': proc['ppid'],
+										'_command': proc['command'],
+										'%cpu': proc['%cpu'],
+										'%mem': proc['%mem']
+										// 'time':
+									}
+
+									values[host][path][key][prop][timestamp] = data
+
+								})
+							}
+							else{
+								Object.each(value, function(data, uid){
+									if(!values[host][path][key][uid]) values[host][path][key][uid] = {}
+									values[host][path][key][uid][timestamp] = data
+								})
+
+							}
+
+
+
+
+							// if(!values[host][path+'.uid']) values[host][path+'.uid'] = {}
+							// if(!values[host][path+'.uid'][value['uid']]) values[host][path+'.uid'][value['uid']] = {}
+              //
+							// let uid_data = {
+							// 	'%cpu': value['%cpu'],
+							// 	'%mem': value['%mem']
+							// 	// 'time':
+							// }
+              //
+							// values[host][path+'.uid'][value['uid']][timestamp] = uid_data
+
+							// debug_internals('procs %o',values)
+						}
+						// else if (path == 'os.procs:uid') {
+						// 	// delete values[host][path][key]
+            //
+						// 	debug_internals('procs:uid %o',value)
+						// }
 						else{
 
 							// values[host][path][key].push(value);
@@ -268,7 +384,7 @@ module.exports = function(doc, opts, next){
 							};
 						}
 						else if(key == 'networkInterfaces' ){
-							debug_internals('networkInterfaces %o',value)
+							// debug_internals('networkInterfaces %o',value)
 							let networkInterfaces = {}
 							Object.each(value, function(iface_data, iface){
 								if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
@@ -302,44 +418,35 @@ module.exports = function(doc, opts, next){
 							new_doc['data'][key] = Object.clone(networkInterfaces)
 
 						}
-						else if (path == 'os.mounts' || path == 'os.blockdevices') {
+						else if (path == 'os.procs'){
 
-							let mount = {}
+							// debug_internals('os.procs data %s %o', key, value)
+							Object.each(value, function(val, prop){
 
-							// //console.log('os.mounts', value)
+								let obj_data = value_to_data(val)
 
-							Object.each(value, function(sample, timestamp){
-								Object.each(sample, function(val, prop){
-									if(!mount[prop]) mount[prop] = {};
-										// mount[prop] = [];
+								if(!new_doc['data'][key]) new_doc['data'][key] = {}
 
-									// mount[prop].push(val)
-									mount[prop][timestamp] = val
-								});
-							});
+								new_doc['data'][key][prop] = Object.clone(obj_data)
 
-							let mount_data = {}
-							Object.each(mount, function(val, key){//user,nice..etc
-								let data_values = Object.values(val);
-								let min = ss.min(data_values);
-								let max = ss.max(data_values);
+							})
 
-								let data = {
-									samples: val,
-									min : min,
-									max : max,
-									mean : ss.mean(data_values),
-									median : ss.median(data_values),
-									mode : ss.mode(data_values),
-									range: max - min,
-								};
+						}
+						else if (
+							path == 'os.mounts'
+							|| path == 'os.blockdevices'
+							|| path == 'os.procs'
+						) {
 
-								mount_data[key] = data;
-							});
+							// if (path == 'os.procs')
+							// 	debug_internals('os.procs data %s %o', key, value)
 
-							new_doc['data'][key] = Object.clone(mount_data)
+							let obj_data = value_to_data(value)
 
-							// //debug_internals('os.mounts data %s %o', key, new_doc['data'][key])
+							new_doc['data'][key] = Object.clone(obj_data)
+
+							// if (path == 'os.procs')
+	            	// debug_internals('os.procs data %s %o', key, new_doc['data'][key])
 						}
 						else{
 							let data_values = Object.values(value);

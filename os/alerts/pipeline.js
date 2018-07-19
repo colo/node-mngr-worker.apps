@@ -51,56 +51,61 @@ var initialize_all_charts = function(val){
 **/
 var parse_chart_from_stat = function (stat, name){
 
-  /**
-  * create chart automatically if it's not blacklisted or is whitelisted
-  **/
-  if(
-    (
-      ( dynamic_blacklist
-      && dynamic_blacklist.test(name) == false )
-    || ( dynamic_whitelist
-      && dynamic_whitelist.test(name) == true )
-    )
-    || (!dynamic_blacklist && !dynamic_whitelist)
-    && (
-      !static_charts
-      || Object.keys(static_charts).contains(name) == false
-    )
-  ){
-
-    if(Array.isArray(stat)){//it's stat
-
-        dynamic_charts = _get_dynamic_charts(name, _dynamic_charts)
-
-        if(dynamic_charts[name]){
-
-          Array.each(dynamic_charts[name], function(dynamic){
-
-            process_dynamic_chart(Object.clone(dynamic), name, stat)
-
-          }.bind(this))
-        }
-        else{
-
-          let chart = Object.clone(DefaultChart)
-
-          process_chart(
-            chart.pre_process(chart, name, stat),
-            name
-          )
-
-        }
 
 
-    }
-    else{//blockdevices.[key]
-      Object.each(stat, function(data, key){
-        parse_chart_from_stat(data, name+'.'+key)
-      }.bind(this))
+
+  if(Array.isArray(stat)){//it's stat
+
+    /**
+    * create chart automatically if it's not blacklisted or is whitelisted
+    **/
+    if(
+      (
+        ( dynamic_blacklist
+        && dynamic_blacklist.test(name) == false )
+      || ( dynamic_whitelist
+        && dynamic_whitelist.test(name) == true )
+      )
+      || (!dynamic_blacklist && !dynamic_whitelist)
+      && (
+        !static_charts
+        || Object.keys(static_charts).contains(name) == false
+      )
+    ){
+
+      // debug_internals('parse_chart_from_stat', name, dynamic_whitelist.test(name))
+
+      dynamic_charts = _get_dynamic_charts(name, _dynamic_charts)
+
+      if(dynamic_charts[name]){
+
+        Array.each(dynamic_charts[name], function(dynamic){
+
+          process_dynamic_chart(Object.clone(dynamic), name, stat)
+
+        }.bind(this))
+      }
+      else{
+
+        let chart = Object.clone(DefaultChart)
+
+        process_chart(
+          chart.pre_process(chart, name, stat),
+          name
+        )
+
+      }
 
     }
+  }
+  else{//blockdevices.[key]
+    Object.each(stat, function(data, key){
+      parse_chart_from_stat(data, name+'.'+key)
+    }.bind(this))
 
   }
+
+
 }
 
 var process_dynamic_chart = function (chart, name, stat){
@@ -255,6 +260,11 @@ let condensed_alerts = require('./conf/condensed')
 
 var alerts_payloads = {}
 
+// let compress_filter =  require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress')),
+//     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
+let decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
+
+
 module.exports = {
  input: [
   {
@@ -308,9 +318,9 @@ module.exports = {
         * it takes 60 secs to complete, so it makes historical each minute
         * @use node-cron to start on 0,20,40....or it would start messuring on a random timestamp
         * */
-       // periodical: function(dispatch){
-       // 	return cron.schedule('19,39,59 * * * * *', dispatch);//every 20 secs
-       // }
+       periodical: function(dispatch){
+       	return cron.schedule('* * * * *', dispatch);//every 20 secs
+       }
        // periodical: 20000,
        //periodical: 2000,//test
      },
@@ -319,6 +329,7 @@ module.exports = {
   },
  ],
  filters: [
+    decompress_filter,
      /**
      * code taken from os.stats.vue
      **/
@@ -643,8 +654,8 @@ module.exports = {
       // // Object.merge(expanded_alerts, _alerts)
 
       // console.log('ALL alerts', all_alerts.tabular[0]['%hosts'].os.loadavg['$payload'])
-      if(doc.data && doc.data.colo && doc.data.colo.os && doc.data.colo.os.procs)
-        debug_internals('ALL alerts %O', doc.data.colo.os.procs)
+      // if(doc.tabular && doc.tabular.colo && doc.data.tabular.os && doc.data.tabular.os.procs)
+        debug_internals('ALL alerts %O', doc.tabular)
 
       let original_doc = doc//needed to recurse $payload
 

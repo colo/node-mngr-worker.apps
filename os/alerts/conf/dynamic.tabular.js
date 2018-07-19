@@ -2,7 +2,7 @@ let DefaultTabular = require('./default.tabular')
 
 module.exports = {
   // blacklist: /totalmem/, //don't add charts automatically for this os[key]
-  blacklist: undefined,
+  blacklist: /[\s\S]*/,
   whitelist: undefined,
   rules: {
     "loadavg": Object.merge(Object.clone(DefaultTabular),{
@@ -321,6 +321,71 @@ module.exports = {
       }
 
     }),
+    // "procs": Object.merge(Object.clone(DefaultTabular),{
+    //   // name: function(name, chart, stats){
+    //   // //   // console.log('NAME', name)
+    //   //   return name.substring(0, name.lastIndexOf('.'))
+    //   // },
+    //   match: /os\.procs\.([0-9]+)$/,
+    //   // match: /os\.mounts\.(0|[1-9][0-9]*)$/,
+    //   watch: {
+    //     // exclude: /uid/,
+    //     // merge: true,
+    //     // filters: [{
+    //     //   type: /ext.*/
+    //     // }],
+    //     // value: /(0|[1-9][0-9]*)/,
+    //     transform: function(values, caller, chart){
+    //       // console.log('procs transform: ', values)
+    //
+    //       let transformed = []
+    //       Array.each(values, function(val, index){
+    //         let transform = {timestamp: val.timestamp, value: {} }
+    //
+    //         Object.each(val.value, function(data, prop){
+    //           if(prop == 'command'){
+    //             let command = ''
+    //             Array.each(data, function(comm) {
+    //               command += comm+' '
+    //             })
+    //             transform.value['command'] = command
+    //           }
+    //           else{
+    //             transform.value[prop] = data
+    //           }
+    //         })
+    //         transformed.push(transform)
+    //       })
+    //
+    //
+    //       // console.log('procs transform: ', transformed)
+    //       return transformed
+    //       // return values
+    //     }
+    //   },
+    //
+    // }),
+
+    // "procs_uid": Object.merge(Object.clone(DefaultTabular),{
+    //   name: function(name, chart, stats){
+    //     // console.log('NAME', name.substring(0, name.lastIndexOf('.')))
+    //     return name.substring(0, name.lastIndexOf('.'))
+    //   },
+    //   match: /os\.procs\.uid\.(0|[1-9][0-9]*)+/,
+    //   watch: {
+    //     // merge: true,
+    //     // filters: [{
+    //     //   type: /ext.*/
+    //     // }],
+    //     // value: /(0|[1-9][0-9]*)/,
+    //     transform: function(values, caller, chart){
+    //       console.log('procs.uid transform: ', values)
+    //
+    //       return values
+    //     }
+    //   },
+    //
+    // }),
     /**
     * historical
     **/
@@ -533,6 +598,52 @@ module.exports = {
       },
 
     }),
+    // "procs_historical": Object.merge(Object.clone(DefaultTabular),{
+    //   // name: function(name, chart, stats){
+    //   //   console.log('NAME', name)
+    //   // // // //   // return name.substring(0, name.lastIndexOf('.'))
+    //   // //   return name.substring(0, name.indexOf('.'))+'.os.minute.procs'
+    //   // },
+    //   // match: /^.*os\..+\.procs\.([0-9]+\.[0-9]+\.[a-zA-Z0-9_]+)$/,
+    //   match: /^.*os\..+\.procs/,
+    //   watch: {
+    //     // exclude: /uid/,
+    //     // merge: true,
+    //     // filters: [{
+    //     //   type: /ext.*/
+    //     // }],
+    //     // value: /(0|[1-9][0-9]*)/,
+    //     // value: [/^[a-zA-Z0-9_]+$/, /^\%[a-zA-Z0-9_]+$/, 'median'],
+    //     transform: function(values, caller, chart){
+    //       console.log('procs transform: ', values)
+    //
+    //       // let transformed = []
+    //       // Array.each(values, function(val, index){
+    //       //   let transform = {timestamp: val.timestamp, value: {} }
+    //       //
+    //       //   Object.each(val.value, function(data, prop){
+    //       //     if(prop == 'command'){
+    //       //       let command = ''
+    //       //       Array.each(data, function(comm) {
+    //       //         command += comm+' '
+    //       //       })
+    //       //       transform.value['command'] = command
+    //       //     }
+    //       //     else{
+    //       //       transform.value[prop] = data
+    //       //     }
+    //       //   })
+    //       //   transformed.push(transform)
+    //       // })
+    //       //
+    //       //
+    //       // // console.log('procs transform: ', transformed)
+    //       // return transformed
+    //       return values
+    //     }
+    //   },
+    //
+    // }),
 
   }
 }

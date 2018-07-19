@@ -1,13 +1,45 @@
 var debug = require('debug')('filter:os-hour-stats');
 var debug_internals = require('debug')('filter:os-hour-stats:Internals');
 
+var ss = require('simple-statistics');
+
+var value_to_data = function(value){
+
+	let obj_data = {}
+	Object.each(value, function(val, prop){
+		/**
+		* may include props starting with '_' (let's call'em hidden props),
+		* wich are not processed for stats
+		*/
+		if(prop.indexOf('_') != 0){
+			let data_values = Object.values(val);
+			let min = ss.min(data_values);
+			let max = ss.max(data_values);
+
+			let data = {
+				samples: val,
+				min : ss.min(data_values),
+				max : ss.max(data_values),
+				mean : ss.mean(data_values),
+				median : ss.median(data_values),
+				mode : ss.mode(data_values),
+				range: max - min,
+			};
+
+			obj_data[prop] = data;
+		}
+		else{//"hidden prop"
+			if(!obj_data[prop]) obj_data[prop] = val
+		}
+	})
+
+	return obj_data
+}
 /**
  * recives an array of OS docs and does some statictics on freemem
  *
  **/
 module.exports = function(doc, opts, next){
-
-	var ss = require('simple-statistics');
 
 	//debug_internals('os-hour-stats filter doc %o', doc);
 	//debug_internals('os-hour-stats filter length %o', doc.length);
@@ -91,12 +123,52 @@ module.exports = function(doc, opts, next){
 						})
 					}
 					else if(!value['mean']){//os.blockdevices / os.mounts...
-						//debug_internals('NO MEAN %s %s', path, key);
 
-						Object.each(value, function(internal_value, internal_key){
-							if(!values[host][path][key][internal_key]) values[host][path][key][internal_key] = {}
-								values[host][path][key][internal_key][timestamp] = internal_value['mean']
-						})
+						if(key == 'uids')
+							debug_internals('NO MEAN %s %s', path, key, timestamp);
+
+						var my_func = function(value, timestamp){
+							let data = {}
+							Object.each(value, function(internal_value, internal_key){
+								if(internal_key.indexOf('_') != 0){
+									if(!data[internal_key]) data[internal_key] = {}
+
+									data[internal_key][timestamp] = internal_value['mean']
+								}
+								else{
+									data[internal_key] = internal_value
+								}
+							})
+
+							return data
+						}
+
+						// Object.each(value, function(internal_value, internal_key){
+						// 	if(internal_key.indexOf('_') != 0){
+						// 		if(!values[host][path][key][internal_key]) values[host][path][key][internal_key] = {}
+						// 			values[host][path][key][internal_key][timestamp] = internal_value['mean']
+						// 	}
+						// 	else{
+						// 		values[host][path][key][internal_key] = internal_value
+						// 	}
+						// })
+						if (path.indexOf('os.procs') > -1 ){
+							Object.each(value, function(data, prop){
+								if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
+
+								values[host][path][key][prop] = Object.merge(
+									values[host][path][key][prop],
+									my_func(data, timestamp)
+								)
+							})
+						}
+						else{
+							values[host][path][key] = Object.merge(
+								values[host][path][key],
+								my_func(value, timestamp)
+							)
+						}
+
 					}
 					else{
 						//values[host][path][key].append(value['samples']);
@@ -180,7 +252,7 @@ module.exports = function(doc, opts, next){
 					// 	throw new Error()
 					// }
 					else if(key == 'networkInterfaces' ){
-						debug_internals('networkInterfaces %O', value);
+						// debug_internals('networkInterfaces %O', value);
 
 						let networkInterfaces = {}
 						Object.each(value, function(iface_data, iface){
@@ -216,43 +288,29 @@ module.exports = function(doc, opts, next){
 
 
 					}
+					else if (path.indexOf('os.procs') > -1 ){
+
+						// debug_internals('os.procs data %s %s %o', path, key, value)
+
+						Object.each(value, function(val, prop){
+
+							let obj_data = value_to_data(val)
+
+							if(!new_doc['data'][key]) new_doc['data'][key] = {}
+
+							new_doc['data'][key][prop] = Object.clone(obj_data)
+
+						})
+
+					}
 					else{
 						let num_key = Object.keys(value)[0] * 1
 
 						if(isNaN(num_key)){//compex Object lie blockdevices (key is not timestamp)
-							// let obj = {}
 
-							//debug_internals('os-hour-stats NOT num_key %o', value);
+							// debug_internals('os.procs data %s %o', path, key, value)
 
-							// Object.each(value, function(data, prop){
-							// 	Object.each(data, function(sample, timestamp){
-							// 		if(!obj[prop]) obj[prop] = {};
-							// 			// mount[prop] = [];
-              //
-							// 		// mount[prop].push(val)
-							// 		obj[prop][timestamp] = val
-							// 	});
-							// });
-
-							let obj_data = {}
-							Object.each(value, function(val, key){
-								let data_values = Object.values(val);
-								let min = ss.min(data_values);
-								let max = ss.max(data_values);
-
-								let data = {
-									samples: val,
-									min : ss.min(data_values),
-									max : ss.max(data_values),
-									mean : ss.mean(data_values),
-									median : ss.median(data_values),
-									mode : ss.mode(data_values),
-									range: max - min,
-								};
-
-								obj_data[key] = data;
-							});
-
+							let obj_data = value_to_data(value)
 							new_doc['data'][key] = Object.clone(obj_data)
 
 						}

@@ -279,11 +279,11 @@ module.exports = {
 
   /**
   * not in use
-  *
-  'data[].%hosts.os.cpus': (value, payload) => {
-    //console.log('data os.cpus alert', value, payload)
-  },
   **/
+  // 'data[].%hosts.os.cpus': (value, payload) => {
+  //   console.log('data os.cpus alert', value, payload)
+  // },
+  /***/
 
   // 'tabular[].%hosts.os.cpus_percentage': {
   //   '$payload': {
@@ -472,10 +472,129 @@ module.exports = {
   //
   //
 
-  'tabular[].%hosts.os.networkInterfaces': (value, payload) => {
-    // if(value.enp2s0)
-    debug_internals('tabular os.networkInterfaces alert', value.lo.bytes, payload)
+  // 'tabular[].%hosts.os.networkInterfaces': (value, payload) => {
+  //   // if(value.enp2s0)
+  //   debug_internals('tabular os.networkInterfaces alert', value.lo.bytes, payload)
+  // },
+
+  'data[].%hosts.os.procs': {
+
+    '$payload': {
+        '$extra': {
+          'data.%hosts.os.minute.procs': (value, payload) => {
+            let last_minute = new Date(Date.now() - (60 * 1000))
+
+            let result = {}
+            Object.each(value, function(proc, key){ // [{timestamp, percentage}]
+              if(proc[0].timestamp >= last_minute)
+                result[key] = proc[0].value
+            })
+
+            // console.log('data[].%hosts.os.minute.procs', result)
+            return { 'value': result, 'property': payload.property }
+          }
+        },
+    },
+
+    '$callback': (value, payload) => {
+      //
+      // let per_uid = {}
+      //
+      // Object.each(value, function(proc, index){
+      //   // debug_internals('data[].%hosts.os.procs alert', proc[0].value.uid)
+      //   if(!per_uid[proc[0].value.uid]) per_uid[proc[0].value.uid] = {count : 0}
+      //
+      //   Object.each(proc[0].value, function(val, prop){
+      //
+      //     if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+      //       if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
+      //
+      //       per_uid[proc[0].value.uid][prop] += val
+      //     }
+      //
+      //     if(!per_uid[proc[0].value.uid]['pids']) per_uid[proc[0].value.uid]['pids'] = []
+      //
+      //     per_uid[proc[0].value.uid]['pids'].push(proc[0].value.pid)
+      //
+      //   })
+      //
+      // })
+
+      debug_internals('data[].%hosts.os.procs alert',
+        value,
+        // per_uid,
+        payload
+      )
+    }
   },
+
+  // 'data[].%hosts.os.procs:uid': {
+  //
+  //   '$payload': {
+  //       '$extra': [
+  //         {
+  //           'data.%hosts.os.minute.procs': (value, payload) => {
+  //             let last_minute = new Date(Date.now() - (60 * 1000))
+  //
+  //             let result = {}
+  //             Object.each(value, function(proc, key){ // [{timestamp, percentage}]
+  //               if(proc[0].timestamp >= last_minute)
+  //                 result[key] = proc[0].value
+  //             })
+  //
+  //             // console.log('data[].%hosts.os.minute.procs', result)
+  //             return { 'value': result, 'property': payload.property }
+  //           }
+  //         },
+  //         {
+  //           'data.%hosts.os.minute.procs:uid': (value, payload) => {
+  //             let last_minute = new Date(Date.now() - (60 * 1000))
+  //
+  //             let result = {}
+  //             Object.each(value, function(proc, key){ // [{timestamp, percentage}]
+  //               if(proc[0].timestamp >= last_minute)
+  //                 result[key] = proc[0].value
+  //             })
+  //
+  //             // console.log('data[].%hosts.os.minute.procs:uid', result)
+  //             return { 'value': result, 'property': payload.property }
+  //           }
+  //         },
+  //     ]
+  //   },
+  //
+  //   '$callback': (value, payload) => {
+  //
+  //     let per_uid = {}
+  //
+  //     Object.each(value, function(proc, index){
+  //       // debug_internals('data[].%hosts.os.procs alert', proc[0].value.uid)
+  //       if(!per_uid[proc[0].value.uid]) per_uid[proc[0].value.uid] = {count : 0}
+  //
+  //       Object.each(proc[0].value, function(val, prop){
+  //
+  //         if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+  //           if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
+  //
+  //           per_uid[proc[0].value.uid][prop] += val
+  //         }
+  //
+  //         if(!per_uid[proc[0].value.uid]['pids']) per_uid[proc[0].value.uid]['pids'] = []
+  //
+  //         per_uid[proc[0].value.uid]['pids'].push(proc[0].value.pid)
+  //
+  //       })
+  //
+  //     })
+  //
+  //     debug_internals('data[].%hosts.os.procs:uid alert',
+  //       value,
+  //       // per_uid,
+  //       payload
+  //     )
+  //   }
+  // },
+
 
 /**
 * @minute
@@ -974,6 +1093,109 @@ module.exports = {
   //   }
   // },
 
+
+  'data[].%hosts.os.minute.procs': {
+
+    '$payload': {
+        '$extra': {
+          'data.%hosts.os.hour.procs': (value, payload) => {
+            let last_hour = new Date(Date.now() - (60 * 60 * 1000))
+
+            let result = {}
+            Object.each(value, function(proc, key){ // [{timestamp, percentage}]
+              if(proc[0].timestamp >= last_hour)
+                result[key] = proc[0].value
+            })
+
+            // console.log('data.%hosts.os.hour.procs', result)
+            return { 'value': value, 'property': payload.property }
+          }
+        },
+    },
+
+    '$callback': (value, payload) => {
+      //
+      // let per_uid = {}
+      //
+      // Object.each(value, function(proc, index){
+      //   // debug_internals('data[].%hosts.os.procs alert', proc[0].value.uid)
+      //   if(!per_uid[proc[0].value.uid]) per_uid[proc[0].value.uid] = {count : 0}
+      //
+      //   Object.each(proc[0].value, function(val, prop){
+      //
+      //     if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+      //       if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
+      //
+      //       per_uid[proc[0].value.uid][prop] += val
+      //     }
+      //
+      //     if(!per_uid[proc[0].value.uid]['pids']) per_uid[proc[0].value.uid]['pids'] = []
+      //
+      //     per_uid[proc[0].value.uid]['pids'].push(proc[0].value.pid)
+      //
+      //   })
+      //
+      // })
+
+      debug_internals('data[].%hosts.os.minute.procs alert',
+        // value,
+        // per_uid,
+        payload
+      )
+    }
+  },
+
+  // 'data[].%hosts.os.minute.procs:uid': {
+  //
+  //   '$payload': {
+  //       '$extra': {
+  //         'data.%hosts.os.hour.procs:uid': (value, payload) => {
+  //           let last_hour = new Date(Date.now() - (60 * 60 * 1000))
+  //
+  //           let result = {}
+  //           Object.each(value, function(proc, key){ // [{timestamp, percentage}]
+  //             if(proc[0].timestamp >= last_hour)
+  //               result[key] = proc[0].value
+  //           })
+  //
+  //           // console.log('data.%hosts.os.hour.procs', result)
+  //           return { 'value': value, 'property': payload.property }
+  //         }
+  //       },
+  //   },
+  //
+  //   '$callback': (value, payload) => {
+  //     //
+  //     // let per_uid = {}
+  //     //
+  //     // Object.each(value, function(proc, index){
+  //     //   // debug_internals('data[].%hosts.os.procs alert', proc[0].value.uid)
+  //     //   if(!per_uid[proc[0].value.uid]) per_uid[proc[0].value.uid] = {count : 0}
+  //     //
+  //     //   Object.each(proc[0].value, function(val, prop){
+  //     //
+  //     //     if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+  //     //       if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
+  //     //
+  //     //       per_uid[proc[0].value.uid][prop] += val
+  //     //     }
+  //     //
+  //     //     if(!per_uid[proc[0].value.uid]['pids']) per_uid[proc[0].value.uid]['pids'] = []
+  //     //
+  //     //     per_uid[proc[0].value.uid]['pids'].push(proc[0].value.pid)
+  //     //
+  //     //   })
+  //     //
+  //     // })
+  //
+  //     debug_internals('data[].%hosts.os.minute.procs:uid alert',
+  //       value,
+  //       // per_uid,
+  //       payload
+  //     )
+  //   }
+  // },
+
   /**
   * @hour
   **/
@@ -1243,5 +1465,13 @@ module.exports = {
   //   //   console.log('CPU_PERCENTAGE_HOUR_WARN', last_hour_cpu_percentage)
   //
   //   debug_internals('tabular os.hour.networkInterfaces alert %O %O', value, payload)
+  // },
+
+  'data[].%hosts.os.hour.procs': (value, payload) => {
+    console.log('data os.hour.procs alert', value, payload)
+  },
+
+  // 'data[].%hosts.os.hour.procs:uid': (value, payload) => {
+  //   console.log('data os.hour.procs alert', value, payload)
   // },
 }

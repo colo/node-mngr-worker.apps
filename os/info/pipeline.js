@@ -5,8 +5,13 @@ var debug_internals = require('debug')('filter:os:Internals');
 
 const path = require('path');
 
-var procs_filter = require('./filters/proc'),
-    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template'))
+let procs_filter = require('./filters/proc'),
+    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
+    compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
+
+    // zipson_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zipson'))
+    // lzutf8_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzutf8.compress'))
+    // lzstring_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzstring.compress'))
 
 module.exports = {
  input: [
@@ -34,18 +39,53 @@ module.exports = {
     function(doc, opts, next, pipeline){
       let { type, input, input_type, app } = opts
 
-      // let save = function(save_doc){
-      //   if(Array.isArray(save_doc)){
-      //     this.fireEvent(this.ON_SAVE_MULTIPLE_DOCS, [save_doc]);
-      //   }
-      //   else{
-      //     this.fireEvent(this.ON_SAVE_DOC, save_doc);
-      //   }
-      //   //this.fireEvent(this.ON_SAVE_DOC, save_doc);
-      // }.bind(pipeline)
-
       if(app.options.id == 'os.procs'){
-        procs_filter(doc, opts, sanitize_filter, pipeline)
+        procs_filter(
+          doc,
+          opts,
+          function(doc, opts, next, pipeline){
+            sanitize_filter(
+              doc,
+              opts,
+              // function(doc, opts, next, pipeline){
+              //   zipson_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              // function(doc, opts, next, pipeline){
+              //   lzutf8_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              // function(doc, opts, next, pipeline){
+              //   lzstring_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              function(doc, opts, next, pipeline){
+                compress_filter(
+                  doc,
+                  opts,
+                  pipeline.output.bind(pipeline),
+                  pipeline
+                )
+              },
+              // pipeline.output.bind(pipeline),
+              pipeline
+            )
+          },
+          // sanitize_filter,
+          pipeline
+        )
       }
       else{
         debug_internals('os doc', doc)
@@ -53,7 +93,39 @@ module.exports = {
         sanitize_filter(
           doc,
           opts,
-          pipeline.output.bind(pipeline),
+          // function(doc, opts, next, pipeline){
+          //   zipson_filter(
+          //     doc,
+          //     opts,
+          //     pipeline.output.bind(pipeline),
+          //     pipeline
+          //   )
+          // },
+          // function(doc, opts, next, pipeline){
+          //   lzutf8_filter(
+          //     doc,
+          //     opts,
+          //     pipeline.output.bind(pipeline),
+          //     pipeline
+          //   )
+          // },
+          // function(doc, opts, next, pipeline){
+          //   lzstring_filter(
+          //     doc,
+          //     opts,
+          //     pipeline.output.bind(pipeline),
+          //     pipeline
+          //   )
+          // },
+          function(doc, opts, next, pipeline){
+            compress_filter(
+              doc,
+              opts,
+              pipeline.output.bind(pipeline),
+              pipeline
+            )
+          },
+          // pipeline.output.bind(pipeline),
           pipeline
         )
       }

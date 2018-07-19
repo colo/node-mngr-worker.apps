@@ -4,6 +4,10 @@ const path = require('path');
 
 var cron = require('node-cron');
 
+let compress_filter =  require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress')),
+    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
+    decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
+
 module.exports = {
  input: [
 	{
@@ -30,19 +34,36 @@ module.exports = {
 				periodical: function(dispatch){
 					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
           return cron.schedule('19,39,59 * * * * *', dispatch);//every 20 secs
-				}
+				},
 				// periodical: 15000,
-				// periodical: 1000,//test
+				// periodical: 2000,//test
 			},
 
 		},
 	}
  ],
  filters: [
-		require('./filter'),
-		// require('./snippets/filter.sanitize.template'),
-    sanitize = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
-	],
+    decompress_filter,
+    require('./filter'),
+    function(doc, opts, next, pipeline){
+      sanitize_filter(
+        doc,
+        opts,
+        function(doc, opts, next, pipeline){
+          compress_filter(
+            doc,
+            opts,
+            pipeline.output.bind(pipeline),
+            pipeline
+          )
+        },
+        // pipeline.output.bind(pipeline),
+        pipeline
+      )
+    }
+    // sanitize_filter,
+    // compress_filter
+  ],
 	output: [
 		//require('./snippets/output.stdout.template'),
 		{
