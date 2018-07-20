@@ -276,7 +276,7 @@ module.exports = {
           host:'elk',
           //host:'127.0.0.1',
           port: 5984 ,
-          db: 'dashboard',
+          db: 'live',
           module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
           load: ['apps/os/alerts/current']
         }
@@ -306,7 +306,7 @@ module.exports = {
          host:'elk',
          //host:'127.0.0.1',
          port: 5984 ,
-         db: 'dashboard',
+         db: 'historical',
          module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
          load: ['apps/os/alerts/historical']
        }
@@ -319,7 +319,7 @@ module.exports = {
         * @use node-cron to start on 0,20,40....or it would start messuring on a random timestamp
         * */
        periodical: function(dispatch){
-       	return cron.schedule('* * * * *', dispatch);//every 20 secs
+       	return cron.schedule('* * * * *', dispatch);
        }
        // periodical: 20000,
        //periodical: 2000,//test

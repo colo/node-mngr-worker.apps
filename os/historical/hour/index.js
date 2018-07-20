@@ -12,7 +12,8 @@ module.exports = new Class({
   Extends: App,
 
   hosts: {},
-  blacklist_path: /historical/,
+  // blacklist_path: /historical/,
+  whitelist_path: /historical/,
   paths: [],
 
   periodicals: {},
@@ -68,7 +69,7 @@ module.exports = new Class({
 
   							if(value >= 0){
 
-  								debug_internals('fetch_history %s', host);
+  								debug_internals('fetch_history %s', host, path);
 
   								let cb = next.pass(
   									app.view({
@@ -76,10 +77,10 @@ module.exports = new Class({
   										// id: 'sort/by_type',
   										id: 'sort/by_path',
   										data: {
-  											// startkey: ["os.historical", host, "minute", value],
-  											// endkey: ["os.historical", host, "minute", Date.now()],
-                        startkey: ["historical."+path, host, "minute", value],
-  											endkey: ["historical."+path, host, "minute", Date.now()],
+  											// startkey: ["historical."+path, host, "minute", value],
+  											// endkey: ["historical."+path, host, "minute", Date.now()],
+                        startkey: [path, host, "minute", value],
+  											endkey: [path, host, "minute", Date.now()],
   											limit: limit,
   											//limit: 60, //60 docs = 1 minute of docs
   											inclusive_end: true,
@@ -120,12 +121,10 @@ module.exports = new Class({
   									uri: app.options.db,
   									id: 'sort/by_path',
   									data: {
-  										// startkey: ["hour", host, Date.now()],
-  										// endkey: ["hour", host, 0],
-  										// startkey: ["os.historical", host, "hour", Date.now()],
-  										// endkey: ["os.historical", host, "hour", 0],
-                      startkey: ['historical.'+path, host, "hour", Date.now()],
-  										endkey: ['historical.'+path, host, "hour", 0],
+  										// startkey: ['historical.'+path, host, "hour", Date.now()],
+  										// endkey: ['historical.'+path, host, "hour", 0],
+                      startkey: [path, host, "hour", Date.now()],
+  										endkey: [path, host, "hour", 0],
   										limit: 1,
   										descending: true,
   										inclusive_end: true,
@@ -232,10 +231,9 @@ module.exports = new Class({
 
 					Array.each(resp, function(doc){
 						debug_internals('Path %s', doc.key);
-						//this.hosts.push({name: doc.key, last: null});
 
-						// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
-            if(this.blacklist_path.test(doc.key) == false)
+            // if(this.blacklist_path.test(doc.key) == false)
+            if(this.whitelist_path.test(doc.key) == true)
               this.paths.push(doc.key)
 
 					}.bind(this));
@@ -253,14 +251,10 @@ module.exports = new Class({
 
 				//console.log(Object.getLength(resp));
 				if(Object.getLength(resp) == 0){//there are no historical for this host yet
-					// let host = info.options.data.startkey[1];
-					// this.hosts[host] = 0;
-          //
-					// debug_internals('No historical for host %o', host);
-					// debug_internals('HOSTs %o', this.hosts);
-					// //this._add_periodical(info.options.data.startkey[0], 0, Date.now());
+
           let host = info.options.data.startkey[1];
-          let path = info.options.data.startkey[0].replace('historical.', '');
+          // let path = info.options.data.startkey[0].replace('historical.', '');
+          let path = info.options.data.startkey[0]
 
           if(!this.hosts[host]) this.hosts[host] = {}
 
@@ -277,7 +271,8 @@ module.exports = new Class({
 					// this.hosts[host] = last;
 					// debug_internals('Hosts %o', this.hosts);
           let host = resp[0].doc.metadata.host;
-          let path = resp[0].doc.metadata.path.replace('historical.', '');
+          // let path = resp[0].doc.metadata.path.replace('historical.', '');
+          let path = resp[0].doc.metadata.path
 					let last = resp[0].doc.metadata.range.end + 1;
 
           if(!this.hosts[host]) this.hosts[host] = {}

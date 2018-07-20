@@ -19,7 +19,7 @@ module.exports = {
     				host:'elk',
     				//host:'127.0.0.1',
     				port: 5984 ,
-    				db: 'dashboard',
+    				db: 'historical',
     				module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
     				load: ['apps/os/historical/hour/']
     			}
@@ -30,11 +30,12 @@ module.exports = {
     			 * needs 3 runs to start analyzing from last historical (or from begining)
     			 * it takes 60 min to complete, so it makes historical each hour
     			 * */
-    			// periodical: 60000,//test
-    			// periodical: 10000,//test
-          periodical: function(dispatch){
-    				return cron.schedule('19,39,59 * * * *', dispatch);//every 20 min
-    			}
+            periodical: function(dispatch){
+            	return cron.schedule('*/20 * * * *', dispatch);//every 20 min
+            },
+            // periodical: 60000,//test
+            // periodical: 10000,//test
+
     		},
     	},
     }
@@ -69,7 +70,7 @@ module.exports = {
   					//host: '127.0.0.1',
   					host: 'elk',
   					port: 5984,
-  					db: 'dashboard',
+  					db: 'historical',
   					opts: {
   						cache: true,
   						raw: false,

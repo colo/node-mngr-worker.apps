@@ -19,7 +19,7 @@ module.exports = {
 					host:'elk',
 					//host:'127.0.0.1',
 					port: 5984 ,
-					db: 'dashboard',
+					db: 'live',
 					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
 					load: ['apps/os/historical/minute/']
 				}
@@ -33,7 +33,7 @@ module.exports = {
 				 * */
 				periodical: function(dispatch){
 					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-          return cron.schedule('19,39,59 * * * * *', dispatch);//every 20 secs
+          return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
 				},
 				// periodical: 15000,
 				// periodical: 2000,//test
@@ -74,7 +74,7 @@ module.exports = {
 						//host: '127.0.0.1',
 						host: 'elk',
 						port: 5984,
-						db: 'dashboard',
+						db: 'historical',
 						opts: {
 							cache: true,
 							raw: false,

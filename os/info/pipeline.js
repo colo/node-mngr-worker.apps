@@ -144,7 +144,7 @@ module.exports = {
 					{
 						host: 'elk',
 						port: 5984,
-						db: 'dashboard',
+						db: 'live',
 						opts: {
 							cache: true,
 							raw: false,

@@ -17,6 +17,7 @@ module.exports = new Class({
 
   options: {
 
+    historical_db : 'historical',
 		id: 'os.historical.minute',
 
 		requests : {
@@ -114,7 +115,8 @@ module.exports = new Class({
   							let cb = next.pass(
   								app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
   									// uri: 'historical',
-                    uri: app.options.db,
+                    // uri: app.options.db,
+                    uri: app.options.historical_db,
   									id: 'sort/by_path',
   									data: {
   										// startkey: ["minute", host, Date.now()],

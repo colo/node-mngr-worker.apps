@@ -1,12 +1,14 @@
+// const HOST = '127.0.0.1'
+const HOST = 'elk'
+const DATABASE = 'live'
+// const DATABASE = 'historical'
+
 var path = require('path');
     //jsonfile = require('jsonfile');
     //websql = require('pouchdb/extras/websql');
 
 var cradle = require('cradle-pouchdb-server');
 
-//db.info().then(function (info) {
-	//console.log(info);
-//})
 
 // create a design doc
 var ddoc = [
@@ -15,23 +17,6 @@ var ddoc = [
 		views: {
 			by_date: {
 				map: function (doc) {
-					//if (doc.metadata.type == 'once') {
-						//var id = doc._id.split('@');//get host.path | timestamp
-						//var host = doc.metadata.domain +'.'+doc.metadata.host;
-						//var date = parseInt(id[1]);
-						//var date = new Date();
-						//date.setTime(id[1]);
-
-						//var date_arr = [
-							//date.getFullYear(),
-							//date.getMonth() + 1,
-							//date.getDate(),
-							//date.getHours(),
-							//date.getMinutes(),
-							//date.getSeconds()
-						//];
-
-						//var host = doc.metadata.domain +'.'+doc.metadata.host;
 						var date = 0;
 
 						if(!doc.metadata.timestamp){
@@ -42,7 +27,6 @@ var ddoc = [
 							date = parseInt(doc.metadata.timestamp);
 						}
 
-						//emit([doc.metadata.type, date, host], null);
 						emit([date, doc.metadata.type, doc.metadata.host], null);
 					//}
 				}.toString()
@@ -107,12 +91,8 @@ var ddoc = [
 	}
 ]
 
-//var db = new(cradle.Connection)().database('dashboard');
 
-//let host = '192.168.0.180';
-let host = '127.0.0.1';
-
-var db = new(cradle.Connection)(host, 5984).database('dashboard');
+var db = new(cradle.Connection)(HOST, 5984).database(DATABASE);
 
 var save_views = function(){
 	db.save(ddoc, function (err, res) {
