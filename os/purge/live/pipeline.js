@@ -58,7 +58,7 @@ module.exports = {
 				 * */
 				// periodical: 60000,//test
         periodical: function(dispatch){
-					return cron.schedule('* * * * *', dispatch);
+					return cron.schedule('0 * * * *', dispatch);
 				}
 			},
 		},

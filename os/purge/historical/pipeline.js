@@ -21,7 +21,7 @@ module.exports = {
 					port: 5984 ,
 					db: 'historical',
 					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
-					load: ['apps/os/purge/historical/'],
+					load: ['apps/os/purge/'],
 				}
 			],
 			requests: {
@@ -32,7 +32,7 @@ module.exports = {
 				 * */
 				// periodical: 1000,//test
         periodical: function(dispatch){
-					return cron.schedule('* * * * *', dispatch);
+					return cron.schedule('0 * * * *', dispatch);
 				}
 			},
 		},
@@ -58,7 +58,7 @@ module.exports = {
 				 * */
 				// periodical: 60000,//test
         periodical: function(dispatch){
-					return cron.schedule('* * * * *', dispatch);
+					return cron.schedule('0 * * * *', dispatch);
 				}
 			},
 		},

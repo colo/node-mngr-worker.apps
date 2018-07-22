@@ -2,9 +2,9 @@
 
 var App = require('node-app-cradle-client');
 
-var debug = require('debug')('Server:Apps:OS:Purge:Historical');
-var debug_internals = require('debug')('Server:Apps:OS:Purge:Historical:Internals');
-var debug_events = require('debug')('Server:Apps:OS:Purge:Historical:Events');
+var debug = require('debug')('Server:Apps:OS:Purge');
+var debug_internals = require('debug')('Server:Apps:OS:Purge:Internals');
+var debug_events = require('debug')('Server:Apps:OS:Purge:Events');
 
 // const EXPIRE_SECONDS = 60 * 60 //one hour
 // const HISTORICAL_MINUTE_EXPIRE_SECONDS = {
@@ -117,7 +117,7 @@ module.exports = new Class({
     											// endkey: [path, host, "periodical", Date.now()],
                           startkey: [path, host, type, 0],//1.5 sec
     											endkey: [path, host, type, Date.now() - (expire * 1000)],
-    											limit: limit,
+    											// limit: limit,
     											//limit: 60, //60 docs = 1 minute of docs
     											inclusive_end: true,
     											include_docs: false
