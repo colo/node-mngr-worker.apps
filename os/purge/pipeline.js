@@ -99,7 +99,7 @@ module.exports = {
 						port: 5984,
 						db: 'dashboard',
 						opts: {
-							cache: true,
+							cache: false,
 							raw: false,
 							forceSave: true,
 						}

@@ -72,7 +72,7 @@ module.exports = {
   					port: 5984,
   					db: 'historical',
   					opts: {
-  						cache: true,
+  						cache: false,
   						raw: false,
   						forceSave: true,
   					}

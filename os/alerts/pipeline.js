@@ -802,7 +802,7 @@ module.exports = {
       // recurse_alerts(expanded_alerts, doc, null)
       // recurse_alerts(_alerts, doc, null)
     },
-    require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
+    // require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
 
 	],
 	output: [

@@ -146,7 +146,7 @@ module.exports = {
 						port: 5984,
 						db: 'live',
 						opts: {
-							cache: true,
+							cache: false,
 							raw: false,
 							forceSave: true,
 						},
