@@ -71,15 +71,15 @@ module.exports = {
               //     pipeline
               //   )
               // },
-              function(doc, opts, next, pipeline){
-                compress_filter(
-                  doc,
-                  opts,
-                  pipeline.output.bind(pipeline),
-                  pipeline
-                )
-              },
-              // pipeline.output.bind(pipeline),
+              // function(doc, opts, next, pipeline){
+              //   compress_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              pipeline.output.bind(pipeline),
               pipeline
             )
           },
@@ -117,15 +117,15 @@ module.exports = {
           //     pipeline
           //   )
           // },
-          function(doc, opts, next, pipeline){
-            compress_filter(
-              doc,
-              opts,
-              pipeline.output.bind(pipeline),
-              pipeline
-            )
-          },
-          // pipeline.output.bind(pipeline),
+          // function(doc, opts, next, pipeline){
+          //   compress_filter(
+          //     doc,
+          //     opts,
+          //     pipeline.output.bind(pipeline),
+          //     pipeline
+          //   )
+          // },
+          pipeline.output.bind(pipeline),
           pipeline
         )
       }
