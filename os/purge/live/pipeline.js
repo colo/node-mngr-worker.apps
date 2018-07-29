@@ -32,7 +32,7 @@ module.exports = {
 				 * */
 				// periodical: 10000,//test
         periodical: function(dispatch){
-					return cron.schedule('*/15 * * * *', dispatch);//every 15 mins
+					return cron.schedule('*/15 * * * *', dispatch);//every 15 secs
 				}
 			},
 		},
@@ -127,8 +127,8 @@ module.exports = {
 				],
 				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
         buffer:{
-					size: 100,
-					expire:5000
+					size: -1,
+					expire:60000
 				}
 			}
 		}
