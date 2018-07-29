@@ -1,7 +1,7 @@
 // const HOST = '127.0.0.1'
 const HOST = 'elk'
-const DATABASE = 'live'
-//const DATABASE = 'historical'
+//const DATABASE = 'live'
+const DATABASE = 'historical'
 
 var path = require('path');
     //jsonfile = require('jsonfile');

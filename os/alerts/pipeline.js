@@ -329,7 +329,7 @@ module.exports = {
   },
  ],
  filters: [
-    decompress_filter,
+    // decompress_filter,
      /**
      * code taken from os.stats.vue
      **/
@@ -833,5 +833,26 @@ module.exports = {
     // 		}
     // 	}
     // }
+
+    // {
+		// 	couchdb: {
+		// 		id: "output.os.couchdb",
+		// 		conn: [
+		// 			{
+    //         scheme: 'http',
+		// 				host: 'elk',
+		// 				port: 5984,
+		// 				db: 'alerts',
+		// 				opts: {
+		// 				},
+		// 			},
+		// 		],
+		// 		module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
+    //     buffer:{
+		// 			size: 0,
+		// 			expire:0
+		// 		}
+		// 	}
+		// }
   ]
 }

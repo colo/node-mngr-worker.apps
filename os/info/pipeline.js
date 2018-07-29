@@ -137,22 +137,42 @@ module.exports = {
 	output: [
     // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
 		//require('./snippets/output.stdout.template'),
-		{
-			cradle: {
-				id: "output.os.cradle",
+		// {
+		// 	cradle: {
+		// 		id: "output.os.cradle",
+		// 		conn: [
+		// 			{
+		// 				host: 'elk',
+		// 				port: 5984,
+		// 				db: 'live',
+		// 				opts: {
+		// 					cache: false,
+		// 					raw: false,
+		// 					forceSave: false,
+		// 				},
+		// 			},
+		// 		],
+		// 		module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
+    //     buffer:{
+		// 			size: 0,
+		// 			expire:0
+		// 		}
+		// 	}
+		// }
+    {
+			couchdb: {
+				id: "output.os.couchdb",
 				conn: [
 					{
+            scheme: 'http',
 						host: 'elk',
 						port: 5984,
 						db: 'live',
 						opts: {
-							cache: false,
-							raw: false,
-							forceSave: true,
 						},
 					},
 				],
-				module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
+				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
         buffer:{
 					size: 0,
 					expire:0

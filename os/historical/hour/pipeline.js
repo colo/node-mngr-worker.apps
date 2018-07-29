@@ -41,49 +41,70 @@ module.exports = {
     }
   ],
   filters: [
-   decompress_filter,
+   // decompress_filter,
    require('./filter'),
    function(doc, opts, next, pipeline){
      sanitize_filter(
        doc,
        opts,
-       function(doc, opts, next, pipeline){
-         compress_filter(
-           doc,
-           opts,
-           pipeline.output.bind(pipeline),
-           pipeline
-         )
-       },
-       // pipeline.output.bind(pipeline),
+       // function(doc, opts, next, pipeline){
+       //   compress_filter(
+       //     doc,
+       //     opts,
+       //     pipeline.output.bind(pipeline),
+       //     pipeline
+       //   )
+       // },
+       pipeline.output.bind(pipeline),
        pipeline
      )
    }
   ],
   output: [
   	//require('./snippets/output.stdout.template'),
-  	{
-  		cradle: {
-  			id: "output.historical.os.cradle",
-  			conn: [
-  				{
-  					//host: '127.0.0.1',
-  					host: 'elk',
-  					port: 5984,
-  					db: 'historical',
-  					opts: {
-  						cache: false,
-  						raw: false,
-  						forceSave: true,
-  					}
-  				},
-  			],
-  			module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
-  			buffer:{
-  				size: 0,
-  				expire:0
-  			}
-  		}
-  	}
+  	// {
+  	// 	cradle: {
+  	// 		id: "output.historical.os.cradle",
+  	// 		conn: [
+  	// 			{
+  	// 				//host: '127.0.0.1',
+  	// 				host: 'elk',
+  	// 				port: 5984,
+  	// 				db: 'historical',
+  	// 				opts: {
+  	// 					cache: false,
+  	// 					raw: false,
+  	// 					forceSave: false,
+  	// 				}
+  	// 			},
+  	// 		],
+  	// 		module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
+  	// 		buffer:{
+  	// 			size: 0,
+  	// 			expire:0
+  	// 		}
+  	// 	}
+  	// }
+    
+    {
+			couchdb: {
+				id: "output.os.couchdb",
+				conn: [
+					{
+            scheme: 'http',
+						host: 'elk',
+						port: 5984,
+						db: 'historical',
+						opts: {
+						},
+					},
+				],
+				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
+        buffer:{
+					size: 0,
+					expire:0
+				}
+			}
+		}
   ]
 }

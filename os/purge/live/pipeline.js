@@ -30,7 +30,7 @@ module.exports = {
 				 * needs 3 runs to start analyzing from last stats (or from begining)
 				 * it takes 60 secs to complete, so it makes stats each minute
 				 * */
-				// periodical: 1000,//test
+				// periodical: 10000,//test
         periodical: function(dispatch){
 					return cron.schedule('*/15 * * * *', dispatch);//every 15 mins
 				}
@@ -89,26 +89,46 @@ module.exports = {
 	],
   output: [
 		//require('./snippets/output.stdout.template'),
-		{
-			cradle: {
-				id: "output.os.purge.cradle",
+		// {
+		// 	cradle: {
+		// 		id: "output.os.purge.cradle",
+		// 		conn: [
+		// 			{
+		// 				//host: '127.0.0.1',
+		// 				host: 'elk',
+		// 				port: 5984,
+		// 				db: 'live',
+		// 				opts: {
+		// 					cache: false,
+		// 					raw: false,
+		// 					forceSave: false,
+		// 				}
+		// 			},
+		// 		],
+		// 		module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
+		// 		buffer:{
+		// 			size: 100,
+		// 			expire: 5000
+		// 		}
+		// 	}
+		// }
+    {
+			couchdb: {
+				id: "output.os.couchdb",
 				conn: [
 					{
-						//host: '127.0.0.1',
+            scheme: 'http',
 						host: 'elk',
 						port: 5984,
 						db: 'live',
 						opts: {
-							cache: true,
-							raw: false,
-							forceSave: true,
-						}
+						},
 					},
 				],
-				module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
-				buffer:{
-					size: 0,
-					expire: 0
+				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
+        buffer:{
+					size: 100,
+					expire:5000
 				}
 			}
 		}
