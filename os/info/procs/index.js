@@ -10,6 +10,8 @@ module.exports = new Class({
   Extends: App,
 
   options: {
+    id: 'os.procs',
+    path: '/os/procs/',
 
 	  requests : {
 			once: [
@@ -26,6 +28,8 @@ module.exports = new Class({
 		},
 
 		api: {
+
+      // path: '/os/procs',
 
 			version: '1.0.0',
 
@@ -105,7 +109,7 @@ module.exports = new Class({
 			}
 		}
 		else{
-			////console.log('success');
+			// console.log('success', body);
 
 			if(req.uri != ''){
 				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), JSON.decode(body));//capitalize first letter

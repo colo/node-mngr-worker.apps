@@ -15,21 +15,38 @@ let procs_filter = require('./filters/proc'),
 
 module.exports = {
  input: [
-	{
+	// {
+	// 	poll: {
+	// 		id: "input.os.http",
+	// 		conn: [
+	// 			{
+	// 				scheme: 'http',
+	// 				host:'127.0.0.1',
+	// 				port: 8081,
+	// 				module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/http')),
+	// 				// load: ['apps/info/os/']
+  //         load: ['apps/os/info/os/']
+	// 			}
+	// 		],
+	// 		requests: {
+	// 			periodical: 1000,
+	// 		},
+	// 	},
+	// },
+  {
 		poll: {
-			id: "input.os.http",
+			id: "input.os.procs.http",
 			conn: [
 				{
 					scheme: 'http',
 					host:'127.0.0.1',
 					port: 8081,
 					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/http')),
-					// load: ['apps/info/os/']
-          load: ['apps/os/info/os/']
+          load: ['apps/os/info/procs/']
 				}
 			],
 			requests: {
-				periodical: 1000,
+				periodical: 1000,//ms 
 			},
 		},
 	}
@@ -39,7 +56,10 @@ module.exports = {
     function(doc, opts, next, pipeline){
       let { type, input, input_type, app } = opts
 
-      if(app.options.id == 'os.procs'){
+      // console.log(app.options.id)
+
+      // if(app.options.id == 'os.procs'){
+      if(app.options.id == 'procs'){
         procs_filter(
           doc,
           opts,
