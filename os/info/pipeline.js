@@ -15,24 +15,24 @@ let procs_filter = require('./filters/proc'),
 
 module.exports = {
  input: [
-	// {
-	// 	poll: {
-	// 		id: "input.os.http",
-	// 		conn: [
-	// 			{
-	// 				scheme: 'http',
-	// 				host:'127.0.0.1',
-	// 				port: 8081,
-	// 				module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/http')),
-	// 				// load: ['apps/info/os/']
-  //         load: ['apps/os/info/os/']
-	// 			}
-	// 		],
-	// 		requests: {
-	// 			periodical: 1000,
-	// 		},
-	// 	},
-	// },
+	{
+		poll: {
+			id: "input.os.http",
+			conn: [
+				{
+					scheme: 'http',
+					host:'127.0.0.1',
+					port: 8081,
+					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/http')),
+					// load: ['apps/info/os/']
+          load: ['apps/os/info/os/']
+				}
+			],
+			requests: {
+				periodical: 1000,
+			},
+		},
+	},
   {
 		poll: {
 			id: "input.os.procs.http",
@@ -46,7 +46,7 @@ module.exports = {
 				}
 			],
 			requests: {
-				periodical: 1000,//ms 
+				periodical: 1000,//ms
 			},
 		},
 	}
@@ -108,7 +108,11 @@ module.exports = {
         )
       }
       else{
-        debug_internals('os doc', doc)
+        // console.log('os doc', doc.data)
+
+        if(doc && doc.uptime)
+          pipeline.current_uptime = doc.uptime
+
 
         sanitize_filter(
           doc,

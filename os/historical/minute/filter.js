@@ -36,7 +36,7 @@ var value_to_data = function(value){
 		let max = ss.max(data_values);
 
 		let data = {
-			samples: val,
+			// samples: val,
 			min : min,
 			max : max,
 			mean : ss.mean(data_values),
@@ -71,7 +71,7 @@ var value_to_data = function(value){
  **/
 module.exports = function(doc, opts, next){
 
-	// //debug_internals('os-stats filter doc %o', doc);
+	// debug_internals('os-stats filter doc %o', doc);
 	// //debug_internals('os-stats filter length %o', doc.length);
 	// //debug_internals('os-stats filter->next %o', next);
 	try{
@@ -212,16 +212,17 @@ module.exports = function(doc, opts, next){
 							if(key == 'pids'){//stats only for 'pids' key...'uid' sorted is avoided
 								Object.each(value, function(proc, pid){
 
-									let prop = pid+':'+proc['ppid']+':'+proc['command'][0] //pid + ppid + command
+									let prop = pid+':'+proc['ppid']+':'+proc['comm'] //pid + ppid + command
 
 									if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
 
 									let data = {
 										// '_pid': proc['pid'],
 										// '_ppid': proc['ppid'],
-										'_command': proc['command'],
-										'%cpu': proc['%cpu'],
-										'%mem': proc['%mem']
+										'_argv': proc['argv'],
+										'pcpu': proc['pcpu'],
+										'rss': proc['rss'],
+										'vsize': proc['vsize']
 										// 'time':
 									}
 
@@ -229,10 +230,10 @@ module.exports = function(doc, opts, next){
 
 								})
 							}
-							else{
-								Object.each(value, function(data, uid){
-									if(!values[host][path][key][uid]) values[host][path][key][uid] = {}
-									values[host][path][key][uid][timestamp] = data
+							else{//prop = uid || comm
+								Object.each(value, function(data, prop){
+									if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
+									values[host][path][key][prop][timestamp] = data
 								})
 
 							}
@@ -308,6 +309,7 @@ module.exports = function(doc, opts, next){
 			}
 
 
+			// debug_internals('values %o',values)
 
 			Object.each(values, function(host_data, host){
 
@@ -420,8 +422,10 @@ module.exports = function(doc, opts, next){
 						}
 						else if (path == 'os.procs'){
 
-							// debug_internals('os.procs data %s %o', key, value)
+							// debug_internals('os.procs prop %s %o', key, value)
+
 							Object.each(value, function(val, prop){
+								// debug_internals('os.procs prop %s %o', prop, val)
 
 								let obj_data = value_to_data(val)
 
@@ -435,7 +439,7 @@ module.exports = function(doc, opts, next){
 						else if (
 							path == 'os.mounts'
 							|| path == 'os.blockdevices'
-							|| path == 'os.procs'
+							// || path == 'os.procs'
 						) {
 
 							// if (path == 'os.procs')

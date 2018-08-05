@@ -1,7 +1,7 @@
 // const HOST = '127.0.0.1'
 const HOST = 'elk'
-const DATABASE = 'live'
-//const DATABASE = 'historical'
+const DATABASES = ['live', 'historical']
+// const DATABASE = 'historical'
 
 var path = require('path');
     //jsonfile = require('jsonfile');
@@ -91,42 +91,44 @@ var ddoc = [
 	}
 ]
 
+DATABASES.forEach(function(DATABASE){
+	var db = new(cradle.Connection)(HOST, 5984).database(DATABASE);
 
-var db = new(cradle.Connection)(HOST, 5984).database(DATABASE);
+	var save_views = function(){
+		db.save(ddoc, function (err, res) {
+			if(err){
+				console.log('BULK SAVE ERR');
+				console.log(err);
+			}
+			else{
+				console.log('BULK SAVE RESP');
+				console.log(res);
+			}
+		});
+	};
 
-var save_views = function(){
-	db.save(ddoc, function (err, res) {
-		if(err){
-			console.log('BULK SAVE ERR');
-			console.log(err);
+	db.exists(function (err, exists) {
+		if (err) {
+			console.log('error', err);
 		}
-		else{
-			console.log('BULK SAVE RESP');
-			console.log(res);
-		}
-	});
-};
+		else {
+			if(!exists){
+				db.create(function(err){
+					if(!err){
+						save_views();
+					}
+				});
 
-db.exists(function (err, exists) {
-	if (err) {
-		console.log('error', err);
-	}
-	else {
-		if(!exists){
-			db.create(function(err){
-				if(!err){
-					save_views();
-				}
-			});
+			}
+			else{
+				save_views();
+			}
 
 		}
-		else{
-			save_views();
-		}
+	}.bind(this));
 
-	}
-}.bind(this));
 
+})
 
 // save the design doc
 //db.bulkDocs([ddoc, ddoc_status]).catch(function (err) {

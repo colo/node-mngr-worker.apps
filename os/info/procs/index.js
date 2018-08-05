@@ -15,11 +15,12 @@ module.exports = new Class({
 
 	  requests : {
 			once: [
-				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,pcpu,pmem,stat,command'} } },
-
+				// { api: { get: {uri: '?format=uid,ppid,etimes,cputime,pcpu,pmem,stat,command,lstart'} } },
+        { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },
 			],
 			periodical: [
-				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,pcpu,pmem,stat,command'} } },
+				// { api: { get: {uri: '?format=uid,ppid,etimes,cputime,pcpu,pmem,stat,command,lstart'} } },
+        { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },
 			],
 
 		},
