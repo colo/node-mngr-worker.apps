@@ -36,7 +36,7 @@ var value_to_data = function(value){
 		let max = ss.max(data_values);
 
 		let data = {
-			// samples: val,
+			samples: val,
 			min : min,
 			max : max,
 			mean : ss.mean(data_values),
