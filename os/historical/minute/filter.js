@@ -212,15 +212,16 @@ module.exports = function(doc, opts, next){
 							if(key == 'pids'){//stats only for 'pids' key...'uid' sorted is avoided
 								Object.each(value, function(proc, pid){
 
-									let prop = pid+':'+proc['ppid']+':'+proc['comm'] //pid + ppid + command
+									let prop = pid+':'+proc['ppid']+':'+proc['cmd'] //pid + ppid + command
 
 									if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
 
 									let data = {
 										// '_pid': proc['pid'],
 										// '_ppid': proc['ppid'],
-										'_argv': proc['argv'],
-										'pcpu': proc['pcpu'],
+										// '_command': proc['_command'],
+										'%cpu': proc['%cpu'],
+										'%mem': proc['%mem'],
 										'rss': proc['rss'],
 										'vsize': proc['vsize']
 										// 'time':
@@ -230,7 +231,7 @@ module.exports = function(doc, opts, next){
 
 								})
 							}
-							else{//prop = uid || comm
+							else{//prop = uids || cmd
 								Object.each(value, function(data, prop){
 									if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
 									values[host][path][key][prop][timestamp] = data
