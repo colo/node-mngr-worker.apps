@@ -60,52 +60,52 @@ module.exports = {
 
       // if(app.options.id == 'os.procs'){
       if(app.options.id == 'procs'){
-        // procs_filter(
-        //   doc,
-        //   opts,
-        //   function(doc, opts, next, pipeline){
-        //     sanitize_filter(
-        //       doc,
-        //       opts,
-        //       // function(doc, opts, next, pipeline){
-        //       //   zipson_filter(
-        //       //     doc,
-        //       //     opts,
-        //       //     pipeline.output.bind(pipeline),
-        //       //     pipeline
-        //       //   )
-        //       // },
-        //       // function(doc, opts, next, pipeline){
-        //       //   lzutf8_filter(
-        //       //     doc,
-        //       //     opts,
-        //       //     pipeline.output.bind(pipeline),
-        //       //     pipeline
-        //       //   )
-        //       // },
-        //       // function(doc, opts, next, pipeline){
-        //       //   lzstring_filter(
-        //       //     doc,
-        //       //     opts,
-        //       //     pipeline.output.bind(pipeline),
-        //       //     pipeline
-        //       //   )
-        //       // },
-        //       // function(doc, opts, next, pipeline){
-        //       //   compress_filter(
-        //       //     doc,
-        //       //     opts,
-        //       //     pipeline.output.bind(pipeline),
-        //       //     pipeline
-        //       //   )
-        //       // },
-        //       pipeline.output.bind(pipeline),
-        //       pipeline
-        //     )
-        //   },
-        //   // sanitize_filter,
-        //   pipeline
-        // )
+        procs_filter(
+          doc,
+          opts,
+          function(doc, opts, next, pipeline){
+            sanitize_filter(
+              doc,
+              opts,
+              // function(doc, opts, next, pipeline){
+              //   zipson_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              // function(doc, opts, next, pipeline){
+              //   lzutf8_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              // function(doc, opts, next, pipeline){
+              //   lzstring_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              // function(doc, opts, next, pipeline){
+              //   compress_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
+              pipeline.output.bind(pipeline),
+              pipeline
+            )
+          },
+          // sanitize_filter,
+          pipeline
+        )
       }
       else{
         // console.log('os doc', doc.data)

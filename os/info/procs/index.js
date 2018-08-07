@@ -13,13 +13,18 @@ module.exports = new Class({
     id: 'os.procs',
     path: '/os/procs/',
 
+    /**
+    * from api/apps/os/procs:
+    * "command (comm, args alias) should be at the end as may have spaces in the column"
+    -> ps -ww -eo "pid,uid,ppid,etimes,cputime,stat,lstart,rss,vsz,utime,stime," -o "|%a"
+    **/
 	  requests : {
 			once: [
-				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,pcpu,pmem,stat,command,lstart'} } },
+				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,stat,ucmd,rss,vsz,pcpu,pmem,command'} } },
         // { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },
 			],
 			periodical: [
-				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,pcpu,pmem,stat,command,lstart'} } },
+				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,stat,ucmd,rss,vsz,pcpu,pmem,command'} } },
         // { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },
 			],
 
