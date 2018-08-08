@@ -9,7 +9,7 @@ os_mounts_type_filter = /ext.*/
 // var decompress = require('lzutf8').decompress
 // var decompress = require('zipson').parse;
 
-var value_to_data = function(value){
+var value_to_data = function(value, sampling){
 
 	let obj = {}
 
@@ -36,7 +36,6 @@ var value_to_data = function(value){
 		let max = ss.max(data_values);
 
 		let data = {
-			samples: val,
 			min : min,
 			max : max,
 			mean : ss.mean(data_values),
@@ -44,6 +43,10 @@ var value_to_data = function(value){
 			mode : ss.mode(data_values),
 			range: max - min,
 		};
+
+		if(sampling && sampling == true)
+			data.samples = val
+
 
 		obj_data[prop] = data;
 	});
@@ -428,7 +431,7 @@ module.exports = function(doc, opts, next){
 							Object.each(value, function(val, prop){
 								// debug_internals('os.procs prop %s %o', prop, val)
 
-								let obj_data = value_to_data(val)
+								let obj_data = value_to_data(val, false)
 
 								if(!new_doc['data'][key]) new_doc['data'][key] = {}
 
@@ -446,7 +449,7 @@ module.exports = function(doc, opts, next){
 							// if (path == 'os.procs')
 							// 	debug_internals('os.procs data %s %o', key, value)
 
-							let obj_data = value_to_data(value)
+							let obj_data = value_to_data(value, true)
 
 							new_doc['data'][key] = Object.clone(obj_data)
 

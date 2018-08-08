@@ -3,7 +3,7 @@ let DefaultTabular = require('./default.tabular')
 module.exports = {
   // blacklist: /totalmem/, //don't add charts automatically for this os[key]
   blacklist: /[\s\S]*/,
-  whitelist: undefined,
+  whitelist: /freemem|totalmem/,
   rules: {
     "loadavg": Object.merge(Object.clone(DefaultTabular),{
       match: /^.*os\.loadavg$/,

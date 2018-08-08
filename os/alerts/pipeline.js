@@ -467,11 +467,8 @@ module.exports = {
         * after 'os', avoind recalling it on os.historical or other
         */
         if(doc[0].doc.metadata.path == 'os'){
-        //
-        //   // if(tabular_stats.elk)
-        //   // ///console.log('TABULAR STATS', tabular_stats.elk.os.minute)
-        //
-          next({ data: Object.clone(stats), tabular: Object.clone(tabular_stats)},opts, next, pipeline)
+          // next({ data: Object.clone(stats), tabular: Object.clone(tabular_stats)},opts, next, pipeline)
+          next({ data: stats, tabular: tabular_stats},opts, next, pipeline)
         }
       }
       else if(doc[0].doc && doc[0].doc.metadata){
@@ -533,124 +530,130 @@ module.exports = {
     function(doc, opts, next, pipeline){
       //console.log('process_os_doc alerts filter', doc )
 
-      let _alerts = {data: [], tabular: []}
+      // let all_alerts = {data: [], tabular: []}
+      
+      // if(!pipeline.alerts){
+        let _alerts = {data: [], tabular: []}
 
-      let parse_condensed_keys = function(condensed, value, alerts){
+        let parse_condensed_keys = function(condensed, value, alerts){
+          debug_internals('parse_condensed_keys %s', condensed)
 
-          let sub_key = condensed.substring(0, condensed.indexOf('.')).trim()
-          condensed = condensed.replace(sub_key, '')
+            let sub_key = condensed.substring(0, condensed.indexOf('.')).trim()
+            condensed = condensed.replace(sub_key, '')
 
-          // sub_key = sub_key.replace(/\/|_|-/g, '.')
+            // sub_key = sub_key.replace(/\/|_|-/g, '.')
 
-          let rest_key = condensed.substring(condensed.indexOf('.')+1, condensed.length).trim()
-          // rest_key = rest_key.replace('_', '.')
+            let rest_key = condensed.substring(condensed.indexOf('.')+1, condensed.length).trim()
+            // rest_key = rest_key.replace('_', '.')
 
-          // Array.each(arr_keys, function(arr_key, index){
-          // console.log('sub_key', sub_key, rest_key)
+            // Array.each(arr_keys, function(arr_key, index){
+            // console.log('sub_key', sub_key, rest_key)
 
-          if(sub_key.length > 0){
-            let sub_alert = undefined
-            let recurse_alert = undefined
+            if(sub_key.length > 0){
+              let sub_alert = undefined
+              let recurse_alert = undefined
 
-            if(sub_key.indexOf('[') > -1){
-              sub_key = sub_key.replace(/\[|\]/g,'')
-              // if(!alerts[sub_key])
-                sub_alert = []
-            }
-            else{
-              // if(!alerts[sub_key])
-                sub_alert = {}
-            }
-
-            if(Array.isArray(alerts)){
-              let tmp = {}
-              tmp[sub_key] = sub_alert
-              alerts.push( tmp )//change sub_key to array index
-              recurse_alert = alerts[alerts.length - 1][sub_key]
-            }
-            else{
-
-              if(!alerts[sub_key]){
-                alerts[sub_key] = sub_alert
-                // let tmp = {}
-                // tmp[sub_key] = sub_alert
-
-                // alerts[sub_key] = Object.merge(alerts[sub_key], sub_alert)
+              if(sub_key.indexOf('[') > -1){
+                sub_key = sub_key.replace(/\[|\]/g,'')
+                // if(!alerts[sub_key])
+                  sub_alert = []
               }
-              // else{
-              //
-              // }
+              else{
+                // if(!alerts[sub_key])
+                  sub_alert = {}
+              }
 
-              recurse_alert = alerts[sub_key]
+              if(Array.isArray(alerts)){
+                let tmp = {}
+                tmp[sub_key] = sub_alert
+                alerts.push( tmp )//change sub_key to array index
+                recurse_alert = alerts[alerts.length - 1][sub_key]
+              }
+              else{
+
+                if(!alerts[sub_key]){
+                  alerts[sub_key] = sub_alert
+                  // let tmp = {}
+                  // tmp[sub_key] = sub_alert
+
+                  // alerts[sub_key] = Object.merge(alerts[sub_key], sub_alert)
+                }
+                // else{
+                //
+                // }
+
+                recurse_alert = alerts[sub_key]
+              }
+
+              // //console.log('rest_key', sub_key, rest_key, recurse_alert)
+
+              parse_condensed_keys(rest_key, value, recurse_alert)
             }
+            else {
+              // throw new Error()
+              if(Array.isArray(alerts)){
+                let tmp = {}
+                tmp[rest_key] = value
+                alerts.push( tmp )
+              }
+              else{
 
-            // //console.log('rest_key', sub_key, rest_key, recurse_alert)
+                if(value.$payload){
+                  let new_payload
 
-            parse_condensed_keys(rest_key, value, recurse_alert)
-          }
-          else {
-            // throw new Error()
-            if(Array.isArray(alerts)){
-              let tmp = {}
-              tmp[rest_key] = value
-              alerts.push( tmp )
-            }
-            else{
+                  if(value.$payload.$extra){
 
-              if(value.$payload){
-                let new_payload
+                    if(Array.isArray(value.$payload.$extra)){
+                      new_payload = []
 
-                if(value.$payload.$extra){
+                      Array.each(value.$payload.$extra, function(extra, index){
+                        let key = Object.keys(extra)[0]
+                        new_payload[index] = {}
+                        parse_condensed_keys(key, extra[key], new_payload[index])
+                      })
+                    }
+                    else{
+                      new_payload = {}
+                      let key = Object.keys(value.$payload.$extra)[0]
 
-                  if(Array.isArray(value.$payload.$extra)){
-                    new_payload = []
+                      parse_condensed_keys(key, value.$payload.$extra[key], new_payload)
 
-                    Array.each(value.$payload.$extra, function(extra, index){
-                      let key = Object.keys(extra)[0]
-                      new_payload[index] = {}
-                      parse_condensed_keys(key, extra[key], new_payload[index])
-                    })
+
+                    }
+
+                    // //console.log('NEW PAYLOAD', new_payload)
+
+                    value.$payload.$extra = new_payload
                   }
                   else{
                     new_payload = {}
-                    let key = Object.keys(value.$payload.$extra)[0]
-
-                    parse_condensed_keys(key, value.$payload.$extra[key], new_payload)
-
-
+                    let key = Object.keys(value.$payload)[0]
+                    new_payload = {}
+                    parse_condensed_keys(key, value.$payload[key], new_payload)
+                    value.$payload = new_payload
                   }
 
-                  // //console.log('NEW PAYLOAD', new_payload)
+                  // //console.log('extras??', rest_key, value.$payload.$extra)
 
-                  value.$payload.$extra = new_payload
-                }
-                else{
-                  new_payload = {}
-                  let key = Object.keys(value.$payload)[0]
-                  new_payload = {}
-                  parse_condensed_keys(key, value.$payload[key], new_payload)
-                  value.$payload = new_payload
                 }
 
-                // //console.log('extras??', rest_key, value.$payload.$extra)
+                alerts[rest_key] = value
 
               }
 
-              alerts[rest_key] = value
-
             }
 
-          }
+        }
 
-      }
+        Object.each(condensed_alerts, function(alert, condensed){
+          parse_condensed_keys(condensed, alert, _alerts)
+        })
 
-      Object.each(condensed_alerts, function(alert, condensed){
-        parse_condensed_keys(condensed, alert, _alerts)
-      })
+        pipeline.alerts = {data: [], tabular: []}
+        pipeline.alerts.data = pipeline.alerts.data.append(expanded_alerts.data).append(_alerts.data)
+        pipeline.alerts.tabular = pipeline.alerts.tabular.append(expanded_alerts.tabular).append(_alerts.tabular)
+      // }
 
-      let all_alerts = {data: [], tabular: []}
-      all_alerts.data = all_alerts.data.append(expanded_alerts.data).append(_alerts.data)
-      all_alerts.tabular = all_alerts.tabular.append(expanded_alerts.tabular).append(_alerts.tabular)
       // // Object.merge(expanded_alerts, _alerts)
 
       // console.log('ALL alerts', all_alerts.tabular[0]['%hosts'].os.loadavg['$payload'])
@@ -798,9 +801,9 @@ module.exports = {
         return result
       }
 
-      recurse_alerts(all_alerts, doc, null)
-      // recurse_alerts(expanded_alerts, doc, null)
-      // recurse_alerts(_alerts, doc, null)
+      recurse_alerts(pipeline.alerts, doc, null)
+      // recurse_alerts(all_alerts, doc, null)
+
     },
     // require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
 

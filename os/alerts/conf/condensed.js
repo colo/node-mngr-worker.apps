@@ -131,152 +131,155 @@ module.exports = {
   * not in use
   **/
   'data[].%hosts.os.freemem':{
-    // '$payload': {
-    //   '$extra':[
-    //     {
-    //       'tabular.%hosts.os.totalmem': (value, payload) => {
-    //         // console.log('$playload tabular.%hosts.os.totalmem', value[0])
-    //         return { 'value': value[0], 'property': payload.property }
-    //       }
-    //     },
-    //     {
-    //       'tabular[].%hosts.os.minute.freemem': (value, payload) => {
-    //         let last_minute = new Date(Date.now() - ( 60 * 1000))
-    //         // let result = []
-    //         let result = undefined
-    //         Array.each(value, function(val){ // [timestamp, median]
-    //
-    //           if(val[0] >= last_minute)
-    //             result = val
-    //             // result.push(val)
-    //         })
-    //
-    //         // console.log('$playload tabular[].%hosts.os.minute.freemem', value, result)
-    //         return { 'value': result, 'property': payload.property }
-    //       }
-    //     }
-    //   ],
-    // },
+    '$payload': {
+      '$extra':[
+        {
+          'data[].%hosts.os.totalmem': (value, payload) => {
+            // console.log('$playload data[].%hosts.os.totalmem', value)
+            return { 'value': value[0], 'property': payload.property }
+          }
+        },
+        {
+          'data[].%hosts.os.minute.freemem': (value, payload) => {
+            let last_minute = new Date(Date.now() - ( 60 * 1000))
+            // // let result = []
+            let result = undefined
+            // Array.each(value, function(val){ // [timestamp, median]
+            //
+            //   if(val.timestamp >= last_minute)
+            //     result = val
+            //     // result.push(val)
+            // })
+            if(value && value.timestamp >= last_minute)
+              result = value
+
+            debug_internals('$playload data[].%hosts.os.minute.freemem %o %o', value, result)
+            return { 'value': result, 'property': payload.property }
+          }
+        }
+      ],
+    },
     '$callback': (value, payload) => {
       console.log('data os.freemem alert', value, payload.extra)
     },
   },
 
 
-  // 'tabular[].%hosts.os.freemem': {
-  //   '$payload': {
-  //       '$extra': [
-  //         {
-  //           'tabular.%hosts.os.totalmem': (value, payload) => {
-  //             // console.log('$playload tabular.%hosts.os.totalmem', value[0])
-  //             return { 'value': value[0], 'property': payload.property }
-  //           }
-  //         },
-  //         {
-  //           'tabular[].%hosts.os.minute.freemem': (value, payload) => {
-  //             let last_hour = new Date(Date.now() - ( 60 * 1000))
-  //             // let result = []
-  //             let result = undefined
-  //             Array.each(value, function(val){ // [timestamp, median]
-  //
-  //               if(val[0] >= last_hour)
-  //                 result = val
-  //                 // result.push(val)
-  //             })
-  //
-  //             // console.log('$playload tabular[].%hosts.os.minute.freemem', value, result)
-  //             return { 'value': result, 'property': payload.property }
-  //           }
-  //         }
-  //       ],
-  //   },
-  //   '$callback': (value, payload) => {
-  //     let totalmem = undefined
-  //
-  //     // let last_minute = new Date(Date.now() - (60 * 1000))
-  //     let host = payload.property.split('.')[1]
-  //
-  //     // let last_hour_freemem = 0
-  //     let freemem = value[0][1]//only one val (0), with [timestamp, freemem] format
-  //     let last_minute_freemem = 0
-  //
-  //
-  //     let freemem_percentage = 100
-  //     // let last_hour_freemem_percentage = 0
-  //     let last_minute_freemem_percentage = 0
-  //
-  //
-  //
-  //     /**
-  //     * payload.extra[0] = totalmem
-  //     **/
-  //     Array.each(payload.extra[0], function(extra){//get totalmem from matching host
-  //       // console.log(extra)
-  //       if(extra.property){
-  //         let extra_host = extra.property.split('.')[1]
-  //
-  //         if(extra_host == host && extra.value.length > 0) //extra.value = [timestamp,totalmem]
-  //           totalmem = extra.value[1]
-  //       }
-  //
-  //     })
-  //
-  //     /**
-  //     * payload.extra[1] = hour.freemem
-  //     * last minute freemem median for this host
-  //     **/
-  //
-  //     Array.each(payload.extra[1], function(extra){//get hour.freemem_median from matching host
-  //       // console.log('EXTRA', extra)
-  //       Array.each(extra, function(freemem_median){
-  //         if(freemem_median && freemem_median.property){
-  //           let extra_host = freemem_median.property.split('.')[1]
-  //           // console.log('EXTRA', freemem_median)
-  //
-  //           if(extra_host == host && freemem_median.value.length > 0) //extra.value = [timestamp,freemem]
-  //             last_minute_freemem = freemem_median.value[1]
-  //         }
-  //       })
-  //
-  //     })
-  //
-  //
-  //     /**
-  //     * last minute freemem median
-  //     **/
-  //     // Array.each(value, function(val){// [timestamp,percentage]
-  //     //   if(val[0]>= last_minute){
-  //     //     last_minute_freemem = val[1]
-  //     //   }
-  //     // })
-  //
-  //     if(totalmem){
-  //       if(freemem > 0)
-  //         freemem_percentage = (freemem * 100 ) / totalmem
-  //
-  //       if(last_minute_freemem > 0)
-  //         last_minute_freemem_percentage = (last_minute_freemem * 100 ) / totalmem
-  //
-  //
-  //       if(freemem_percentage < (last_minute_freemem_percentage - FREEMEM_PERCENTAGE_THRESHOLD))
-  //         console.log('current FREEMEM_PERCENTAGE_THRESHOLD', last_minute_freemem_percentage, freemem_percentage)
-  //
-  //       if(freemem_percentage < FREEMEM_PERCENTAGE_CRIT)
-  //         console.log('FREEMEM_PERCENTAGE_CRIT', freemem_percentage)
-  //
-  //       else if(freemem_percentage < FREEMEM_PERCENTAGE_WARN)
-  //         console.log('FREEMEM_PERCENTAGE_WARN', freemem_percentage)
-  //
-  //     }
-  //
-  //     // console.log('tabular os.minute.freemem alert', payload.extra,
-  //     //   last_minute_freemem,
-  //     //   last_minute_freemem_percentage,
-  //     //   freemem,
-  //     //   freemem_percentage
-  //     // )
-  //   },
-  // },
+  'tabular[].%hosts.os.freemem': {
+    '$payload': {
+        '$extra': [
+          {
+            'tabular.%hosts.os.totalmem': (value, payload) => {
+              // console.log('$playload tabular.%hosts.os.totalmem', value[0])
+              return { 'value': value[0], 'property': payload.property }
+            }
+          },
+          {
+            'tabular[].%hosts.os.minute.freemem': (value, payload) => {
+              let last_hour = new Date(Date.now() - ( 60 * 1000))
+              // let result = []
+              let result = undefined
+              Array.each(value, function(val){ // [timestamp, median]
+
+                if(val[0] >= last_hour)
+                  result = val
+                  // result.push(val)
+              })
+
+              // console.log('$playload tabular[].%hosts.os.minute.freemem', value, result)
+              return { 'value': result, 'property': payload.property }
+            }
+          }
+        ],
+    },
+    '$callback': (value, payload) => {
+      let totalmem = undefined
+
+      // let last_minute = new Date(Date.now() - (60 * 1000))
+      let host = payload.property.split('.')[1]
+
+      // let last_hour_freemem = 0
+      let freemem = value[0][1]//only one val (0), with [timestamp, freemem] format
+      let last_minute_freemem = 0
+
+
+      let freemem_percentage = 100
+      // let last_hour_freemem_percentage = 0
+      let last_minute_freemem_percentage = 0
+
+
+
+      /**
+      * payload.extra[0] = totalmem
+      **/
+      Array.each(payload.extra[0], function(extra){//get totalmem from matching host
+        // console.log(extra)
+        if(extra.property){
+          let extra_host = extra.property.split('.')[1]
+
+          if(extra_host == host && extra.value.length > 0) //extra.value = [timestamp,totalmem]
+            totalmem = extra.value[1]
+        }
+
+      })
+
+      /**
+      * payload.extra[1] = hour.freemem
+      * last minute freemem median for this host
+      **/
+
+      Array.each(payload.extra[1], function(extra){//get hour.freemem_median from matching host
+        // console.log('EXTRA', extra)
+        Array.each(extra, function(freemem_median){
+          if(freemem_median && freemem_median.property){
+            let extra_host = freemem_median.property.split('.')[1]
+            // console.log('EXTRA', freemem_median)
+
+            if(extra_host == host && freemem_median.value.length > 0) //extra.value = [timestamp,freemem]
+              last_minute_freemem = freemem_median.value[1]
+          }
+        })
+
+      })
+
+
+      /**
+      * last minute freemem median
+      **/
+      // Array.each(value, function(val){// [timestamp,percentage]
+      //   if(val[0]>= last_minute){
+      //     last_minute_freemem = val[1]
+      //   }
+      // })
+
+      if(totalmem){
+        if(freemem > 0)
+          freemem_percentage = (freemem * 100 ) / totalmem
+
+        if(last_minute_freemem > 0)
+          last_minute_freemem_percentage = (last_minute_freemem * 100 ) / totalmem
+
+
+        if(freemem_percentage < (last_minute_freemem_percentage - FREEMEM_PERCENTAGE_THRESHOLD))
+          console.log('current FREEMEM_PERCENTAGE_THRESHOLD', last_minute_freemem_percentage, freemem_percentage)
+
+        if(freemem_percentage < FREEMEM_PERCENTAGE_CRIT)
+          console.log('FREEMEM_PERCENTAGE_CRIT', freemem_percentage)
+
+        else if(freemem_percentage < FREEMEM_PERCENTAGE_WARN)
+          console.log('FREEMEM_PERCENTAGE_WARN', freemem_percentage)
+
+      }
+
+
+      debug_internals('tabular os.minute.freemem alert %o %d % d %d %d', payload.extra,
+        last_minute_freemem,
+        last_minute_freemem_percentage,
+        freemem,
+        freemem_percentage
+      )
+    },
+  },
 
   /**
   * not in use

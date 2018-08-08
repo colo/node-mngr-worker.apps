@@ -3,7 +3,7 @@ var debug_internals = require('debug')('filter:os-hour-stats:Internals');
 
 var ss = require('simple-statistics');
 
-var value_to_data = function(value){
+var value_to_data = function(value, sampling){
 
 	let obj_data = {}
 	Object.each(value, function(val, prop){
@@ -17,7 +17,6 @@ var value_to_data = function(value){
 			let max = ss.max(data_values);
 
 			let data = {
-				samples: val,
 				min : ss.min(data_values),
 				max : ss.max(data_values),
 				mean : ss.mean(data_values),
@@ -25,6 +24,9 @@ var value_to_data = function(value){
 				mode : ss.mode(data_values),
 				range: max - min,
 			};
+
+			if(sampling && sampling == true)
+				data.samples = val
 
 			obj_data[prop] = data;
 		}
@@ -294,7 +296,7 @@ module.exports = function(doc, opts, next){
 
 						Object.each(value, function(val, prop){
 
-							let obj_data = value_to_data(val)
+							let obj_data = value_to_data(val, false)
 
 							if(!new_doc['data'][key]) new_doc['data'][key] = {}
 
@@ -310,7 +312,7 @@ module.exports = function(doc, opts, next){
 
 							// debug_internals('os.procs data %s %o', path, key, value)
 
-							let obj_data = value_to_data(value)
+							let obj_data = value_to_data(value, true)
 							new_doc['data'][key] = Object.clone(obj_data)
 
 						}
