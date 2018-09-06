@@ -8,6 +8,12 @@ let compress_filter =  require(path.join(process.cwd(), '/devel/etc/snippets/fil
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
     decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
 
+
+let PollCradle = require('js-pipeline/input/poller/poll/cradle')
+
+PollCradle = require('node-app-cradle-client/load')(PollCradle)
+
+
 module.exports = {
  input: [
 	{
@@ -20,7 +26,7 @@ module.exports = {
 					//host:'127.0.0.1',
 					port: 5984 ,
 					db: 'live',
-					module: require('js-pipeline/input/poller/poll/cradle'),
+					module: PollCradle,
 					load: ['apps/os/historical/minute/']
 				}
 			],

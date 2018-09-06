@@ -13,6 +13,11 @@ let procs_filter = require('./filters/proc'),
     // lzutf8_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzutf8.compress'))
     // lzstring_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzstring.compress'))
 
+
+let PollHttp = require('js-pipeline/input/poller/poll/http')
+
+PollHttp = require('node-app-http-client/load')(PollHttp)
+
 module.exports = {
  input: [
 	{
@@ -23,7 +28,7 @@ module.exports = {
 					scheme: 'http',
 					host:'127.0.0.1',
 					port: 8081,
-					module: require('js-pipeline/input/poller/poll/http'),
+					module: PollHttp,
 					// load: ['apps/info/os/']
           load: ['apps/os/info/os/']
 				}

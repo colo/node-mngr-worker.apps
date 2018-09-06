@@ -9,6 +9,13 @@ const path = require('path');
 
 var cron = require('node-cron');
 
+
+
+let PollCradle = require('js-pipeline/input/poller/poll/cradle')
+
+PollCradle = require('node-app-cradle-client/load')(PollCradle)
+
+
 module.exports = {
  input: [
 	{
@@ -20,7 +27,7 @@ module.exports = {
 					host:'elk',
 					port: 5984 ,
 					db: 'historical',
-					module: require('js-pipeline/input/poller/poll/cradle'),
+					module: PollCradle,
 					load: ['apps/os/purge/'],
 				}
 			],
