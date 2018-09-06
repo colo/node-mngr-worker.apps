@@ -110,7 +110,7 @@ module.exports = new Class({
 			}
 		}
 		else{
-			// console.log('success', body);
+			 //console.log('success', body);
 
 			if(req.uri != ''){
 				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), JSON.decode(body));//capitalize first letter
