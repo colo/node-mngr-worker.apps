@@ -23,7 +23,7 @@ module.exports = {
 					scheme: 'http',
 					host:'127.0.0.1',
 					port: 8081,
-					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/http')),
+					module: require('js-pipeline/input/poller/poll/http'),
 					// load: ['apps/info/os/']
           load: ['apps/os/info/os/']
 				}
@@ -41,7 +41,7 @@ module.exports = {
 					scheme: 'http',
 					host:'127.0.0.1',
 					port: 8081,
-					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/http')),
+					module: require('js-pipeline/input/poller/poll/http'),
           load: ['apps/os/info/procs/']
 				}
 			],
@@ -196,7 +196,7 @@ module.exports = {
 						},
 					},
 				],
-				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
+				module: require('js-pipeline/output/couchdb'),
         buffer:{
 					size: 0,
 					expire:0

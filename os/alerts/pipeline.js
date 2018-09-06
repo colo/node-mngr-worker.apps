@@ -277,7 +277,7 @@ module.exports = {
           //host:'127.0.0.1',
           port: 5984 ,
           db: 'live',
-          module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
+          module: require('js-pipeline/input/poller/poll/cradle'),
           load: ['apps/os/alerts/current']
         }
       ],
@@ -307,7 +307,7 @@ module.exports = {
          //host:'127.0.0.1',
          port: 5984 ,
          db: 'historical',
-         module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
+         module: require('js-pipeline/input/poller/poll/cradle'),
          load: ['apps/os/alerts/historical']
        }
      ],

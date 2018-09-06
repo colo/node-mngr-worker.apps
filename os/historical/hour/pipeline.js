@@ -20,7 +20,7 @@ module.exports = {
     				//host:'127.0.0.1',
     				port: 5984 ,
     				db: 'historical',
-    				module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
+    				module: require('js-pipeline/input/poller/poll/cradle'),
     				load: ['apps/os/historical/hour/']
     			}
     		],
@@ -99,7 +99,7 @@ module.exports = {
 						},
 					},
 				],
-				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
+				module: require('js-pipeline/output/couchdb'),
         buffer:{
 					size: 0,
 					expire:0

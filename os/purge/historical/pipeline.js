@@ -20,7 +20,7 @@ module.exports = {
 					host:'elk',
 					port: 5984 ,
 					db: 'historical',
-					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
+					module: require('js-pipeline/input/poller/poll/cradle'),
 					load: ['apps/os/purge/'],
 				}
 			],
@@ -46,7 +46,7 @@ module.exports = {
 					host:'elk',
 					port: 5984 ,
 					db: 'historical',
-					module: require(path.join(process.cwd(), 'lib/pipeline/input/poller/poll/cradle')),
+					module: require('js-pipeline/input/poller/poll/cradle'),
 					load: ['apps/os/purge/compact/'],
 				}
 			],
@@ -125,7 +125,7 @@ module.exports = {
 						},
 					},
 				],
-				module: require(path.join(process.cwd(), 'lib/pipeline/output/couchdb')),
+				module: require('js-pipeline/output/couchdb'),
         buffer:{
 					size: 100,
 					expire:5000
