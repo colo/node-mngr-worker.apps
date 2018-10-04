@@ -26,22 +26,22 @@ module.exports = function(val, opts, next, pipeline){
       let messures = Object.keys(val[ifaces[0]][properties[1]])
 
       Array.each(ifaces, function(iface){
-        // if(!networkInterfaces[iface])
-        //   networkInterfaces[iface] = {}
+        if(!networkInterfaces[iface])
+          networkInterfaces[iface] = {}
         /**
         * turn data property->messure (ex: transmited { bytes: .. }),
         * to: messure->property (ex: bytes {transmited:.., recived: ... })
         **/
         Array.each(messures, function(messure){// "bytes" | "packets"
-          if(!networkInterfaces[iface+'_'+messure])
-            networkInterfaces[iface+'_'+messure] = {}
+          if(!networkInterfaces[iface][messure])
+            networkInterfaces[iface][messure] = {}
 
           Array.each(properties, function(property, index){
             /**
             * properties[0] is "if", we want recived | transmited only
             **/
             if(index != 0){
-              networkInterfaces[iface+'_'+messure][property] = val[iface][property][messure] * 1
+              networkInterfaces[iface][messure][property] = val[iface][property][messure] * 1
             }
 
           })
