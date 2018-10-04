@@ -6,6 +6,7 @@ var debug_internals = require('debug')('filter:os:Internals');
 const path = require('path');
 
 let procs_filter = require('./filters/proc'),
+    networkInterfaces_filter = require('./filters/networkInterfaces'),
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
 
@@ -61,7 +62,7 @@ module.exports = {
     function(doc, opts, next, pipeline){
       let { type, input, input_type, app } = opts
 
-      // console.log(app.options.id)
+      // console.log('os filter',doc)
 
       // if(app.options.id == 'os.procs'){
       if(app.options.id == 'procs'){
@@ -113,10 +114,27 @@ module.exports = {
         )
       }
       else{
-        // console.log('os doc', doc.data)
-
         if(doc && doc.uptime)
           pipeline.current_uptime = doc.uptime
+
+        if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
+          networkInterfaces_filter(
+            doc.networkInterfaces,
+            opts,
+            function(doc, opts, next, pipeline){
+              sanitize_filter(
+                doc,
+                opts,
+                pipeline.output.bind(pipeline),
+                pipeline
+              )
+            },
+            // sanitize_filter,
+            pipeline
+          )
+        }
+
+
 
 
         sanitize_filter(
