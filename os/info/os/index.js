@@ -88,7 +88,7 @@ module.exports = new Class({
   				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), decoded_body);//capitalize first letter
   			}
   			else{
-  				this.fireEvent('onGet', );
+  				this.fireEvent('onGet', decoded_body);
   			}
 
   			//this.fireEvent(this.ON_DOC, JSON.decode(body));
