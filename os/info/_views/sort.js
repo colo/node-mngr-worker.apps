@@ -91,8 +91,27 @@ var ddoc = [
 	}
 ]
 
+let indices = [
+	{
+		"index": {
+			"fields": ['metadata.path', 'metadata.host', 'metadata.type', 'metadata.timestamp'],
+		},
+		"ddoc": 'mango_search',
+		"name": 'path'
+	}
+]
+
 DATABASES.forEach(function(DATABASE){
 	var db = new(cradle.Connection)(HOST, 5984).database(DATABASE);
+	let nano = require('nano')('http://'+HOST+':5984');
+	let nano_db = nano.db.use(DATABASE);
+
+	indices.forEach(function(index){
+		nano_db.createIndex(index).then((result) => {
+		  console.log(result);
+		});
+	})
+
 
 	var save_views = function(){
 		db.save(ddoc, function (err, res) {
