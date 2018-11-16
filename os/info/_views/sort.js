@@ -1,6 +1,6 @@
 // const HOST = '127.0.0.1'
 const HOST = 'elk'
-const DATABASES = ['live', 'historical']
+const DATABASES = ['once', 'live', 'historical']
 // const DATABASE = 'historical'
 
 var path = require('path');
@@ -13,7 +13,7 @@ var cradle = require('cradle-pouchdb-server');
 // create a design doc
 var ddoc = [
 	{
-		_id: '_design/sort',
+		_id: '_design/docs',
 		views: {
 			by_date: {
 				map: function (doc) {
@@ -30,7 +30,13 @@ var ddoc = [
 						emit([date, doc.metadata.type, doc.metadata.host], null);
 					//}
 				}.toString()
-			},
+			}
+
+		}
+	},
+	{
+		_id: '_design/sort',
+		views: {
 			by_host: {
 				map: function (doc) {
 						var date = 0;
@@ -103,14 +109,14 @@ let indices = [
 
 DATABASES.forEach(function(DATABASE){
 	var db = new(cradle.Connection)(HOST, 5984).database(DATABASE);
-	let nano = require('nano')('http://'+HOST+':5984');
-	let nano_db = nano.db.use(DATABASE);
-
-	indices.forEach(function(index){
-		nano_db.createIndex(index).then((result) => {
-		  console.log(result);
-		});
-	})
+	// let nano = require('nano')('http://'+HOST+':5984');
+	// let nano_db = nano.db.use(DATABASE);
+  //
+	// indices.forEach(function(index){
+	// 	nano_db.createIndex(index).then((result) => {
+	// 	  console.log(result);
+	// 	});
+	// })
 
 
 	var save_views = function(){
