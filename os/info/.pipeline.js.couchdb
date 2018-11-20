@@ -7,7 +7,7 @@ const path = require('path');
 
 let procs_filter = require('./filters/proc'),
     networkInterfaces_filter = require('./filters/networkInterfaces'),
-    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
+    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
 
     // zipson_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zipson'))
@@ -207,17 +207,20 @@ module.exports = {
 		// 	}
 		// }
     {
-			rethinkdb: {
-				id: "output.os.rethinkdb",
+			couchdb: {
+				id: "output.os.couchdb",
 				conn: [
 					{
+            scheme: 'http',
+						// host: '127.0.0.1',
             host: 'elk',
-						port: 28015,
-						db: 'servers',
-            table: 'live',
+						port: 5984,
+						db: 'live',
+						opts: {
+						},
 					},
 				],
-				module: require('js-pipeline/output/rethinkdb'),
+				module: require('js-pipeline/output/couchdb'),
         buffer:{
 					size: 0,
 					expire:0
