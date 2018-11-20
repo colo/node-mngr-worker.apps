@@ -1,7 +1,7 @@
 //const HOST = '127.0.0.1'
 const HOST = 'elk'
 const DATABASES = ['servers']
-const TABLES = ['live', 'historical']
+const TABLES = ['once', 'periodical', 'historical']
 // const DATABASE = 'historical'
 
 let App = require('node-app-rethinkdb-client')
@@ -204,6 +204,27 @@ let MyApp = new Class({
       uri: params.options.uri+'/'+params.options.args[0],
       args:'path',
       row: this.r.row("metadata")("path")
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'sort_by_path',
+      row: [
+        this.r.row("metadata")("path"),
+        this.r.row("metadata")("host"),
+        this.r.row("metadata")("type"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'sort_by_host',
+      row: [
+        this.r.row("metadata")("host"),
+        this.r.row("metadata")("type"),
+        this.r.row("metadata")("timestamp")
+      ]
     })
     // this.tableList({uri: 'test'})
     // this.tableDrop({uri: 'test', args:['test_table']})

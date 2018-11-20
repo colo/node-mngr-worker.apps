@@ -42,6 +42,8 @@ module.exports = function(val, opts, next, pipeline){
             **/
             if(index != 0){
               networkInterfaces[iface+'_'+messure][property] = val[iface][property][messure] * 1
+							if(isNaN(networkInterfaces[iface+'_'+messure][property]))
+								delete networkInterfaces[iface+'_'+messure][property]
             }
 
           })
