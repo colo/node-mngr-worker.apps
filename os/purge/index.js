@@ -7,6 +7,14 @@ var debug = require('debug')('Server:Apps:OS:Purge');
 var debug_internals = require('debug')('Server:Apps:OS:Purge:Internals');
 var debug_events = require('debug')('Server:Apps:OS:Purge:Events');
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  // console.log('roundMilliseconds', d.getTime())
+  return d.getTime()
+}
+
 // const EXPIRE_SECONDS = 60 * 60 //one hour
 // const HISTORICAL_MINUTE_EXPIRE_SECONDS = {
 //   "minute": 60 * 60 * 24, //24hs
@@ -30,7 +38,8 @@ const HISTORICAL_TYPES = ["minute", "hour"]
 module.exports = new Class({
   Extends: App,
 
-  hosts: {},
+  // hosts: {},
+  hosts: [],
   // blacklist_path: /historical/,
   blacklist_path: undefined,
   paths: [],
@@ -44,8 +53,24 @@ module.exports = new Class({
 		requests : {
 			periodical: [
         {
-					view: function(req, next, app){
-						debug_internals('search_paths', app.options);
+					search_paths: function(req, next, app){
+            debug_internals('search_paths');
+
+            app.between({
+              _extras: 'path',
+              uri: app.options.db+'/periodical',
+              args: [
+                roundMilliseconds(Date.now() - 1000),
+                roundMilliseconds(Date.now()),
+                {
+                  index: 'timestamp',
+                  leftBound: 'open',
+                  rightBound: 'open'
+                }
+              ]
+            })
+
+
 						// next({
 						// 	uri: app.options.db,
 						// 	id: 'search/paths',
@@ -58,8 +83,22 @@ module.exports = new Class({
 					}
 				},
         {
-					view: function(req, next, app){
-						debug_internals('search_hosts', app.options);
+					search_hosts: function(req, next, app){
+						debug_internals('search_hosts');
+
+            app.between({
+              _extras: 'host',
+              uri: app.options.db+'/periodical',
+              args: [
+                roundMilliseconds(Date.now() - 1000),
+                roundMilliseconds(Date.now()),
+                {
+                  index: 'timestamp',
+                  leftBound: 'open',
+                  rightBound: 'open'
+                }
+              ]
+            })
 						// next({
 						// 	uri: app.options.db,
 						// 	id: 'search/hosts',
@@ -77,19 +116,19 @@ module.exports = new Class({
 						debug_internals('fetch_history time %s', now);
 
 						// let limit = 1;//only last doc
-            let limit = 100;//only last doc
+            // let limit = 100;//only last doc
 
 						let views = [];
 
             // console.log('sort by path', app.paths)
 
-						Object.each(app.hosts, function(value, host){
-							debug_internals('fetch_history value %d', value);
+						Array.each(app.hosts, function(host, index){
+							debug_internals('fetch_history host %s', host);
 							//console.log(value);
 
 							// if(value >= 0){
 
-								debug_internals('fetch_history %s', host);
+
 
                 Array.each(app.paths, function(path){
 
@@ -109,7 +148,20 @@ module.exports = new Class({
 
                     debug_internals('fetching expire:type %s %d %s', path, expire, type);
 
-                    let cb = next.pass(
+                    let cb = app.between({
+                      _extras: 'to_delete',
+                      uri: app.options.db+'/periodical',
+                      args: [
+                        [path, host, type, 0],
+                        [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
+                        {
+                          index: 'sort_by_path',
+                          leftBound: 'open',
+                          rightBound: 'open'
+                        }
+                      ],
+                      field: 'id'
+                    })
     									// app.view({
     									// 	uri: app.options.db,
     									// 	id: 'sort/by_path',
@@ -124,7 +176,7 @@ module.exports = new Class({
     									// 		include_docs: false
     									// 	}
     									// })
-    								);
+
 
     								views.push(cb);
 
@@ -139,7 +191,7 @@ module.exports = new Class({
 						}.bind(app));
 
 						Array.each(views, function(view){
-							view.attempt();
+							view();
 						});
 
 						//next(views);
@@ -149,48 +201,126 @@ module.exports = new Class({
 				},
 
 			],
-			// range: [
-			// 	//{ get: {uri: 'dashboard/cache', doc: 'localhost.colo.os.blockdevices@1515636560970'} },
-			// 	{
-			// 		view: function(req, next){
-			// 			//console.log('--PRE FUNCTION---')
-			// 			//console.log(req.opt);
-			// 			next(
-			// 				{
-			// 					uri: 'dashboard',
-			// 					id: 'periodical/by_path_host',
-			// 					data: {
-			// 						//endkey: ["os", "localhost.colo\ufff0"],
-			// 						//startkey: ["os", "localhost.colo"],
-			// 						endkey: ["periodical", "os", "localhost.colo", req.opt.range.end],
-			// 						startkey: ["periodical", "os", "localhost.colo", req.opt.range.start],
-			// 						//descending: true,
-			// 						limit: 2,
-			// 						inclusive_end: true,
-			// 						include_docs: true
-			// 					}
-			// 				}
-      //
-			// 			);
-			// 		}
-			// 	},
-      //
-			// ],
+
 
 		},
 
 		routes: {
-      view: [
-				{
-					path: ':database',
-					callbacks: ['search'],
-					//version: '',
-				},
-			]
+      between: [{
+        path: ':database/:table',
+        callbacks: ['between']
+      }],
+      delete: [{
+        path: ':database/:table',
+        callbacks: ['delete']
+      }],
+      // view: [
+			// 	{
+			// 		path: ':database',
+			// 		callbacks: ['search'],
+			// 		//version: '',
+			// 	},
+			// ]
 		},
 
   },
+  delete: function(err, resp, params){
+    if(err){
+      debug_internals('delete err', err)
+    }
+    else{
+      //fireEvent to acknowledge deleted docs, maybe log
+      debug_internals('delete resp', resp)
+    }
+  },
+  between: function(err, resp, params){
+    if(err){
+      debug_internals('between err', err)
+    }
+    else{
+      if(params.options._extras == 'to_delete'){
+        debug_internals('to_delete %o', resp);
+        this.delete({
+          _extras: 'delete',
+          uri: this.options.db+'/periodical',
+          args:[
+            resp,
+            {durability: 'soft'}
+          ]
+        })
+      }
+      else{
+        resp.toArray(function(err, arr){
+          debug_internals('between count', arr.length)
+          if(params.options._extras == 'path'){
+            if(arr.length == 0){
+    					debug_internals('No paths yet');
+    				}
+    				else{
 
+              this.paths = []
+
+    					Array.each(arr, function(row, index){
+    						// debug_internals('Path %s', row);
+    						//this.hosts.push({name: doc.key, last: null});
+
+    						// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
+                if(
+                  (
+                    !this.blacklist_path
+                    || (this.blacklist_path && this.blacklist_path.test(path) == false)
+                  )
+                  && !this.paths.contains(row.metadata['path'])
+                )
+                  this.paths.push(row.metadata['path'])
+
+    					}.bind(this));
+
+    					debug_internals('PATHs %o', this.paths);
+    				}
+    			}
+          else if(params.options._extras == 'host'){
+            if(arr.length == 0){
+    					debug_internals('No hosts yet');
+    				}
+    				else{
+
+    					Array.each(arr, function(row, index){
+    						// debug_internals('Host %s', row);
+    						//this.hosts.push({name: doc.key, last: null});
+
+    						// if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
+                if(!this.hosts.contains(row.metadata['host']))
+                  this.hosts.push(row.metadata['host'])
+
+    					}.bind(this));
+
+    					debug_internals('HOSTs %o', this.hosts);
+    				}
+          }
+          // else if(params.options._extras == 'to_delete'){
+          //   debug_internals('to_delete %o', arr);
+          //   this.delete({
+          //     _extras: 'delete',
+          //     uri: this.options.db+'/periodical',
+          //     args:[
+          //       resp,
+          //       {durability: 'soft'}
+          //     ]
+          //   })
+          // }
+
+
+        }.bind(this))
+      }
+
+    }
+
+
+
+    // debug_internals('count', this.r.count(resp))
+
+  },
   search: function (err, resp, info){
 
 		// debug('search %o', resp);

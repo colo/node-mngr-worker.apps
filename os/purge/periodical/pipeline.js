@@ -73,29 +73,29 @@ module.exports = {
 	// 	},
 	// },
  ],
- filters: [
-   function(docs, opts, next, pipeline){
-
-     let to_remove = [];
-
-     if(typeof(docs) == 'array' || docs instanceof Array || Array.isArray(docs)){
-       Array.each(docs, function(doc, index){
-         to_remove.push({_id: doc.id, _rev: doc.value, _deleted: true});
-         //
-         // // if(index == resp.length - 1){
-         // //
-         // //   this.save({uri: 'dashboard', data: to_remove});
-         // // }
-       }.bind(this));
-
-       debug_internals('to remove %o', to_remove)
-       // next(to_remove)
-     }
-
-   }
-		// require('./snippets/filter.os.statistics.template'),
-		// require('./snippets/filter.sanitize.template'),
-	],
+ // filters: [
+ //   function(docs, opts, next, pipeline){
+ //
+ //     let to_remove = [];
+ //
+ //     if(typeof(docs) == 'array' || docs instanceof Array || Array.isArray(docs)){
+ //       Array.each(docs, function(doc, index){
+ //         to_remove.push({_id: doc.id, _rev: doc.value, _deleted: true});
+ //         //
+ //         // // if(index == resp.length - 1){
+ //         // //
+ //         // //   this.save({uri: 'dashboard', data: to_remove});
+ //         // // }
+ //       }.bind(this));
+ //
+ //       debug_internals('to remove %o', to_remove)
+ //       // next(to_remove)
+ //     }
+ //
+ //   }
+	// 	// require('./snippets/filter.os.statistics.template'),
+	// 	// require('./snippets/filter.sanitize.template'),
+	// ],
   output: [
 		//require('./snippets/output.stdout.template'),
 		// {
