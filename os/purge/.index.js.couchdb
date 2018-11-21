@@ -1,7 +1,6 @@
 'use strict'
 
-// var App = require('node-app-cradle-client');
-let App = require('node-app-rethinkdb-client')
+var App = require('node-app-cradle-client');
 
 var debug = require('debug')('Server:Apps:OS:Purge');
 var debug_internals = require('debug')('Server:Apps:OS:Purge:Internals');
@@ -39,36 +38,36 @@ module.exports = new Class({
 
   options: {
 
-		id: 'periodical.purge',
+		id: 'os.purge',
 
 		requests : {
 			periodical: [
         {
 					view: function(req, next, app){
-						debug_internals('search_paths', app.options);
-						// next({
-						// 	uri: app.options.db,
-						// 	id: 'search/paths',
-						// 	data: {
-						// 		reduce: true, //avoid geting duplicate host
-						// 		group: true,
-						// 		inclusive_end: true,
-						// 	}
-						// })
+						// debug_internals('search_hosts', app.options);
+						next({
+							uri: app.options.db,
+							id: 'search/paths',
+							data: {
+								reduce: true, //avoid geting duplicate host
+								group: true,
+								inclusive_end: true,
+							}
+						})
 					}
 				},
         {
 					view: function(req, next, app){
-						debug_internals('search_hosts', app.options);
-						// next({
-						// 	uri: app.options.db,
-						// 	id: 'search/hosts',
-						// 	data: {
-						// 		reduce: true, //avoid geting duplicate host
-						// 		group: true,
-						// 		inclusive_end: true,
-						// 	}
-						// })
+						// debug_internals('search_hosts', app.options);
+						next({
+							uri: app.options.db,
+							id: 'search/hosts',
+							data: {
+								reduce: true, //avoid geting duplicate host
+								group: true,
+								inclusive_end: true,
+							}
+						})
 					}
 				},
 				{
@@ -110,20 +109,20 @@ module.exports = new Class({
                     debug_internals('fetching expire:type %s %d %s', path, expire, type);
 
                     let cb = next.pass(
-    									// app.view({
-    									// 	uri: app.options.db,
-    									// 	id: 'sort/by_path',
-    									// 	data: {
-    									// 		// startkey: [path, host, "periodical", Date.now() - 1000],//1.5 sec
-    									// 		// endkey: [path, host, "periodical", Date.now()],
-                      //     startkey: [path, host, type, 0],//1.5 sec
-    									// 		endkey: [path, host, type, Date.now() - (expire * 1000)],
-    									// 		// limit: limit,
-    									// 		//limit: 60, //60 docs = 1 minute of docs
-    									// 		inclusive_end: true,
-    									// 		include_docs: false
-    									// 	}
-    									// })
+    									app.view({
+    										uri: app.options.db,
+    										id: 'sort/by_path',
+    										data: {
+    											// startkey: [path, host, "periodical", Date.now() - 1000],//1.5 sec
+    											// endkey: [path, host, "periodical", Date.now()],
+                          startkey: [path, host, type, 0],//1.5 sec
+    											endkey: [path, host, type, Date.now() - (expire * 1000)],
+    											// limit: limit,
+    											//limit: 60, //60 docs = 1 minute of docs
+    											inclusive_end: true,
+    											include_docs: false
+    										}
+    									})
     								);
 
     								views.push(cb);
@@ -148,6 +147,44 @@ module.exports = new Class({
 
 				},
 
+				// {
+				// 	view: function(req, next, app){
+				// 		//debug_internals('_get_last_stat %o', next);
+				// 		debug_internals('_get_last_stat %o', app.hosts);
+        //
+				// 		let views = [];
+				// 		Object.each(app.hosts, function(value, host){
+				// 			debug_internals('_get_last_stat %s', host);
+        //
+				// 			let cb = next.pass(
+				// 				app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
+				// 					// uri: 'alerts',
+        //           uri: app.options.db,
+				// 					id: 'sort/by_path',
+				// 					data: {
+				// 						// startkey: ["minute", host, Date.now()],
+				// 						// endkey: ["minute", host, 0],
+        //             startkey: ["os.alerts", host, "minute", Date.now()],
+        //             endkey: ["os.alerts", host, "minute", 0],
+				// 						limit: 1,
+				// 						descending: true,
+				// 						inclusive_end: true,
+				// 						include_docs: true
+				// 					}
+				// 				})
+				// 			);
+        //
+				// 			views.push(cb);
+        //
+        //
+				// 		});
+        //
+				// 		Array.each(views, function(view){
+				// 			view.attempt();
+				// 		});
+				// 		//next(views);
+				// 	}
+				// }
 			],
 			// range: [
 			// 	//{ get: {uri: 'dashboard/cache', doc: 'localhost.colo.os.blockdevices@1515636560970'} },
@@ -271,7 +308,42 @@ module.exports = new Class({
 					debug_internals('PATHs %o', this.paths);
 				}
 			}
-
+      // else if(info.options.id == 'sort/by_path' && info.options.data.startkey[0] == "os.alerts"){//_get_last_stat
+			// 	//this.options.requests.periodical = [];
+      //
+			// 	//console.log(Object.getLength(resp));
+			// 	if(Object.getLength(resp) == 0){//there are no alerts for this host yet
+			// 		let host = info.options.data.startkey[1];
+			// 		this.hosts[host] = 0;
+      //
+			// 		debug_internals('No alerts for host %o', host);
+			// 		debug_internals('HOSTs %o', this.hosts);
+			// 		//this._add_periodical(info.options.data.startkey[0], 0, Date.now());
+      //
+			// 	}
+			// 	else{//if there are alerts already, add perdiocal starting from "end"
+			// 		//throw new Error('there are alerts already:implement');
+			// 		let host = resp[0].doc.metadata.host;
+			// 		let last = resp[0].doc.metadata.range.end + 1;
+      //
+			// 		this.hosts[host] = last;
+			// 		debug_internals('Hosts %o', this.hosts);
+      //
+			// 		/**
+			// 		 * now that we have the last alerts doc for this host,
+			// 		 * we can build our "perdiodical" requests
+			// 		 * */
+			// 		//if(this.periodicals[host] != undefined){
+			// 			//let prev = this.periodicals[host];
+			// 			//delete this.options.requests.periodical[prev];
+			// 			//debug_internals("delete %s from index %d", host, prev);
+			// 			//this.fireEvent('onPeriodicalRequestsUpdated');
+			// 		//}
+      //
+			// 		//this._add_periodical(host, last, Date.now());
+			// 	}
+      //
+			// }
 			else{//from periodical views
 
 				this.hosts = {};
@@ -319,5 +391,49 @@ module.exports = new Class({
 		this.log('os-purge', 'info', 'os-purge started');
 
   },
-
+	// _add_periodical: function(host, start, end){
+	// 	debug_internals('_add_periodical %s %d %d', host, start, end);
+  //
+	// 	let limit = 2;
+  //
+	// 	let periodical = {
+	// 		view: function(req, next){
+	// 			if(host == 'test'){
+	// 				debug_internals("dinamically generated view for host %s start %d", host, start);
+	// 				debug_internals("dinamically generated view for host %s end %d", host, end);
+	// 			}
+  //
+	// 			next(
+	// 				{
+	// 					uri: 'dashboard',
+	// 					id: 'sort/by_path',
+	// 					data: {
+	// 						startkey: ["os", host, "periodical", start],
+	// 						endkey: ["os", host, "periodical", end],
+	// 						limit: limit,
+	// 						//limit: 60, //60 docs = 1 minute of docs
+	// 						inclusive_end: true,
+	// 						include_docs: true
+	// 					}
+	// 				}
+	// 			)
+  //
+  //
+	// 		}
+	// 	};
+  //
+	// 	//debug_internals("view host %s", periodical.host);
+  //
+	// 	if(this.periodicals[host] == undefined){
+	// 		this.periodicals[host] = null;
+	// 	}
+  //
+	// 	let length = this.options.requests.periodical.push(periodical);
+	// 	this.periodicals[host] = length -1;
+  //
+  //
+	// 	this.fireEvent('onPeriodicalRequestsUpdated');
+  //
+  //
+	// },
 });
