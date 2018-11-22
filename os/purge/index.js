@@ -116,7 +116,7 @@ module.exports = new Class({
 						debug_internals('fetch_history time %s', now);
 
 						// let limit = 1;//only last doc
-            // let limit = 100;//only last doc
+            let limit = 1000;//only last doc
 
 						let views = [];
 
@@ -148,10 +148,24 @@ module.exports = new Class({
 
                     debug_internals('fetching expire:type %s %d %s', path, expire, type);
 
-                    let cb = app.between({
-                      _extras: 'to_delete',
+                    // let cb = app.between({
+                    //   _extras: 'to_delete',
+                    //   uri: app.options.db+'/periodical',
+                    //   args: [
+                    //     [path, host, type, 0],
+                    //     [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
+                    //     {
+                    //       index: 'sort_by_path',
+                    //       leftBound: 'open',
+                    //       rightBound: 'open'
+                    //     }
+                    //   ],
+                    //   field: 'id'
+                    // })
+                    let cb = app.delete({
+                      _extras: 'delete',
                       uri: app.options.db+'/periodical',
-                      args: [
+                      query: app.r.db(app.options.db).table('periodical').between(
                         [path, host, type, 0],
                         [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
                         {
@@ -159,9 +173,24 @@ module.exports = new Class({
                           leftBound: 'open',
                           rightBound: 'open'
                         }
-                      ],
-                      field: 'id'
+                      ).limit(limit),
+                      args:{durability:"soft", return_changes: true}
                     })
+                    // app.between({
+                    //   _extras: 'to_delete',
+                    //   uri: app.options.db+'/periodical',
+                    //   args: [
+                    //     [path, host, type, 0],
+                    //     [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
+                    //     {
+                    //       index: 'sort_by_path',
+                    //       leftBound: 'open',
+                    //       rightBound: 'open'
+                    //     }
+                    //   ],
+                    //   field: 'id'
+                    // })
+
     									// app.view({
     									// 	uri: app.options.db,
     									// 	id: 'sort/by_path',
@@ -238,18 +267,18 @@ module.exports = new Class({
       debug_internals('between err', err)
     }
     else{
-      if(params.options._extras == 'to_delete'){
-        debug_internals('to_delete %o', resp);
-        this.delete({
-          _extras: 'delete',
-          uri: this.options.db+'/periodical',
-          args:[
-            resp,
-            {durability: 'soft'}
-          ]
-        })
-      }
-      else{
+      // if(params.options._extras == 'to_delete'){
+      //   debug_internals('to_delete %o', resp);
+      //   this.delete({
+      //     _extras: 'delete',
+      //     uri: this.options.db+'/periodical',
+      //     args:[
+      //       resp,
+      //       {durability: 'soft'}
+      //     ]
+      //   })
+      // }
+      // else{
         resp.toArray(function(err, arr){
           debug_internals('between count', arr.length)
           if(params.options._extras == 'path'){
@@ -312,7 +341,7 @@ module.exports = new Class({
 
 
         }.bind(this))
-      }
+      // }
 
     }
 
