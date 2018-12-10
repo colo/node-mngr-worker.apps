@@ -129,21 +129,23 @@ module.exports = function(doc, opts, next, pipeline){
 				delete procs_doc.data
 				if(!procs_doc.metadata) procs_doc.metadata = {}
 
-				let uids_doc = Object.clone(procs_doc)
-				let cmds_doc = Object.clone(procs_doc)
+				let procs_stats_doc = Object.clone(procs_doc)
+				procs_stats_doc.data = {uids: {}, cmd: {}}
 
 				procs_doc.data = procs
-				uids_doc.data = per_uid
-				cmds_doc.data = per_cmd
 
-				procs_doc.metadata.path = 'os.procs.pid'
-				uids_doc.metadata.path = 'os.procs.uid'
-				cmds_doc.metadata.path = 'os.procs.cmd'
+				procs_stats_doc.data.uids = per_uid
+				procs_stats_doc.data.cmd = per_cmd
+
+
+				procs_doc.metadata.path = 'os.procs'
+				procs_stats_doc.metadata.path = 'os.procs.stats'
+
 
 
 				next(procs_doc, opts, next, pipeline)
-				next(uids_doc, opts, next, pipeline)
-				next(cmds_doc, opts, next, pipeline)
+				next(procs_stats_doc, opts, next, pipeline)
+				
 			}
 
 
