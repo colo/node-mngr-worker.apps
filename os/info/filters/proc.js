@@ -136,9 +136,9 @@ module.exports = function(doc, opts, next, pipeline){
 				uids_doc.data = per_uid
 				cmds_doc.data = per_cmd
 
-				procs_doc.metadata.path = 'os.procs'
-				uids_doc.metadata.path = 'os.procs.uid'
-				cmds_doc.metadata.path = 'os.procs.cmd'
+				procs_doc.metadata.path = 'os.procs_pid'
+				uids_doc.metadata.path = 'os.procs_uid'
+				cmds_doc.metadata.path = 'os.procs_cmd'
 
 
 
