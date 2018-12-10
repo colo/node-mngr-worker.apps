@@ -141,10 +141,9 @@ module.exports = function(doc, opts, next, pipeline){
 				cmds_doc.metadata.path = 'os.procs_cmd'
 
 
-
-				procs_doc.data.cmd =
-
-				next([procs_doc, uids_doc, cmds_doc], opts, next, pipeline)
+				next(procs_doc, opts, next, pipeline)
+				next(uids_doc, opts, next, pipeline)
+				next(cmds_doc, opts, next, pipeline)
 			}
 
 
