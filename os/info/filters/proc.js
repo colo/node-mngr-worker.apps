@@ -116,22 +116,35 @@ module.exports = function(doc, opts, next, pipeline){
 				})
 
 
-				// // let procs_doc = Object.clone(doc)
 				// delete procs_doc.data
-				// procs_doc.data = {pids: {}, uids: {}}
+				// procs_doc.data = {pids: {}, uids: {}, cmd: {}}
 				// procs_doc.data.pids = procs
 				// procs_doc.data.uids = per_uid
+				// procs_doc.data.cmd = per_cmd
+				// if(!procs_doc.metadata) procs_doc.metadata = {}
+				// procs_doc.metadata.path = 'os.procs'
+        //
+				// next(procs_doc, opts, next, pipeline)
+
 				delete procs_doc.data
-				procs_doc.data = {pids: {}, uids: {}, cmd: {}}
-				procs_doc.data.pids = procs
-				procs_doc.data.uids = per_uid
-				procs_doc.data.cmd = per_cmd
 				if(!procs_doc.metadata) procs_doc.metadata = {}
+
+				let uids_doc = Object.clone(procs_doc)
+				let cmds_doc = Object.clone(procs_doc)
+
+				procs_doc.data = procs
+				uids_doc.data = per_uid
+				cmds_doc.data = per_cmd
+
 				procs_doc.metadata.path = 'os.procs'
+				uids_doc.metadata.path = 'os.procs.uid'
+				cmds_doc.metadata.path = 'os.procs.cmd'
 
-				// next(procs_doc, opts, pipeline.output.bind(pipeline))
-				next(procs_doc, opts, next, pipeline)
 
+
+				procs_doc.data.cmd =
+
+				next([procs_doc, uids_doc, cmds_doc], opts, next, pipeline)
 			}
 
 
