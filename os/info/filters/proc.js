@@ -129,23 +129,72 @@ module.exports = function(doc, opts, next, pipeline){
 				delete procs_doc.data
 				if(!procs_doc.metadata) procs_doc.metadata = {}
 
-				let procs_stats_doc = Object.clone(procs_doc)
-				procs_stats_doc.data = {uids: {}, cmd: {}}
+				let uids_doc = Object.clone(procs_doc)
+				let cmds_doc = Object.clone(procs_doc)
+				let stats_doc = Object.clone(procs_doc)
 
 				procs_doc.data = procs
-
-				procs_stats_doc.data.uids = per_uid
-				procs_stats_doc.data.cmd = per_cmd
-
-
-				procs_doc.metadata.path = 'os.procs'
-				procs_stats_doc.metadata.path = 'os.procs.stats'
+				uids_doc.data = per_uid
+				cmds_doc.data = per_cmd
 
 
+				procs_doc.metadata.path = 'os.procs.pid'
+				uids_doc.metadata.path = 'os.procs.uid'
+				cmds_doc.metadata.path = 'os.procs.cmd'
+				stats_doc.metadata.path = 'os.procs.stats'
+
+				// stats_doc.data = {
+				// 	pid: {
+				// 		count: Object.keys(procs_doc.data).length
+				// 	},
+				// 	uid: {
+				// 		count: Object.keys(uids_doc.data).length
+				// 	},
+				// 	cmd: {
+				// 		count: Object.keys(cmds_doc.data).length
+				// 	}
+				// }
+				// let by_cpu = procs_doc.data.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				let by_cpu = []
+				let by_mem = []
+				let by_elapsed = []
+				let by_time = []
+				Object.each(procs_doc.data, function(proc, pid){
+					by_cpu.push({pid: pid, '%cpu': proc['%cpu'] })
+					by_mem.push({pid: pid, '%mem': proc['%mem'] })
+					by_elapsed.push({pid: pid, 'elapsed': proc.elapsed })
+					by_time.push({pid: pid, 'time': proc.time })
+				})
+
+				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['%cpu'] > 0})
+
+
+				by_mem = by_mem.sort(function(a,b) {return (a['%mem'] > b['%mem']) ? 1 : ((b['%mem'] > a['%mem']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['%mem'] > 0})
+
+				by_elapsed = by_elapsed.sort(function(a,b) {return (a['elapsed'] > b['elapsed']) ? 1 : ((b['elapsed'] > a['elapsed']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['elapsed'] > 0})
+
+				by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['time'] > 0})
+
+				stats_doc.data = {
+					count: Object.keys(procs_doc.data).length,
+					'%cpu': by_cpu,
+					'%mem': by_mem,
+					elapsed: by_elapsed,
+					time: by_time
+				}
 
 				next(procs_doc, opts, next, pipeline)
-				next(procs_stats_doc, opts, next, pipeline)
-				
+				next(uids_doc, opts, next, pipeline)
+				next(cmds_doc, opts, next, pipeline)
+				next(stats_doc, opts, next, pipeline)
 			}
 
 
