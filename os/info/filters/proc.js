@@ -128,20 +128,29 @@ module.exports = function(doc, opts, next, pipeline){
 
 				delete procs_doc.data
 				if(!procs_doc.metadata) procs_doc.metadata = {}
+				let stats_doc = Object.clone(procs_doc)
 
 				let uids_doc = Object.clone(procs_doc)
+				let uids_stats_doc = Object.clone(procs_doc)
+
 				let cmds_doc = Object.clone(procs_doc)
-				let stats_doc = Object.clone(procs_doc)
+				let cmds_stats_doc = Object.clone(procs_doc)
+
 
 				procs_doc.data = procs
 				uids_doc.data = per_uid
 				cmds_doc.data = per_cmd
 
 
-				procs_doc.metadata.path = 'os.procs.pid'
-				uids_doc.metadata.path = 'os.procs.uid'
-				cmds_doc.metadata.path = 'os.procs.cmd'
+				procs_doc.metadata.path = 'os.procs'
 				stats_doc.metadata.path = 'os.procs.stats'
+
+				uids_doc.metadata.path = 'os.procs.uid'
+				uids_stats_doc.metadata.path = 'os.procs.uid.stats'
+
+				cmds_doc.metadata.path = 'os.procs.cmd'
+				cmds_stats_doc.metadata.path = 'os.procs.cmd.stats'
+
 
 				// stats_doc.data = {
 				// 	pid: {
@@ -159,11 +168,22 @@ module.exports = function(doc, opts, next, pipeline){
 				let by_mem = []
 				let by_elapsed = []
 				let by_time = []
+				let kernel_space = []
+				let user_space = []
+
 				Object.each(procs_doc.data, function(proc, pid){
 					by_cpu.push({pid: pid, '%cpu': proc['%cpu'] })
 					by_mem.push({pid: pid, '%mem': proc['%mem'] })
 					by_elapsed.push({pid: pid, 'elapsed': proc.elapsed })
 					by_time.push({pid: pid, 'time': proc.time })
+
+
+					if(proc.command[0].indexOf('[') == 0 && proc.command[0].indexOf(']') == proc.command[0].length -1){
+						kernel_space.push(proc.pid)
+					}
+					else{
+						user_space.push(proc.pid)
+					}
 				})
 
 				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
@@ -184,17 +204,99 @@ module.exports = function(doc, opts, next, pipeline){
 				.filter(function(item, index){ return item['time'] > 0})
 
 				stats_doc.data = {
-					count: Object.keys(procs_doc.data).length,
+					pids_count: Object.keys(procs_doc.data).length,
 					'%cpu': by_cpu,
 					'%mem': by_mem,
 					elapsed: by_elapsed,
-					time: by_time
+					time: by_time,
+					kernel: kernel_space,
+					user: user_space
 				}
 
 				next(procs_doc, opts, next, pipeline)
-				next(uids_doc, opts, next, pipeline)
-				next(cmds_doc, opts, next, pipeline)
 				next(stats_doc, opts, next, pipeline)
+
+				/**
+				* UIDS
+				**/
+				by_cpu = []
+				by_mem = []
+				by_time = []
+				let by_count = []
+				Object.each(uids_doc.data, function(proc, uid){
+					by_cpu.push({uid: uid, '%cpu': proc['%cpu'] })
+					by_mem.push({uid: uid, '%mem': proc['%mem'] })
+					by_time.push({uid: uid, 'time': proc.time })
+					by_count.push({uid: uid, 'count': proc.count })
+				})
+
+				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['%cpu'] > 0})
+
+				by_mem = by_mem.sort(function(a,b) {return (a['%mem'] > b['%mem']) ? 1 : ((b['%mem'] > a['%mem']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['%mem'] > 0})
+
+				by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['time'] > 0})
+
+				by_count = by_count.sort(function(a,b) {return (a['count'] > b['count']) ? 1 : ((b['count'] > a['count']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['count'] > 0})
+
+				uids_stats_doc.data = {
+					uids_count: Object.keys(uids_doc.data).length,
+					'%cpu': by_cpu,
+					'%mem': by_mem,
+					time: by_time,
+					count: by_count,
+				}
+
+				next(uids_doc, opts, next, pipeline)
+				next(uids_stats_doc, opts, next, pipeline)
+
+				/**
+				* CMDS
+				**/
+				by_cpu = []
+				by_mem = []
+				by_time = []
+				by_count = []
+				Object.each(cmds_doc.data, function(proc, cmd){
+					by_cpu.push({cmd: cmd, '%cpu': proc['%cpu'] })
+					by_mem.push({cmd: cmd, '%mem': proc['%mem'] })
+					by_time.push({cmd: cmd, 'time': proc.time })
+					by_count.push({cmd: cmd, 'count': proc.count })
+				})
+
+				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['%cpu'] > 0})
+
+				by_mem = by_mem.sort(function(a,b) {return (a['%mem'] > b['%mem']) ? 1 : ((b['%mem'] > a['%mem']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['%mem'] > 0})
+
+				by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['time'] > 0})
+
+				by_count = by_count.sort(function(a,b) {return (a['count'] > b['count']) ? 1 : ((b['count'] > a['count']) ? -1 : 0);} )
+				.reverse()
+				.filter(function(item, index){ return item['count'] > 0})
+
+				cmds_stats_doc.data = {
+					cmds_count: Object.keys(cmds_doc.data).length,
+					'%cpu': by_cpu,
+					'%mem': by_mem,
+					time: by_time,
+					count: by_count,
+				}
+				next(cmds_doc, opts, next, pipeline)
+				next(cmds_stats_doc, opts, next, pipeline)
+
 			}
 
 
