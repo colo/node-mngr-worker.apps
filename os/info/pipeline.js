@@ -1,6 +1,6 @@
 'use stric'
 
-var debug = require('debug')('filter:os');
+var debug = require('debug')('pipeline:os');
 var debug_internals = require('debug')('filter:os:Internals');
 
 const path = require('path');
