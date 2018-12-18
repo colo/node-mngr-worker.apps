@@ -1,6 +1,6 @@
 'use stric'
 
-var debug = require('debug')('pipeline:os:historical:minute');
+var debug = require('debug')('Server:Apps:OS:Historical:Minute:Pipeline');
 var debug_internals = require('debug')('filter:os:historical:minute:Internals');
 
 
@@ -53,7 +53,7 @@ module.exports = function(conn){
             //   return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
     				// },
     				// periodical: 15000,
-    				periodical: 2000,//test
+    				periodical: 1000,//test
     			},
     		},
     	}
