@@ -99,11 +99,49 @@ module.exports = new Class({
 						debug_internals('_get_last_stat %o', app.hosts);
 
 						let views = [];
-						// Object.each(app.hosts, function(value, host){
-						// 	debug_internals('_get_last_stat %s', host);
-            //
-            //   Array.each(app.paths, function(path){
-            //
+						Object.each(app.hosts, function(value, host){
+							debug_internals('_get_last_stat %s', host);
+
+              Array.each(app.paths, function(path){
+                debug_internals('_get_last_stat %s %s', host, path);
+                let _func = function(){
+                  app.between({
+                    _extras: {'get_last_stat': true, host: host, path: path},
+                    uri: app.options.db+'/historical',
+                    args: [
+                      [path, host, 'minute', roundMilliseconds(0)],
+                      [path, host, 'minute', roundMilliseconds(Date.now())],
+                      {
+                        index: 'sort_by_path',
+                        leftBound: 'open',
+                        rightBound: 'open'
+                      }
+                    ],
+                    chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
+                    // orderBy: { index: app.r.desc('sort_by_path') }
+                  })
+
+                }.bind(app)
+
+
+                  // app.between({
+                  //   _extras: {get_last_stat: true, host: host, path: path},
+                  //   uri: app.options.db+'/historical',
+                  //   args: [
+                  //     path,
+                  //     host,
+                  //     'minute',
+                  //     roundMilliseconds(Date.now() - 1000),
+                  //     roundMilliseconds(Date.now()),
+                  //     {
+                  //       index: 'sort_by_path',
+                  //       leftBound: 'open',
+                  //       rightBound: 'open'
+                  //     }
+                  //   ]
+                  // })
+
+
   					// 		let cb = next.pass(
   					// 			app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
   					// 				// uri: 'historical',
@@ -123,16 +161,16 @@ module.exports = new Class({
   					// 			})
   					// 		);
             //
-  					// 		views.push(cb);
-            //
-            //   })
-            //
-						// });
-            //
-						// Array.each(views, function(view){
-						// 	view.attempt();
-						// });
-						//next(views);
+  							views.push(_func);
+
+              })
+
+						});
+
+						Array.each(views, function(view){
+							view();
+						});
+						// next(views);
 					}
 				}
 
@@ -284,6 +322,7 @@ module.exports = new Class({
   //   }
   // },
   between: function(err, resp, params){
+    debug_internals('between', params.options)
     if(err){
       debug_internals('between err', err)
     }
@@ -302,6 +341,9 @@ module.exports = new Class({
       // else{
         resp.toArray(function(err, arr){
           debug_internals('between count', arr.length)
+          if(params.options._extras.get_last_stat == true)
+            debug_internals('between params.options._extras.get_last_stat %o', arr)
+
           if(params.options._extras == 'path'){
             if(arr.length == 0){
     					debug_internals('No paths yet');
