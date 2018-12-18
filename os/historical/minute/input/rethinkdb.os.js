@@ -124,43 +124,6 @@ module.exports = new Class({
                 }.bind(app)
 
 
-                  // app.between({
-                  //   _extras: {get_last_stat: true, host: host, path: path},
-                  //   uri: app.options.db+'/historical',
-                  //   args: [
-                  //     path,
-                  //     host,
-                  //     'minute',
-                  //     roundMilliseconds(Date.now() - 1000),
-                  //     roundMilliseconds(Date.now()),
-                  //     {
-                  //       index: 'sort_by_path',
-                  //       leftBound: 'open',
-                  //       rightBound: 'open'
-                  //     }
-                  //   ]
-                  // })
-
-
-  					// 		let cb = next.pass(
-  					// 			app.view({//get doc by host->last.timestamp (descending = true, and reversed star/end keys)
-  					// 				// uri: 'historical',
-            //         // uri: app.options.db,
-            //         uri: app.options.historical_db,
-  					// 				id: 'sort/by_path',
-  					// 				data: {
-  					// 					// startkey: ["minute", host, Date.now()],
-  					// 					// endkey: ["minute", host, 0],
-            //           startkey: ['historical.'+path, host, "minute", Date.now()],
-            //           endkey: ['historical.'+path, host, "minute", 0],
-  					// 					limit: 1,
-  					// 					descending: true,
-  					// 					inclusive_end: true,
-  					// 					include_docs: true
-  					// 				}
-  					// 			})
-  					// 		);
-            //
   							views.push(_func);
 
               })
@@ -172,7 +135,73 @@ module.exports = new Class({
 						});
 						// next(views);
 					}
-				}
+				},
+        {
+					fetch_history: function(req, next, app){
+						let now = new Date();
+						debug_internals('fetch_history time %s', now);
+
+						let limit = 60;//60 docs = 1 minute of historical data
+
+						let views = [];
+
+						Object.each(app.hosts, function(data, host){
+							debug_internals('fetch_history value %d %s', data, host);
+
+
+              Object.each(data, function(value, path){
+
+                if(value >= 0){
+                  let _func = function(){
+                    app.between({
+                      _extras: {'fetch_history': true, host: host, path: path, from: value},
+                      uri: app.options.db+'/periodical',
+                      args: [
+                        [path, host, 'periodical', value],
+                        [path, host, 'periodical', roundMilliseconds(Date.now())],
+                        {
+                          index: 'sort_by_path',
+                          leftBound: 'open',
+                          rightBound: 'open'
+                        }
+                      ],
+                      chain: [{limit: limit}]
+                      // orderBy: { index: app.r.desc('sort_by_path') }
+                    })
+
+                  }.bind(app)
+
+  								// let cb = next.pass(
+  								// 	app.view({
+  								// 		uri: app.options.db,
+  								// 		id: 'sort/by_path',
+  								// 		data: {
+  								// 			startkey: [path, host, "periodical", value],
+  								// 			endkey: [path, host, "periodical", Date.now()],
+  								// 			limit: limit,
+  								// 			//limit: 60, //60 docs = 1 minute of docs
+  								// 			inclusive_end: true,
+  								// 			include_docs: true
+  								// 		}
+  								// 	})
+  								// );
+
+  								views.push(_func);
+                }//if value
+              })
+
+
+						}.bind(app));
+
+            Array.each(views, function(view){
+							view();
+						});
+
+						//next(views);
+						//app.hosts = {};
+					}
+
+				},
 
 
 				// {
@@ -325,6 +354,22 @@ module.exports = new Class({
     debug_internals('between', params.options)
     if(err){
       debug_internals('between err', err)
+
+			if(params.uri != ''){
+				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
+			}
+			else{
+				this.fireEvent('onGetError', err);
+			}
+
+			this.fireEvent(this.ON_DOC_ERROR, err);
+
+			this.fireEvent(
+				this[
+					'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
+				],
+				err
+			);
     }
     else{
       // if(params.options._extras == 'to_delete'){
@@ -341,8 +386,7 @@ module.exports = new Class({
       // else{
         resp.toArray(function(err, arr){
           debug_internals('between count', arr.length)
-          if(params.options._extras.get_last_stat == true)
-            debug_internals('between params.options._extras.get_last_stat %o', arr)
+
 
           if(params.options._extras == 'path'){
             if(arr.length == 0){
@@ -391,6 +435,72 @@ module.exports = new Class({
 
     					debug_internals('HOSTs %o', this.hosts);
     				}
+          }
+          else if(params.options._extras.get_last_stat == true){
+            debug_internals('between params.options._extras.get_last_stat %o', arr)
+            if(arr.length == 0){//there are no historical for this host yet
+              let host = params.options._extras.host
+              let path = params.options._extras.path.replace('historical.', '');
+
+              if(!this.hosts[host]) this.hosts[host] = {}
+
+              this.hosts[host][path] = 0;
+
+    					debug_internals('No historical for host %o', host);
+    					debug_internals('HOSTs %o', this.hosts);
+
+            }
+            else{//if there are historical already, add perdiocal starting from "end"
+    					//throw new Error('there are historical already:implement');
+              let host = params.options._extras.host
+              let path = params.options._extras.path.replace('historical.', '');
+
+              // let last = resp[0].doc.metadata.range.end + 1;
+              let last = arr[0].metadata['timestamp'] + 1
+
+              if(!this.hosts[host]) this.hosts[host] = {}
+
+    					this.hosts[host][path] = last;
+
+              debug_internals('Hosts %o', this.hosts);
+
+    				}
+          }
+          else if(params.options._extras.fetch_history == true){
+            debug_internals('between params.options._extras.fetch_history %d', arr.length)
+
+            this.hosts = {};
+
+    				if(params.uri != ''){
+    					this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1), JSON.decode(resp));//capitalize first letter
+    				}
+    				else{
+    					this.fireEvent('onGet', resp);
+    				}
+
+    				// let to_remove = [];
+
+    				// if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
+            if(arr.length > 0){
+    					// Array.each(resp, function(doc){
+    					// 	to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
+    					// });
+
+    					// resp = [resp];
+
+    					this.fireEvent(
+    						this[
+    							'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+    						],
+    						arr
+    					);
+
+
+    				}
+    				else{//no docs
+
+    				}
+
           }
           // else if(params.options._extras == 'to_delete'){
           //   debug_internals('to_delete %o', arr);
