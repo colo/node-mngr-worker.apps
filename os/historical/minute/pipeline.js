@@ -1,16 +1,18 @@
 'use stric'
 
 var debug = require('debug')('Server:Apps:OS:Historical:Minute:Pipeline');
-var debug_internals = require('debug')('filter:os:historical:minute:Internals');
-
+var debug_internals = require('debug')('Server:Apps:OS:Historical:Minute:Pipeline:Internals');
 
 const path = require('path');
 
 var cron = require('node-cron');
 
-let compress_filter =  require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress')),
-    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
-    decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
+// let compress_filter =  require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress')),
+//     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
+//     decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
+
+let os_filter = require('./filters/os'),
+    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template'));
 
 
 // let PollCradle = require('js-pipeline/input/poller/poll/cradle')
@@ -60,27 +62,108 @@ module.exports = function(conn){
     ],
 
     filters: [
-      // decompress_filter,
-      require('./filter'),
-      function(doc, opts, next, pipeline){
-        sanitize_filter(
-          doc,
-          opts,
-          // function(doc, opts, next, pipeline){
-          //   compress_filter(
-          //     doc,
-          //     opts,
-          //     pipeline.output.bind(pipeline),
-          //     pipeline
-          //   )
-          // },
-          pipeline.output.bind(pipeline),
-          pipeline
-        )
+   		// require('./snippets/filter.sanitize.template'),
+       function(doc, opts, next, pipeline){
+         let { type, input, input_type, app } = opts
+
+         if(
+     				typeof(doc) == 'array'
+     				|| doc instanceof Array
+     				|| Array.isArray(doc)
+     				&& doc.length > 0 && doc[0].data && doc[0].data !== null
+     				&& doc[doc.length - 1] && doc[doc.length - 1].data && doc[doc.length - 1].data !== null
+     			){
+            let path = doc[0].metadata.path;
+            switch(path){
+              case 'os':
+                os_filter(
+                  doc,
+                  opts,
+                  function(doc, opts, next, pipeline){
+                    sanitize_filter(
+                      doc,
+                      opts,
+                      pipeline.output.bind(pipeline),
+                      pipeline
+                    )
+                  },
+                  // sanitize_filter,
+                  pipeline
+                )
+
+                break
+
+              default:
+                sanitize_filter(
+                  doc,
+                  opts,
+                  pipeline.output.bind(pipeline),
+                  pipeline
+                )
+            }
+
+          }
+
+         // if(app.options.id == 'procs'){
+         //   procs_filter(
+         //     doc,
+         //     opts,
+         //     function(doc, opts, next, pipeline){
+         //       sanitize_filter(
+         //         doc,
+         //         opts,
+         //         pipeline.output.bind(pipeline),
+         //         pipeline
+         //       )
+         //     },
+         //     // sanitize_filter,
+         //     pipeline
+         //   )
+         // }
+         // else{
+         //
+         //   sanitize_filter(
+         //     doc,
+         //     opts,
+         //     pipeline.output.bind(pipeline),
+         //     pipeline
+         //   )
+         // }
+
+
+       },
+
+   	],
+
+    // filters: [
+    //   // decompress_filter,
+    //   require('./filter'),
+    //   function(doc, opts, next, pipeline){
+    //     sanitize_filter(
+    //       doc,
+    //       opts,
+    //       // function(doc, opts, next, pipeline){
+    //       //   compress_filter(
+    //       //     doc,
+    //       //     opts,
+    //       //     pipeline.output.bind(pipeline),
+    //       //     pipeline
+    //       //   )
+    //       // },
+    //       pipeline.output.bind(pipeline),
+    //       pipeline
+    //     )
+    //   }
+    //   // sanitize_filter,
+    //   // compress_filter
+    // ],
+    output: [
+      function(doc){
+        let output = require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template'))
+        output(JSON.encode(doc))
       }
-      // sanitize_filter,
-      // compress_filter
-    ],
+
+    ]
   	// output: [
     //   {
   	// 		rethinkdb: {
