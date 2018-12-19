@@ -48,7 +48,7 @@ module.exports = new Class({
 
   options: {
 
-		id: 'periodical.purge',
+		id: 'os.historical.minute',
 
 		requests : {
 			periodical: [
@@ -146,13 +146,12 @@ module.exports = new Class({
 						let views = [];
 
 						Object.each(app.hosts, function(data, host){
-							debug_internals('fetch_history value %d %s', data, host);
-
 
               Object.each(data, function(value, path){
+                debug_internals('fetch_history value %s %d %s', path, value, host);
 
                 if(value >= 0){
-                  let _func = function(){
+                  // let _func = function(){
                     app.between({
                       _extras: {'fetch_history': true, host: host, path: path, from: value},
                       uri: app.options.db+'/periodical',
@@ -169,7 +168,7 @@ module.exports = new Class({
                       // orderBy: { index: app.r.desc('sort_by_path') }
                     })
 
-                  }.bind(app)
+                  // }.bind(app)
 
   								// let cb = next.pass(
   								// 	app.view({
@@ -186,16 +185,21 @@ module.exports = new Class({
   								// 	})
   								// );
 
-  								views.push(_func);
+  								// views.push(_func);
                 }//if value
-              })
+              }.bind(app))
 
 
 						}.bind(app));
 
-            Array.each(views, function(view){
-							view();
-						});
+            // debug_internals('fetch_history VIEWS %o', views);
+            // while(views){
+            //   let view = views.shift()
+            //   view.attempt()
+            // }
+            // Array.each(views, function(view){
+						// 	// view();
+						// });
 
 						//next(views);
 						//app.hosts = {};
@@ -352,6 +356,7 @@ module.exports = new Class({
   // },
   between: function(err, resp, params){
     debug_internals('between', params.options)
+
     if(err){
       debug_internals('between err', err)
 
@@ -467,7 +472,8 @@ module.exports = new Class({
     				}
           }
           else if(params.options._extras.fetch_history == true){
-            debug_internals('between params.options._extras.fetch_history %d', arr.length)
+            // if(params.options._extras.path == 'os.procs.cmd.stats')
+              debug_internals('between params.options._extras.fetch_history %d %s %d', params.options._extras.from, params.options._extras.path, arr.length)
 
             this.hosts = {};
 
@@ -475,7 +481,7 @@ module.exports = new Class({
     					this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1), JSON.decode(resp));//capitalize first letter
     				}
     				else{
-    					this.fireEvent('onGet', resp);
+    					this.fireEvent('onGet', [arr, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]);
     				}
 
     				// let to_remove = [];
@@ -487,12 +493,13 @@ module.exports = new Class({
     					// });
 
     					// resp = [resp];
+              debug_internals('this.options.requests.current.type %s', this.options.requests.current.type)
 
     					this.fireEvent(
     						this[
     							'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
     						],
-    						arr
+    						[arr, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
     					);
 
 

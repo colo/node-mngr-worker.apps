@@ -53,7 +53,7 @@ module.exports = function(conn){
             //   return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
     				// },
     				// periodical: 15000,
-    				periodical: 1000,//test
+    				periodical: 2000,//test
     			},
     		},
     	}
