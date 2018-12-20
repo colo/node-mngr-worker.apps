@@ -274,7 +274,7 @@ module.exports = function(doc, opts, next, pipeline){
             let max = ss.max(data_values);
 
             let data = {
-              samples: time,
+              // samples: time,
               min : ss.min(data_values),
               max : ss.max(data_values),
               mean : ss.mean(data_values),
@@ -295,7 +295,7 @@ module.exports = function(doc, opts, next, pipeline){
           new_doc['data'][key] = {
             //samples: value,
             speed: {
-              samples: speed,
+              // samples: speed,
               min : ss.min(data_values),
               max : ss.max(data_values),
               mean : ss.mean(data_values),
@@ -323,7 +323,7 @@ module.exports = function(doc, opts, next, pipeline){
                 let max = ss.max(data_values);
 
                 let data = {
-                  samples: status_data,
+                  // samples: status_data,
                   min : min,
                   max : max,
                   mean : ss.mean(data_values),
@@ -379,7 +379,7 @@ module.exports = function(doc, opts, next, pipeline){
           let max = ss.max(data_values);
 
           new_doc['data'][key] = {
-            samples : value,
+            // samples : value,
             min : min,
             max : max,
             mean : ss.mean(data_values),
@@ -397,7 +397,8 @@ module.exports = function(doc, opts, next, pipeline){
         new_doc['metadata'] = {
           type: 'minute',
           host: host,
-          path: 'historical.'+path,
+          // path: 'historical.'+path,
+          path: path,
           range: {
             start: first,
             end: last

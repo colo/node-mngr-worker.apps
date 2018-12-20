@@ -12,7 +12,8 @@ var cron = require('node-cron');
 //     decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
 
 let os_filter = require('./filters/os'),
-    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template'));
+    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
+    // sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template'));
 
 
 // let PollCradle = require('js-pipeline/input/poller/poll/cradle')
@@ -157,33 +158,33 @@ module.exports = function(conn){
     //   // sanitize_filter,
     //   // compress_filter
     // ],
-    output: [
-      function(doc){
-        let output = require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template'))
-        output(JSON.encode(doc))
-      }
-
-    ]
-  	// output: [
-    //   {
-  	// 		rethinkdb: {
-  	// 			id: "output.os.rethinkdb",
-  	// 			conn: [
-  	// 				{
-    //           host: 'elk',
-  	// 					port: 28015,
-  	// 					db: 'servers',
-    //           table: 'historical',
-  	// 				},
-  	// 			],
-  	// 			module: require('js-pipeline/output/rethinkdb'),
-    //       buffer:{
-  	// 				size: 0,
-  	// 				expire:0
-  	// 			}
-  	// 		}
-  	// 	}
-  	// ]
+    // output: [
+    //   function(doc){
+    //     let output = require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template'))
+    //     output(JSON.encode(doc))
+    //   }
+    //
+    // ]
+  	output: [
+      {
+  			rethinkdb: {
+  				id: "output.historical.minute.rethinkdb",
+  				conn: [
+  					{
+              host: 'elk',
+  						port: 28015,
+  						db: 'servers',
+              table: 'historical',
+  					},
+  				],
+  				module: require('js-pipeline/output/rethinkdb'),
+          buffer:{
+  					size: 0,
+  					expire:0
+  				}
+  			}
+  		}
+  	]
   }
 
   return conf
