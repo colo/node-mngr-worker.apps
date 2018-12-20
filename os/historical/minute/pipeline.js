@@ -107,13 +107,13 @@ module.exports = function(conn){
             let last = doc[doc.length - 1].metadata.timestamp;
 
             let values = {};
-            let networkInterfaces = {} //temp obj to save data
+            // let networkInterfaces = {} //temp obj to save data
 
             // if(!values[host]) values[host] = {};
             //
             // if(!values[host][path]) values[host][path] = {};
 
-            Array.each(doc, function(d){
+            Array.each(doc, function(d, d_index){
               let path = d.metadata.path
               if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
@@ -163,58 +163,58 @@ module.exports = function(conn){
                     //   // values[host][key] = [];
                     // }
 
-                    if(key == 'cpus' ){
-                    // if(hooks[path] && hooks[path][key] && typeof hooks[path][key].build_value == 'function'){
-                      // values[host][path][key] =
-                      // hooks[path][key].build_value(values[host][path][key], timestamp, value)
+                    // if(key == 'cpus' ){
+                    if(hooks[path] && hooks[path][key] && typeof hooks[path][key].build_value == 'function'){
+                      values[host][path][key] = hooks[path][key].build_value(values[host][path][key], timestamp, value)
+                      // debug_internals('CORE', values[host][path][key])
 
-                      Array.each(value, function(cpu, core){
+                      // Array.each(value, function(cpu, core){
+                      //
+                      //   // if(!values[host][path][key][core]) values[host][path][key][core] = {};
+                      //     // values[host][path][key][core] = [];
+                      //
+                      //   let data = {};
+                      //   data = {
+                      //     speed: cpu.speed,
+                      //     times: cpu.times
+                      //   };
+                      //
+                      //   // //debug_internals('os-stats filter core %d', core);
+                      //   // values[host][path][key][core].push(data);
+                      //   values[host][path][key][core][timestamp] = data
+                      // });//iterate on each core
 
-                        // if(!values[host][path][key][core]) values[host][path][key][core] = {};
-                          // values[host][path][key][core] = [];
-
-                        let data = {};
-                        data = {
-                          speed: cpu.speed,
-                          times: cpu.times
-                        };
-
-                        // //debug_internals('os-stats filter core %d', core);
-                        // values[host][path][key][core].push(data);
-                        values[host][path][key][core][timestamp] = data
-                      });//iterate on each core
-
-                      debug_internals('CORE', values[host][path][key])
+                      // debug_internals('CORE', values[host][path][key])
                     }
-                    else if(key == 'loadavg'){//keep only "last minute" value
-                      // values[host][path][key].push(value[0]);
-                      values[host][path][key][timestamp] = value[0];
-                    }
-                    else if (key == 'networkInterfaces' ) {
-                      // delete values[host][path][key]
-
-                      if(!networkInterfaces[host]) networkInterfaces[host] = {};
-
-                      Object.each(value, function(data, iface){
-                        if(!networkInterfaces[host][iface]) networkInterfaces[host][iface] = {}
-
-                        Object.each(data, function(val, status){//status => if | recived | transmited
-                          if(status == 'recived' || status == 'transmited'){
-                            Object.each(val, function(prop_val, prop){
-                              if(!networkInterfaces[host][iface][prop])
-                                networkInterfaces[host][iface][prop] = {}
-
-                              if(!networkInterfaces[host][iface][prop][status])
-                                networkInterfaces[host][iface][prop][status] = {}
-
-                              networkInterfaces[host][iface][prop][status][timestamp] = prop_val
-                            })
-                          }
-                        })
-                      })
-
-                      // debug_internals('networkInterfaces %o',networkInterfaces[host])
-                    }
+                    // else if(key == 'loadavg'){//keep only "last minute" value
+                    //   // values[host][path][key].push(value[0]);
+                    //   values[host][path][key][timestamp] = value[0];
+                    // }
+                    // else if (key == 'networkInterfaces' ) {
+                    //   // delete values[host][path][key]
+                    //
+                    //   if(!networkInterfaces[host]) networkInterfaces[host] = {};
+                    //
+                    //   Object.each(value, function(data, iface){
+                    //     if(!networkInterfaces[host][iface]) networkInterfaces[host][iface] = {}
+                    //
+                    //     Object.each(data, function(val, status){//status => if | recived | transmited
+                    //       if(status == 'recived' || status == 'transmited'){
+                    //         Object.each(val, function(prop_val, prop){
+                    //           if(!networkInterfaces[host][iface][prop])
+                    //             networkInterfaces[host][iface][prop] = {}
+                    //
+                    //           if(!networkInterfaces[host][iface][prop][status])
+                    //             networkInterfaces[host][iface][prop][status] = {}
+                    //
+                    //           networkInterfaces[host][iface][prop][status][timestamp] = prop_val
+                    //         })
+                    //       }
+                    //     })
+                    //   })
+                    //
+                    //   // debug_internals('networkInterfaces %o',networkInterfaces[host])
+                    // }
                     // else if (path == 'os.blockdevices') {//keep only stats, partitions may be done in the future
                     //   // delete values[host][path][key]
                     //   // values[host][path][key].push(value.stats);
@@ -319,49 +319,56 @@ module.exports = function(conn){
 
                 });
 
+                if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+                  values[host][path] = hooks[path].post_values(values[host][path])
+                }
+
               }//__white_black_lists_filter
+
+
             });
 
             // debug_internals('networkInterfaces %o', networkInterfaces)
 
-            if(Object.keys(networkInterfaces).length > 0){
-              Object.each(networkInterfaces, function(data, host){
-                if(!values[host]['os']['networkInterfaces']) values[host]['os']['networkInterfaces'] = {}
 
-                Object.each(data, function(iface_data, iface){
-                  if(!values[host]['os']['networkInterfaces'][iface]) values[host]['os']['networkInterfaces'][iface] = {}
-
-                  Object.each(iface_data, function(prop_data, prop){
-                    if(!values[host]['os']['networkInterfaces'][iface][prop])
-                      values[host]['os']['networkInterfaces'][iface][prop] = {}
-
-                    Object.each(prop_data, function(status_data, status){
-                      if(!values[host]['os']['networkInterfaces'][iface][prop][status])
-                        values[host]['os']['networkInterfaces'][iface][prop][status] = {}
-
-                      let counter = 0
-                      let prev = null
-                      Object.each(status_data, function(value, timestamp){
-                        if(counter == 0){
-                          prev = value
-                        }
-                        else{
-                          values[host]['os']['networkInterfaces'][iface][prop][status][timestamp] = value - prev
-                          prev = value
-                        }
-                        counter++
-                      })
-                    })
-                  })
-                })
-
-                // debug_internals('networkInterfaces %o',values[host]['os']['networkInterfaces'])
-
-              })
-            }
+            // if(Object.keys(networkInterfaces).length > 0){
+            //   Object.each(networkInterfaces, function(data, host){
+            //     if(!values[host]['os']['networkInterfaces']) values[host]['os']['networkInterfaces'] = {}
+            //
+            //     Object.each(data, function(iface_data, iface){
+            //       if(!values[host]['os']['networkInterfaces'][iface]) values[host]['os']['networkInterfaces'][iface] = {}
+            //
+            //       Object.each(iface_data, function(prop_data, prop){
+            //         if(!values[host]['os']['networkInterfaces'][iface][prop])
+            //           values[host]['os']['networkInterfaces'][iface][prop] = {}
+            //
+            //         Object.each(prop_data, function(status_data, status){
+            //           if(!values[host]['os']['networkInterfaces'][iface][prop][status])
+            //             values[host]['os']['networkInterfaces'][iface][prop][status] = {}
+            //
+            //           let counter = 0
+            //           let prev = null
+            //           Object.each(status_data, function(value, timestamp){
+            //             if(counter == 0){
+            //               prev = value
+            //             }
+            //             else{
+            //               values[host]['os']['networkInterfaces'][iface][prop][status][timestamp] = value - prev
+            //               prev = value
+            //             }
+            //             counter++
+            //           })
+            //         })
+            //       })
+            //     })
+            //
+            //     // debug_internals('networkInterfaces %o',values[host]['os']['networkInterfaces'])
+            //
+            //   })
+            // }
 
             if(values.colo && values.colo.os)
-            debug_internals('values %o', values.colo.os.cpus)
+            debug_internals('values %o', values.colo.os)
 
             if(Object.getLength(values) > 0){
               Object.each(values, function(host_data, host){
@@ -373,7 +380,7 @@ module.exports = function(conn){
                   Object.each(data, function(value, key){
 
                     if(key == 'cpus' ){
-                      debug_internals('os-stats filter value %s %o', key, value);
+                      // debug_internals('os-stats filter value %s %o', key, value);
 
                       let speed = {};
                       let times = {};
@@ -440,7 +447,7 @@ module.exports = function(conn){
                     }
                     else if(key == 'networkInterfaces' ){
 
-                      debug_internals('networkInterfaces %o',value)
+                      // debug_internals('networkInterfaces %o',value)
 
                       let networkInterfaces = {}
                       Object.each(value, function(iface_data, iface){
@@ -472,7 +479,9 @@ module.exports = function(conn){
                         })
                       })
 
-                      new_doc['data'][key] = Object.clone(networkInterfaces)
+                      debug_internals('networkInterfaces %o',networkInterfaces.lo.bytes.recived)
+
+                      // new_doc['data'][key] = Object.clone(networkInterfaces)
 
                     }
                     // else if (path == 'os.procs'){
