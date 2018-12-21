@@ -4,10 +4,12 @@ var debug = require('debug')('Server:Apps:OS:Historical:Minute:Hook:OS');
 var debug_internals = require('debug')('Server:Apps:OS:Historical:Minute:Hook:OS:Internals');
 
 // let networkInterfaces = {} //temp obj to save data
+let ss = require('simple-statistics')
+
 
 module.exports = {
   cpus: {
-    build_key: function(entry_point, timestamp, value){
+    key: function(entry_point, timestamp, value){
       if(!entry_point.cpus)
         entry_point.cpus = []
 
@@ -17,7 +19,7 @@ module.exports = {
 
       return entry_point
     },
-    build_value: function(entry_point, timestamp, value){
+    value: function(entry_point, timestamp, value){
       Array.each(value, function(cpu, core){
         // if(!entry_point[core]) entry_point[core] = {};
         //   // values[host][path][key][core] = [];
@@ -34,21 +36,88 @@ module.exports = {
       });//iterate on each core
 
       return entry_point
-    }
+    },
+    doc: function(entry_point, value){
+
+      let speed = {};
+      let times = {};
+      Array.each(value, function(sample){
+
+        // Array.each(sample, function(cpu, core){
+        Object.each(sample, function(cpu, timestamp){
+
+          // speed.push(cpu.speed);
+          speed[timestamp] = cpu.speed
+
+          let sample_time = {};
+          Object.each(cpu.times, function(time, key){//user,nice..etc
+            if(!times[key]) times[key] = {};
+              // times[key] = [];
+
+            // times[key].push(time);
+            times[key][timestamp] = time;
+
+          });
+
+        });
+
+      });
+
+      Object.each(times, function(time, key){//user,nice..etc
+        let data_values = Object.values(time);
+
+        let min = ss.min(data_values);
+        let max = ss.max(data_values);
+
+        let data = {
+          // samples: time,
+          min : ss.min(data_values),
+          max : ss.max(data_values),
+          mean : ss.mean(data_values),
+          median : ss.median(data_values),
+          mode : ss.mode(data_values),
+          range: max - min,
+        };
+
+        times[key] = data;
+      });
+
+      ////console.log('SPEED', speed)
+      let data_values = Object.values(speed);
+
+      let min = ss.min(data_values);
+      let max = ss.max(data_values);
+
+      entry_point['cpus'] = {
+        //samples: value,
+        speed: {
+          // samples: speed,
+          min : ss.min(data_values),
+          max : ss.max(data_values),
+          mean : ss.mean(data_values),
+          median : ss.median(data_values),
+          mode : ss.mode(data_values),
+          range: max - min,
+        },
+        times: times
+      };
+
+      return entry_point
+    },
 
   },
   loadavg: {
-    build_value: function(entry_point, timestamp, value){
+    value: function(entry_point, timestamp, value){
       entry_point[timestamp] = value[0];//keep only "last minute" value
       return entry_point
     }
   },
   networkInterfaces: {
-    // build_key: function(entry_point, timestamp, value){
+    // key: function(entry_point, timestamp, value){
     //   entry_point.networkInterfaces = undefined
     //   return entry_point
     // },
-    build_value: function(entry_point, timestamp, value){
+    value: function(entry_point, timestamp, value){
       // if(!networkInterfaces) networkInterfaces = {};
 
       Object.each(value, function(data, iface){
@@ -63,11 +132,48 @@ module.exports = {
               if(!entry_point[iface][prop][status])
                 entry_point[iface][prop][status] = {}
 
-              entry_point[iface][prop][status][timestamp] = prop_val
+              entry_point[iface][prop][status][timestamp] = prop_val * 1
             })
           }
         })
       })
+
+      return entry_point
+    },
+    doc: function(entry_point, value){
+      let networkInterfaces = {}
+      Object.each(value, function(iface_data, iface){
+        if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
+
+        Object.each(iface_data, function(prop_data, prop){
+          if(!networkInterfaces[iface][prop]) networkInterfaces[iface][prop] = {}
+
+          Object.each(prop_data, function(status_data, status){
+            if(!networkInterfaces[iface][prop][status]) networkInterfaces[iface][prop][status] = {}
+
+            let data_values = Object.values(status_data);
+            let min = ss.min(data_values);
+            let max = ss.max(data_values);
+
+            let data = {
+              // samples: status_data,
+              min : min,
+              max : max,
+              mean : ss.mean(data_values),
+              median : ss.median(data_values),
+              mode : ss.mode(data_values),
+              range: max - min,
+            };
+
+            networkInterfaces[iface][prop][status] = data
+
+          })
+        })
+      })
+
+      debug_internals('networkInterfaces %o',networkInterfaces.lo)
+
+      entry_point['networkInterfaces'] = Object.clone(networkInterfaces)
 
       return entry_point
     }

@@ -2,7 +2,6 @@
 
 var debug = require('debug')('Server:Apps:OS:Historical:Minute:Pipeline');
 var debug_internals = require('debug')('Server:Apps:OS:Historical:Minute:Pipeline:Internals');
-
 let ss = require('simple-statistics');
 
 const path = require('path');
@@ -13,8 +12,8 @@ var cron = require('node-cron');
 //     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template')),
 //     decompress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.decompress'))
 
-let os_filter = require('./filters/os'),
-    sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
+// let os_filter = require('./filters/os')
+let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
     // sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.template'));
 
 
@@ -144,8 +143,8 @@ module.exports = function(conn){
                     // //debug_internals('os.mounts %o', host, path, key)
 
                     if(!values[host][path][key]){
-                      if(hooks[path] && hooks[path][key] && typeof hooks[path][key].build_key == 'function'){
-                        values[host][path] = hooks[path][key].build_key(values[host][path], timestamp, value)
+                      if(hooks[path] && hooks[path][key] && typeof hooks[path][key].key == 'function'){
+                        values[host][path] = hooks[path][key].key(values[host][path], timestamp, value)
 
                         if(values[host][path][key] == undefined)
                           delete values[host][path][key]
@@ -164,8 +163,8 @@ module.exports = function(conn){
                     // }
 
                     // if(key == 'cpus' ){
-                    if(hooks[path] && hooks[path][key] && typeof hooks[path][key].build_value == 'function'){
-                      values[host][path][key] = hooks[path][key].build_value(values[host][path][key], timestamp, value)
+                    if(hooks[path] && hooks[path][key] && typeof hooks[path][key].value == 'function'){
+                      values[host][path][key] = hooks[path][key].value(values[host][path][key], timestamp, value)
                       // debug_internals('CORE', values[host][path][key])
 
                       // Array.each(value, function(cpu, core){
@@ -379,111 +378,114 @@ module.exports = function(conn){
 
                   Object.each(data, function(value, key){
 
-                    if(key == 'cpus' ){
-                      // debug_internals('os-stats filter value %s %o', key, value);
-
-                      let speed = {};
-                      let times = {};
-                      Array.each(value, function(sample){
-
-                        // Array.each(sample, function(cpu, core){
-                        Object.each(sample, function(cpu, timestamp){
-
-                          // speed.push(cpu.speed);
-                          speed[timestamp] = cpu.speed
-
-                          let sample_time = {};
-                          Object.each(cpu.times, function(time, key){//user,nice..etc
-                            if(!times[key]) times[key] = {};
-                              // times[key] = [];
-
-                            // times[key].push(time);
-                            times[key][timestamp] = time;
-
-                          });
-
-                        });
-
-                      });
-
-                      Object.each(times, function(time, key){//user,nice..etc
-                        let data_values = Object.values(time);
-
-                        let min = ss.min(data_values);
-                        let max = ss.max(data_values);
-
-                        let data = {
-                          // samples: time,
-                          min : ss.min(data_values),
-                          max : ss.max(data_values),
-                          mean : ss.mean(data_values),
-                          median : ss.median(data_values),
-                          mode : ss.mode(data_values),
-                          range: max - min,
-                        };
-
-                        times[key] = data;
-                      });
-
-                      ////console.log('SPEED', speed)
-                      let data_values = Object.values(speed);
-
-                      let min = ss.min(data_values);
-                      let max = ss.max(data_values);
-
-                      new_doc['data'][key] = {
-                        //samples: value,
-                        speed: {
-                          // samples: speed,
-                          min : ss.min(data_values),
-                          max : ss.max(data_values),
-                          mean : ss.mean(data_values),
-                          median : ss.median(data_values),
-                          mode : ss.mode(data_values),
-                          range: max - min,
-                        },
-                        times: times
-                      };
+                    if(hooks[path] && hooks[path][key] && typeof hooks[path][key].doc == 'function'){
+                      new_doc.data = hooks[path][key].doc(new_doc.data, value)
                     }
-                    else if(key == 'networkInterfaces' ){
-
-                      // debug_internals('networkInterfaces %o',value)
-
-                      let networkInterfaces = {}
-                      Object.each(value, function(iface_data, iface){
-                        if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
-
-                        Object.each(iface_data, function(prop_data, prop){
-                          if(!networkInterfaces[iface][prop]) networkInterfaces[iface][prop] = {}
-
-                          Object.each(prop_data, function(status_data, status){
-                            if(!networkInterfaces[iface][prop][status]) networkInterfaces[iface][prop][status] = {}
-
-                            let data_values = Object.values(status_data);
-                            let min = ss.min(data_values);
-                            let max = ss.max(data_values);
-
-                            let data = {
-                              // samples: status_data,
-                              min : min,
-                              max : max,
-                              mean : ss.mean(data_values),
-                              median : ss.median(data_values),
-                              mode : ss.mode(data_values),
-                              range: max - min,
-                            };
-
-                            networkInterfaces[iface][prop][status] = data
-
-                          })
-                        })
-                      })
-
-                      debug_internals('networkInterfaces %o',networkInterfaces.lo.bytes.recived)
-
-                      // new_doc['data'][key] = Object.clone(networkInterfaces)
-
-                    }
+                    // if(key == 'cpus' ){
+                    //   // debug_internals('os-stats filter value %s %o', key, value);
+                    //
+                    //   let speed = {};
+                    //   let times = {};
+                    //   Array.each(value, function(sample){
+                    //
+                    //     // Array.each(sample, function(cpu, core){
+                    //     Object.each(sample, function(cpu, timestamp){
+                    //
+                    //       // speed.push(cpu.speed);
+                    //       speed[timestamp] = cpu.speed
+                    //
+                    //       let sample_time = {};
+                    //       Object.each(cpu.times, function(time, key){//user,nice..etc
+                    //         if(!times[key]) times[key] = {};
+                    //           // times[key] = [];
+                    //
+                    //         // times[key].push(time);
+                    //         times[key][timestamp] = time;
+                    //
+                    //       });
+                    //
+                    //     });
+                    //
+                    //   });
+                    //
+                    //   Object.each(times, function(time, key){//user,nice..etc
+                    //     let data_values = Object.values(time);
+                    //
+                    //     let min = ss.min(data_values);
+                    //     let max = ss.max(data_values);
+                    //
+                    //     let data = {
+                    //       // samples: time,
+                    //       min : ss.min(data_values),
+                    //       max : ss.max(data_values),
+                    //       mean : ss.mean(data_values),
+                    //       median : ss.median(data_values),
+                    //       mode : ss.mode(data_values),
+                    //       range: max - min,
+                    //     };
+                    //
+                    //     times[key] = data;
+                    //   });
+                    //
+                    //   ////console.log('SPEED', speed)
+                    //   let data_values = Object.values(speed);
+                    //
+                    //   let min = ss.min(data_values);
+                    //   let max = ss.max(data_values);
+                    //
+                    //   new_doc['data'][key] = {
+                    //     //samples: value,
+                    //     speed: {
+                    //       // samples: speed,
+                    //       min : ss.min(data_values),
+                    //       max : ss.max(data_values),
+                    //       mean : ss.mean(data_values),
+                    //       median : ss.median(data_values),
+                    //       mode : ss.mode(data_values),
+                    //       range: max - min,
+                    //     },
+                    //     times: times
+                    //   };
+                    // }
+                    // else if(key == 'networkInterfaces' ){
+                    //
+                    //   // debug_internals('networkInterfaces %o',value)
+                    //
+                    //   let networkInterfaces = {}
+                    //   Object.each(value, function(iface_data, iface){
+                    //     if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
+                    //
+                    //     Object.each(iface_data, function(prop_data, prop){
+                    //       if(!networkInterfaces[iface][prop]) networkInterfaces[iface][prop] = {}
+                    //
+                    //       Object.each(prop_data, function(status_data, status){
+                    //         if(!networkInterfaces[iface][prop][status]) networkInterfaces[iface][prop][status] = {}
+                    //
+                    //         let data_values = Object.values(status_data);
+                    //         let min = ss.min(data_values);
+                    //         let max = ss.max(data_values);
+                    //
+                    //         let data = {
+                    //           // samples: status_data,
+                    //           min : min,
+                    //           max : max,
+                    //           mean : ss.mean(data_values),
+                    //           median : ss.median(data_values),
+                    //           mode : ss.mode(data_values),
+                    //           range: max - min,
+                    //         };
+                    //
+                    //         networkInterfaces[iface][prop][status] = data
+                    //
+                    //       })
+                    //     })
+                    //   })
+                    //
+                    //   debug_internals('networkInterfaces %o',networkInterfaces.lo)
+                    //
+                    //   new_doc['data'][key] = Object.clone(networkInterfaces)
+                    //
+                    // }
                     // else if (path == 'os.procs'){
                     //
                     //   // debug_internals('os.procs prop %s %o', key, value)
