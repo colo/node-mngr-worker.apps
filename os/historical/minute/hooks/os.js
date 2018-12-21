@@ -9,7 +9,7 @@ let ss = require('simple-statistics')
 
 module.exports = {
   cpus: {
-    key: function(entry_point, timestamp, value){
+    key: function(entry_point, timestamp, value, key){
       if(!entry_point.cpus)
         entry_point.cpus = []
 
@@ -19,9 +19,9 @@ module.exports = {
 
       return entry_point
     },
-    value: function(entry_point, timestamp, value){
+    value: function(entry_point, timestamp, value, key){
       Array.each(value, function(cpu, core){
-        // if(!entry_point[core]) entry_point[core] = {};
+        // if(!entry_point[key][core]) entry_point[key][core] = {};
         //   // values[host][path][key][core] = [];
 
         let data = {};
@@ -32,12 +32,12 @@ module.exports = {
 
         // //debug_internals('os-stats filter core %d', core);
         // values[host][path][key][core].push(data);
-        entry_point[core][timestamp] = data
+        entry_point[key][core][timestamp] = data
       });//iterate on each core
 
       return entry_point
     },
-    doc: function(entry_point, value){
+    doc: function(entry_point, value, key){
 
       let speed = {};
       let times = {};
@@ -50,12 +50,12 @@ module.exports = {
           speed[timestamp] = cpu.speed
 
           let sample_time = {};
-          Object.each(cpu.times, function(time, key){//user,nice..etc
-            if(!times[key]) times[key] = {};
-              // times[key] = [];
+          Object.each(cpu.times, function(time, time_key){//user,nice..etc
+            if(!times[time_key]) times[time_key] = {};
+              // times[time_key] = [];
 
-            // times[key].push(time);
-            times[key][timestamp] = time;
+            // times[time_key].push(time);
+            times[time_key][timestamp] = time;
 
           });
 
@@ -63,7 +63,7 @@ module.exports = {
 
       });
 
-      Object.each(times, function(time, key){//user,nice..etc
+      Object.each(times, function(time, time_key){//user,nice..etc
         let data_values = Object.values(time);
 
         let min = ss.min(data_values);
@@ -79,7 +79,7 @@ module.exports = {
           range: max - min,
         };
 
-        times[key] = data;
+        times[time_key] = data;
       });
 
       ////console.log('SPEED', speed)
@@ -107,32 +107,29 @@ module.exports = {
 
   },
   loadavg: {
-    value: function(entry_point, timestamp, value){
-      entry_point[timestamp] = value[0];//keep only "last minute" value
+    value: function(entry_point, timestamp, value, key){
+      entry_point[key][timestamp] = value[0];//keep only "last minute" value
       return entry_point
     }
   },
   networkInterfaces: {
-    // key: function(entry_point, timestamp, value){
-    //   entry_point.networkInterfaces = undefined
-    //   return entry_point
-    // },
-    value: function(entry_point, timestamp, value){
+
+    value: function(entry_point, timestamp, value, key){
       // if(!networkInterfaces) networkInterfaces = {};
 
       Object.each(value, function(data, iface){
-        if(!entry_point[iface]) entry_point[iface] = {}
+        if(!entry_point[key][iface]) entry_point[key][iface] = {}
 
         Object.each(data, function(val, status){//status => if | recived | transmited
           if(status == 'recived' || status == 'transmited'){
             Object.each(val, function(prop_val, prop){
-              if(!entry_point[iface][prop])
-                entry_point[iface][prop] = {}
+              if(!entry_point[key][iface][prop])
+                entry_point[key][iface][prop] = {}
 
-              if(!entry_point[iface][prop][status])
-                entry_point[iface][prop][status] = {}
+              if(!entry_point[key][iface][prop][status])
+                entry_point[key][iface][prop][status] = {}
 
-              entry_point[iface][prop][status][timestamp] = prop_val * 1
+              entry_point[key][iface][prop][status][timestamp] = prop_val * 1
             })
           }
         })
@@ -140,7 +137,7 @@ module.exports = {
 
       return entry_point
     },
-    doc: function(entry_point, value){
+    doc: function(entry_point, value, key){
       let networkInterfaces = {}
       Object.each(value, function(iface_data, iface){
         if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
