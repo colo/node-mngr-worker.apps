@@ -10,7 +10,7 @@ let os_mounts_type_filter = /ext.*/
 
 module.exports = {
   mount:{
-    mount: new RegExp('^[a-zA-Z0-9]+$'),
+    mount: new RegExp('^.+$'),
     key: function(entry_point, timestamp, value, key){
       // debug_internals('KEY %s', key)
       entry_point[key] = undefined //remove numerical key, gonna change it for DEVICE
@@ -44,10 +44,10 @@ module.exports = {
       return entry_point
     },
     doc: function(entry_point, value, key){
-      // debug_internals('KEY %s', key)
+      debug_internals('KEY %s %o', key, value)
       entry_point[key] = Object.clone(value_to_data(value, false))
 
-      // debug_internals('os.mounts %o',entry_point[key])
+      debug_internals('os.mounts %s %o',key, entry_point[key])
       return entry_point
     }
   }

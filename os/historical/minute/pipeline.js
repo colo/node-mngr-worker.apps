@@ -21,7 +21,7 @@ const InputPollerRethinkDBOS = require ( './input/rethinkdb.os.js' )
 let hooks = {}
 
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os.blockdevices$|^os.mounts$/
+let paths_whitelist = /^os$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
   let filtered = false
@@ -69,12 +69,12 @@ module.exports = function(conn){
     				 * it takes 60 secs to complete, so it makes historical each minute
     				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
     				 * */
-    				// periodical: function(dispatch){
-    				// 	// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-            //   return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
-    				// },
+    				periodical: function(dispatch){
+    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
+    				},
     				// periodical: 15000,
-    				periodical: 2000,//test
+    				// periodical: 2000,//test
     			},
     		},
     	}
@@ -126,7 +126,8 @@ module.exports = function(conn){
                 catch(e){
                   // //debug_internals('no hook file for %s', path)
                 }
-                //debug_internals('HOOKs', hooks)
+
+                debug_internals('HOOKs', hooks)
 
                 Object.each(data, function(value, key){
                   let _key = key
@@ -148,8 +149,8 @@ module.exports = function(conn){
 
                   }
 
-                  if(path == 'os.blockdevices')
-                    debug_internals('KEY %s %s', key, _key)
+                  // if(path == 'os.procs')
+                  //   debug_internals('KEY %s %s', key, _key)
 
                   if(!values[host][path][key]){
 
@@ -169,102 +170,6 @@ module.exports = function(conn){
                     values[host][path] = hooks[path][_key].value(values[host][path], timestamp, value, key)
 
                   }
-                  // else if (path == 'os.blockdevices') {//keep only stats, partitions may be done in the future
-                  //   // delete values[host][path][key]
-                  //   // values[host][path][key].push(value.stats);
-                  //   // values[host][path][key][timestamp] = value.stats
-                  //   if(!values[host][path][key][timestamp]) values[host][path][key][timestamp] = {}
-                  //   Object.each(value.stats, function(val, prop){
-                  //     values[host][path][key][timestamp][prop] = val * 1
-                  //   })
-                  //   ////debug_internals('os.blockdevices %o',values[host][path][key][timestamp])
-                  // }
-                  // else if (path == 'os.mounts') {//keep only stats, partitions may be done in the future
-                  //   // values[host][path][key].push(value.stats);
-                  //
-                  //   delete values[host][path][key]//remove numerical key, gonna change it for DEVICE
-                  //
-                  //   if(os_mounts_type_filter.test(value.type)){
-                  //     // ////debug_internals('os.mounts %o', value)
-                  //
-                  //     let key = value.fs.replace('/dev/', '')
-                  //
-                  //     if(!values[host][path][key]) values[host][path][key] = {}
-                  //       // values[host][path][key] = []
-                  //
-                  //     let data = {};
-                  //
-                  //     //value * 1 - type cast string -> int
-                  //     data = {
-                  //       bloks: value.bloks * 1,
-                  //       used: value.used * 1,
-                  //       availabe: value.availabe * 1,
-                  //       percentage: value.percentage * 1
-                  //     }
-                  //
-                  //     // values[host][path][key].push(data);
-                  //     values[host][path][key][timestamp] = data;
-                  //   }
-                  //   // else{
-                  //   //
-                  //   // }
-                  //
-                  //
-                  // }
-                  // else if (path == 'os.procs') {
-                  //   // delete values[host][path][key]
-                  //
-                  //   if(key == 'pids'){//stats only for 'pids' key...'uid' sorted is avoided
-                  //     Object.each(value, function(proc, pid){
-                  //
-                  //       let prop = pid+':'+proc['ppid']+':'+proc['cmd'] //pid + ppid + command
-                  //
-                  //       if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
-                  //
-                  //       let data = {
-                  //         // '_pid': proc['pid'],
-                  //         // '_ppid': proc['ppid'],
-                  //         // '_command': proc['_command'],
-                  //         '%cpu': proc['%cpu'],
-                  //         '%mem': proc['%mem'],
-                  //         'rss': proc['rss'],
-                  //         'vsize': proc['vsize']
-                  //         // 'time':
-                  //       }
-                  //
-                  //       values[host][path][key][prop][timestamp] = data
-                  //
-                  //     })
-                  //   }
-                  //   else{//prop = uids || cmd
-                  //     Object.each(value, function(data, prop){
-                  //       if(!values[host][path][key][prop]) values[host][path][key][prop] = {}
-                  //       values[host][path][key][prop][timestamp] = data
-                  //     })
-                  //
-                  //   }
-                  //
-                  //
-                  //
-                  //
-                  //   // if(!values[host][path+'.uid']) values[host][path+'.uid'] = {}
-                  //   // if(!values[host][path+'.uid'][value['uid']]) values[host][path+'.uid'][value['uid']] = {}
-                  //   //
-                  //   // let uid_data = {
-                  //   // 	'%cpu': value['%cpu'],
-                  //   // 	'%mem': value['%mem']
-                  //   // 	// 'time':
-                  //   // }
-                  //   //
-                  //   // values[host][path+'.uid'][value['uid']][timestamp] = uid_data
-                  //
-                  //   // //debug_internals('procs %o',values)
-                  // }
-                  // else if (path == 'os.procs:uid') {
-                  // 	// delete values[host][path][key]
-                  //
-                  // 	//debug_internals('procs:uid %o',value)
-                  // }
                   else{
                     values[host][path][key][timestamp] = value;
 
@@ -282,8 +187,8 @@ module.exports = function(conn){
 
             });
 
-            if(values.elk && values.elk)
-              debug_internals('values %o', values.elk)
+            // if(values.colo && values.colo)
+            //   debug_internals('values %o', values.colo)
 
             if(Object.getLength(values) > 0){
               Object.each(values, function(host_data, host){
@@ -311,40 +216,10 @@ module.exports = function(conn){
 
                     if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
                       new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
-                    }
 
-                    // else if (path == 'os.procs'){
-                    //
-                    //   // //debug_internals('os.procs prop %s %o', key, value)
-                    //
-                    //   Object.each(value, function(val, prop){
-                    //     // //debug_internals('os.procs prop %s %o', prop, val)
-                    //
-                    //     let obj_data = value_to_data(val, false)
-                    //
-                    //     if(!new_doc['data'][key]) new_doc['data'][key] = {}
-                    //
-                    //     new_doc['data'][key][prop] = Object.clone(obj_data)
-                    //
-                    //   })
-                    //
-                    // }
-                    // else if (
-                    //   path == 'os.mounts'
-                    //   || path == 'os.blockdevices'
-                    //   // || path == 'os.procs'
-                    // ) {
-                    //
-                    //   // if (path == 'os.procs')
-                    //   // 	//debug_internals('os.procs data %s %o', key, value)
-                    //
-                    //   let obj_data = value_to_data(value, true)
-                    //
-                    //   new_doc['data'][key] = Object.clone(obj_data)
-                    //
-                    //   // if (path == 'os.procs')
-                    //     // //debug_internals('os.procs data %s %o', key, new_doc['data'][key])
-                    // }
+                      if(path == 'os.mounts')
+                        debug_internals('value %s %o', key, new_doc.data)
+                    }
                     else{
                       let data_values = Object.values(value);
                       let min = ss.min(data_values);
@@ -376,12 +251,6 @@ module.exports = function(conn){
 
                   });
 
-
-
-                  // next(new_doc, opts);
-                  //debug_internals('new_doc', new_doc.metadata)
-
-                  // next(new_doc, opts, next, pipeline)
                   sanitize_filter(
                     new_doc,
                     opts,
@@ -392,47 +261,15 @@ module.exports = function(conn){
                 })
               });
 
-          }//if(Object.getLength(values) > 0)
+            }//if(Object.getLength(values) > 0)
 
 
           }
 
 
-
-
        },
 
    	],
-
-    // filters: [
-    //   // decompress_filter,
-    //   require('./filter'),
-    //   function(doc, opts, next, pipeline){
-    //     sanitize_filter(
-    //       doc,
-    //       opts,
-    //       // function(doc, opts, next, pipeline){
-    //       //   compress_filter(
-    //       //     doc,
-    //       //     opts,
-    //       //     pipeline.output.bind(pipeline),
-    //       //     pipeline
-    //       //   )
-    //       // },
-    //       pipeline.output.bind(pipeline),
-    //       pipeline
-    //     )
-    //   }
-    //   // sanitize_filter,
-    //   // compress_filter
-    // ],
-    // output: [
-    //   function(doc){
-    //     let output = require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template'))
-    //     output(JSON.encode(doc))
-    //   }
-    //
-    // ]
   	output: [
       {
   			rethinkdb: {
