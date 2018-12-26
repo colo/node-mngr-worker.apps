@@ -23,7 +23,7 @@ module.exports = function(conn){
       		conn: [
       			{
       				scheme: 'munin',
-      				host:'elk',
+      				host:'colo',
       				port: 4949,
       				module: InputPollerMunin,
       				load: [],
@@ -32,7 +32,7 @@ module.exports = function(conn){
       		connect_retry_count: 5,
       		connect_retry_periodical: 5000,
       		requests: {
-      			periodical: 10000,
+      			periodical: 1000,
       		},
       	}
 
