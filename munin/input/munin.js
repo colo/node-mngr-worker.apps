@@ -30,6 +30,8 @@ module.exports = new Class({
   //ON_CONNECT_ERROR: 'onConnectError',
   modules: [],
 
+  node: undefined,//munin host
+
   options: {
 
     // whitelist: /^(users|vmstat|nginx.*)/g,
@@ -40,6 +42,7 @@ module.exports = new Class({
 
 		requests : {
 			once: [
+        { nodes: { uri: '' } },
 				{ list: { uri: '' } },
 			],
 			periodical: [
@@ -71,13 +74,12 @@ module.exports = new Class({
 
 				},
 			],
-			//nodes: [
-				//{
-					//path: '',
-					//callbacks: ['nodes']
-
-				//},
-			//],
+      nodes: [
+        {
+          path: '',
+          callbacks: ['nodes']
+        },
+      ],
 			//quit: [
 				//{
 					//path: '',
@@ -136,7 +138,8 @@ module.exports = new Class({
 			let doc = {};
 			doc.data = resp
 			doc.id = params.uri
-      doc.host = this.options.host
+      // doc.host = this.options.host
+      doc.host = this.node
 
       // debug_internals('OPTIONS', this.options.host)
 
@@ -220,6 +223,65 @@ module.exports = new Class({
       //   ],
       //   [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
       // )
+		}
+	},
+  nodes: function (err, resp, params){
+		debug_internals('nodes %o', resp);
+		debug_internals('nodes params %o', params);
+
+		if(err){
+			debug_internals('nodes err %o', err);
+
+      if(params.uri != ''){
+				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
+			}
+			else{
+				this.fireEvent('onGetError', err);
+			}
+
+			this.fireEvent(this.ON_DOC_ERROR, err);
+
+			this.fireEvent(
+				this[
+					'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
+				],
+				err
+			);
+		}
+		else{
+      this.node = resp[0]
+
+      // Array.each(resp, function(module, index){
+      //   // module = module.trim()
+      //
+      //   // debug_internals('module %o', module, blacklist.test(module), whitelist.test(module));
+      //
+      //   blacklist.lastIndex = 0
+      //   whitelist.lastIndex = 0
+      //
+      //
+      //   // if(blacklist == null || blacklist.test(module) == false)//not in blacklist
+      //   //   if(whitelist == null || whitelist.test(module) == true)//if no whitelist, or in whitelist
+      //   if(__white_black_lists_filter(whitelist, blacklist, module)){
+			//       this.options.requests.periodical.push( { fetch: { uri: module } });
+      //
+      //       debug_internals('module %s', module);
+      //   }
+      //
+			// 	if(index == resp.length - 1){
+			// 		// this.fireEvent(this.ON_PERIODICAL_REQUESTS_UPDATED);
+      //     this.fireEvent(
+      //       this['ON_PERIODICAL_REQUESTS_UPDATED'],
+      //       [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+      //     )
+      //   }
+      //
+      //   // blacklist.lastIndex = 0
+      //   // whitelist.lastIndex = 0
+      //
+      //
+			// }.bind(this));
+
 		}
 	},
 	//nodes: function (err, resp, options){

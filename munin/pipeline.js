@@ -23,7 +23,7 @@ module.exports = function(conn){
       		conn: [
       			{
       				scheme: 'munin',
-      				host:'colo',
+      				host:'127.0.0.1',
       				port: 4949,
       				module: InputPollerMunin,
       				load: [],
