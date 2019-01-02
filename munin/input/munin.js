@@ -38,7 +38,7 @@ module.exports = new Class({
     // blacklist: /^.*/g, //blacklist all modules
     whitelist: /^.*/g,
     // blacklist: /^[.]/g,
-    blacklist: /^cpu$|^if.+$|^load$|^netstat$|^ntp.+$|^uptime$|^df$/g,
+    blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users/g,
 
 		requests : {
 			once: [
@@ -134,9 +134,23 @@ module.exports = new Class({
 
       //if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
 				//resp = [resp];
+      let new_data = {}
+      let mem = /memory/
+
+      Object.each(resp, function(data, key){
+        let new_key = key.replace(/\_/, '')
+
+        if(mem.test(params.uri))
+          data = (data / 1024 / 1024).toFixed(2) * 1
+
+        new_data[new_key] = data
+        // delete resp[key]
+      })
+
+      debug('modified data %o', new_data);
 
 			let doc = {};
-			doc.data = resp
+			doc.data = new_data
 			doc.id = params.uri
       // doc.host = this.options.host
       doc.host = this.node
