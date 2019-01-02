@@ -38,7 +38,7 @@ module.exports = new Class({
     // blacklist: /^.*/g, //blacklist all modules
     whitelist: /^.*/g,
     // blacklist: /^[.]/g,
-    blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users/g,
+    blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users|^interrupts/g,
 
 		requests : {
 			once: [
