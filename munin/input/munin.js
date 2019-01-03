@@ -40,7 +40,7 @@ module.exports = new Class({
     // blacklist: /^[.]/g,
     blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users|^interrupts/g,
 
-		requests : {
+    requests : {
 			once: [
         { nodes: { uri: '' } },
 				{ list: { uri: '' } },
@@ -263,7 +263,11 @@ module.exports = new Class({
 			);
 		}
 		else{
-      this.node = resp[0]
+      // this.node = resp[0]
+      /**
+      * @hack: system (as a whole) doens't support fqdn yet, so we try to remove domains
+      **/
+      this.node = resp[0].substring(0, resp[0].indexOf('.'))
 
       // Array.each(resp, function(module, index){
       //   // module = module.trim()
