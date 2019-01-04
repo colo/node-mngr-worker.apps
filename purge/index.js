@@ -60,8 +60,10 @@ module.exports = new Class({
               _extras: 'path',
               uri: app.options.db+'/periodical',
               args: [
-                roundMilliseconds(Date.now() - 1000),
-                roundMilliseconds(Date.now()),
+                // roundMilliseconds(Date.now() - 1000),
+                // roundMilliseconds(Date.now()),
+                Date.now() - 1000,
+                Date.now(),
                 {
                   index: 'timestamp',
                   leftBound: 'open',
@@ -90,8 +92,10 @@ module.exports = new Class({
               _extras: 'host',
               uri: app.options.db+'/periodical',
               args: [
-                roundMilliseconds(Date.now() - 1000),
-                roundMilliseconds(Date.now()),
+                // roundMilliseconds(Date.now() - 1000),
+                // roundMilliseconds(Date.now()),
+                Date.now() - 1000,
+                Date.now(),
                 {
                   index: 'timestamp',
                   leftBound: 'open',
