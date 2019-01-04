@@ -52,7 +52,7 @@ module.exports = {
 				}
 			],
 			requests: {
-				periodical: 1000,//ms
+				periodical: 200,//ms
 			},
 		},
 	}
