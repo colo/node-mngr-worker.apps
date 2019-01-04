@@ -1,7 +1,7 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:OS:Historical:Minute:Hook:OS:Procs:UID');
-var debug_internals = require('debug')('Server:Apps:OS:Historical:Minute:Hook:OS:Procs:UID:Internals');
+var debug = require('debug')('Server:Apps:Historical:Minute:Hook:OS:Procs:UID');
+var debug_internals = require('debug')('Server:Apps:Historical:Minute:Hook:OS:Procs:UID:Internals');
 
 let ss = require('simple-statistics')
 

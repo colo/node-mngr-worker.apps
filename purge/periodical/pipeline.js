@@ -1,8 +1,8 @@
 'use stric'
 
 
-var debug = require('debug')('pipeline:os-purge:periodical');
-var debug_internals = require('debug')('pipeline:os-purge:periodical:Internals');
+var debug = require('debug')('Server:Apps:Purge:Pipeline');
+var debug_internals = require('debug')('Server:Apps:Purge:Pipeline:Internals');
 
 
 const path = require('path');
@@ -41,7 +41,7 @@ module.exports = {
 				// periodical: 10000,//test
         periodical: function(dispatch){
 					// return cron.schedule('*/15 * * * *', dispatch);//every 15 mins
-          return cron.schedule('*/30 * * * * *', dispatch);//every 15 secs
+          return cron.schedule('* * * * *', dispatch);//every minute
 				}
 			},
 		},

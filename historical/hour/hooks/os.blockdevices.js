@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:OS:Historical:Hour:Hook:OS:Blockdevices');
-let debug_internals = require('debug')('Server:Apps:OS:Historical:Hour:Hook:OS:Blockdevices:Internals');
+let debug = require('debug')('Server:Apps:Historical:Hour:Hook:OS:Blockdevices');
+let debug_internals = require('debug')('Server:Apps:Historical:Hour:Hook:OS:Blockdevices:Internals');
 
 let ss = require('simple-statistics')
 

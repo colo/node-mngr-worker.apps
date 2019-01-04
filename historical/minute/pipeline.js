@@ -1,7 +1,7 @@
 'use stric'
 
-let debug = require('debug')('Server:Apps:OS:Historical:Hour:Pipeline');
-let debug_internals = require('debug')('Server:Apps:OS:Historical:Hour:Pipeline:Internals');
+let debug = require('debug')('Server:Apps:Historical:Minute:Pipeline');
+let debug_internals = require('debug')('Server:Apps:Historical:Minute:Pipeline:Internals');
 let ss = require('simple-statistics');
 
 const path = require('path');
@@ -16,13 +16,13 @@ let cron = require('node-cron');
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
 
 
-const InputPollerRethinkDBOS = require ( './input/rethinkdb.os.js' )
+const InputPollerRethinkDBPeriodical = require ( './input/rethinkdb.js' )
 
 let hooks = {}
 
+// paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$/
-// let paths_whitelist = /^os$|^os\.blockdevices$|^os\.mounts$/
+let paths_whitelist = /^os$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
   let filtered = false
@@ -48,13 +48,13 @@ module.exports = function(conn){
     	{
     		poll: {
 
-    			id: "input.os",
+    			id: "input.periodical",
     			conn: [
             Object.merge(
               Object.clone(conn),
               {
                 // path_key: 'os',
-                module: InputPollerRethinkDBOS,
+                module: InputPollerRethinkDBPeriodical,
               }
             )
     			],
@@ -64,18 +64,19 @@ module.exports = function(conn){
     			// 	periodical: 1000,
     			// },
           requests: {
-      			/**
-      			 * runnign at 20 min intervals
-      			 * needs 3 runs to start analyzing from last historical (or from begining)
-      			 * it takes 60 min to complete, so it makes historical each hour
-      			 * */
-              periodical: function(dispatch){
-              	return cron.schedule('*/20 * * * *', dispatch);//every 20 min
-              },
-              // periodical: 60000,//test
-              // periodical: 10000,//test
-
-      		},
+    				/**
+    				 * runnign at 20 secs intervals
+    				 * needs 3 runs to start analyzing from last historical (or from begining)
+    				 * it takes 60 secs to complete, so it makes historical each minute
+    				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
+    				 * */
+    				periodical: function(dispatch){
+    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
+    				},
+    				// periodical: 15000,
+    				// periodical: 2000,//test
+    			},
     		},
     	}
     ],
@@ -95,7 +96,7 @@ module.exports = function(conn){
 
             let first = doc[0].metadata.timestamp;
 
-            // debug_internals('doc %o', doc)
+            // //debug_internals('doc %s %s', path, host)
 
             let last = doc[doc.length - 1].metadata.timestamp;
 
@@ -127,11 +128,7 @@ module.exports = function(conn){
                   // //debug_internals('no hook file for %s', path)
                 }
 
-                if(path == 'os.mounts')
-                  debug_internals('DATA %o', data)
-
                 debug_internals('HOOKs', hooks)
-
 
                 Object.each(data, function(value, key){
                   let _key = key
@@ -175,8 +172,7 @@ module.exports = function(conn){
 
                   }
                   else{
-                    // values[host][path][key][timestamp] = value;
-                    values[host][path][key][timestamp] = value['mean']
+                    values[host][path][key][timestamp] = value;
 
                   }
 
@@ -222,8 +218,8 @@ module.exports = function(conn){
                     if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
                       new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
 
-                      // if(path == 'os.procs.uid')
-                      //   debug_internals('value %s %o', key, new_doc.data)
+                      if(path == 'os.mounts')
+                        debug_internals('value %s %o', key, new_doc.data)
                     }
                     else{
                       let data_values = Object.values(value);
@@ -239,12 +235,10 @@ module.exports = function(conn){
                         mode : ss.mode(data_values),
                         range: max - min
                       };
-
-
                     }
 
                     new_doc['metadata'] = {
-                      type: 'hour',
+                      type: 'minute',
                       host: host,
                       // path: 'historical.'+path,
                       path: path,
@@ -280,7 +274,7 @@ module.exports = function(conn){
   	output: [
       {
   			rethinkdb: {
-  				id: "output.historical.hour.rethinkdb",
+  				id: "output.historical.minute.rethinkdb",
   				conn: [
   					{
               host: 'elk',

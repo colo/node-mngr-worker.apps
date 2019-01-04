@@ -3,9 +3,9 @@
 // var App = require('node-app-cradle-client');
 let App = require('node-app-rethinkdb-client')
 
-var debug = require('debug')('Server:Apps:OS:Purge');
-var debug_internals = require('debug')('Server:Apps:OS:Purge:Internals');
-var debug_events = require('debug')('Server:Apps:OS:Purge:Events');
+var debug = require('debug')('Server:Apps:Purge');
+var debug_internals = require('debug')('Server:Apps:Purge:Internals');
+var debug_events = require('debug')('Server:Apps:Purge:Events');
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)
@@ -116,7 +116,7 @@ module.exports = new Class({
 						debug_internals('fetch_history time %s', now);
 
 						// let limit = 1;//only last doc
-            let limit = 1000;//only last doc
+            // let limit = 1000;//only last doc
 
 						let views = [];
 
@@ -163,7 +163,7 @@ module.exports = new Class({
                     //   field: 'id'
                     // })
                     let cb = app.delete({
-                      _extras: 'delete',
+                      _extras: {fn: 'delete', path: path, host: host, type:type},
                       uri: app.options.db+'/periodical',
                       query: app.r.db(app.options.db).table('periodical').between(
                         [path, host, type, 0],
@@ -173,7 +173,7 @@ module.exports = new Class({
                           leftBound: 'open',
                           rightBound: 'open'
                         }
-                      ).limit(limit),
+                      ).limit(expire),
                       args:{durability:"soft", return_changes: true}
                     })
                     // app.between({
@@ -259,7 +259,7 @@ module.exports = new Class({
     }
     else{
       //fireEvent to acknowledge deleted docs, maybe log
-      debug_internals('delete resp', resp)
+      debug_internals('delete resp %d %o', resp.deleted, params.options._extras)
     }
   },
   between: function(err, resp, params){
@@ -475,7 +475,7 @@ module.exports = new Class({
 
 		this.parent(options);//override default options
 
-		this.log('os-purge', 'info', 'os-purge started');
+		this.log('purge', 'info', 'purge started');
 
   },
 
