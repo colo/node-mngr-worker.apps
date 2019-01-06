@@ -267,7 +267,12 @@ module.exports = new Class({
       /**
       * @hack: system (as a whole) doens't support fqdn yet, so we try to remove domains
       **/
-      this.node = resp[0].substring(0, resp[0].indexOf('.'))
+      if(resp[0].indexOf('.') > -1){
+        this.node = resp[0].substring(0, resp[0].indexOf('.'))
+      }
+      else{
+        this.node = resp[0]
+      }
 
       // Array.each(resp, function(module, index){
       //   // module = module.trim()
