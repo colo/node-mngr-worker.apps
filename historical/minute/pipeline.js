@@ -22,7 +22,7 @@ let hooks = {}
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin/
+let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
   let filtered = false

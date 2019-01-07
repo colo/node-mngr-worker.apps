@@ -133,9 +133,98 @@ module.exports = {
             // sanitize_filter,
             pipeline
           )
+
+          delete doc.networkInterfaces
+
+          // Object.each(doc, function(data, key){
+          //   let new_doc = {
+          //     data: data,
+          //     metadata:{
+          //       path: 'os.'+key
+          //     }
+          //   }
+          //
+          //   sanitize_filter(
+          //     new_doc,
+          //     opts,
+          //     // function(doc, opts, next, pipeline){
+          //     //   zipson_filter(
+          //     //     doc,
+          //     //     opts,
+          //     //     pipeline.output.bind(pipeline),
+          //     //     pipeline
+          //     //   )
+          //     // },
+          //     // function(doc, opts, next, pipeline){
+          //     //   lzutf8_filter(
+          //     //     doc,
+          //     //     opts,
+          //     //     pipeline.output.bind(pipeline),
+          //     //     pipeline
+          //     //   )
+          //     // },
+          //     // function(doc, opts, next, pipeline){
+          //     //   lzstring_filter(
+          //     //     doc,
+          //     //     opts,
+          //     //     pipeline.output.bind(pipeline),
+          //     //     pipeline
+          //     //   )
+          //     // },
+          //     // function(doc, opts, next, pipeline){
+          //     //   compress_filter(
+          //     //     doc,
+          //     //     opts,
+          //     //     pipeline.output.bind(pipeline),
+          //     //     pipeline
+          //     //   )
+          //     // },
+          //     pipeline.output.bind(pipeline),
+          //     pipeline
+          //   )
+          // })
         }
-
-
+        // else if(doc){//mounts, blockdevices...
+        //   sanitize_filter(
+        //     doc,
+        //     opts,
+        //     // function(doc, opts, next, pipeline){
+        //     //   zipson_filter(
+        //     //     doc,
+        //     //     opts,
+        //     //     pipeline.output.bind(pipeline),
+        //     //     pipeline
+        //     //   )
+        //     // },
+        //     // function(doc, opts, next, pipeline){
+        //     //   lzutf8_filter(
+        //     //     doc,
+        //     //     opts,
+        //     //     pipeline.output.bind(pipeline),
+        //     //     pipeline
+        //     //   )
+        //     // },
+        //     // function(doc, opts, next, pipeline){
+        //     //   lzstring_filter(
+        //     //     doc,
+        //     //     opts,
+        //     //     pipeline.output.bind(pipeline),
+        //     //     pipeline
+        //     //   )
+        //     // },
+        //     // function(doc, opts, next, pipeline){
+        //     //   compress_filter(
+        //     //     doc,
+        //     //     opts,
+        //     //     pipeline.output.bind(pipeline),
+        //     //     pipeline
+        //     //   )
+        //     // },
+        //     pipeline.output.bind(pipeline),
+        //     pipeline
+        //   )
+        //
+        // }
 
 
         sanitize_filter(
@@ -176,6 +265,8 @@ module.exports = {
           pipeline.output.bind(pipeline),
           pipeline
         )
+
+
       }
 
 

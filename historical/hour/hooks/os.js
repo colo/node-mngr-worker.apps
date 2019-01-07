@@ -101,70 +101,65 @@ module.exports = {
     },
 
   },
-  // loadavg: {
+
+  // networkInterfaces: {
+  //
   //   value: function(entry_point, timestamp, value, key){
-  //     entry_point[key][timestamp] = value[0];//keep only "last minute" value
+  //     Object.each(value, function(iface_value, iface){
+  //       if(!entry_point[key][iface]) entry_point[key][iface] = {}
+  //
+  //       Object.each(iface_value, function(prop_value, prop){
+  //         if(!entry_point[key][iface][prop]) entry_point[key][iface][prop] = {}
+  //
+  //         Object.each(prop_value, function(status_value, status){
+  //           if(!entry_point[key][iface][prop][status]) entry_point[key][iface][prop][status] = {}
+  //
+  //           entry_point[key][iface][prop][status][timestamp] = status_value['mean']
+  //
+  //         })
+  //
+  //       })
+  //
+  //     })
+  //
+  //     return entry_point
+  //   },
+  //   doc: function(entry_point, value, key){
+  //     let networkInterfaces = {}
+  //     Object.each(value, function(iface_data, iface){
+  //       if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
+  //
+  //       Object.each(iface_data, function(prop_data, prop){
+  //         if(!networkInterfaces[iface][prop]) networkInterfaces[iface][prop] = {}
+  //
+  //         Object.each(prop_data, function(status_data, status){
+  //           if(!networkInterfaces[iface][prop][status]) networkInterfaces[iface][prop][status] = {}
+  //
+  //           let data_values = Object.values(status_data);
+  //           let min = ss.min(data_values);
+  //           let max = ss.max(data_values);
+  //
+  //           let data = {
+  //             // samples: status_data,
+  //             min : min,
+  //             max : max,
+  //             mean : ss.mean(data_values),
+  //             median : ss.median(data_values),
+  //             mode : ss.mode(data_values),
+  //             range: max - min,
+  //           };
+  //
+  //           networkInterfaces[iface][prop][status] = data
+  //
+  //         })
+  //       })
+  //     })
+  //
+  //     entry_point[key] = Object.clone(networkInterfaces)
+  //
+  //
   //     return entry_point
   //   }
   // },
-  networkInterfaces: {
-
-    value: function(entry_point, timestamp, value, key){
-      Object.each(value, function(iface_value, iface){
-        if(!entry_point[key][iface]) entry_point[key][iface] = {}
-
-        Object.each(iface_value, function(prop_value, prop){
-          if(!entry_point[key][iface][prop]) entry_point[key][iface][prop] = {}
-
-          Object.each(prop_value, function(status_value, status){
-            if(!entry_point[key][iface][prop][status]) entry_point[key][iface][prop][status] = {}
-
-            entry_point[key][iface][prop][status][timestamp] = status_value['mean']
-
-          })
-
-        })
-
-      })
-
-      return entry_point
-    },
-    doc: function(entry_point, value, key){
-      let networkInterfaces = {}
-      Object.each(value, function(iface_data, iface){
-        if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
-
-        Object.each(iface_data, function(prop_data, prop){
-          if(!networkInterfaces[iface][prop]) networkInterfaces[iface][prop] = {}
-
-          Object.each(prop_data, function(status_data, status){
-            if(!networkInterfaces[iface][prop][status]) networkInterfaces[iface][prop][status] = {}
-
-            let data_values = Object.values(status_data);
-            let min = ss.min(data_values);
-            let max = ss.max(data_values);
-
-            let data = {
-              // samples: status_data,
-              min : min,
-              max : max,
-              mean : ss.mean(data_values),
-              median : ss.median(data_values),
-              mode : ss.mode(data_values),
-              range: max - min,
-            };
-
-            networkInterfaces[iface][prop][status] = data
-
-          })
-        })
-      })
-
-      entry_point[key] = Object.clone(networkInterfaces)
-
-
-      return entry_point
-    }
-  },
 
 }
