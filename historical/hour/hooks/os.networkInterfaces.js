@@ -41,7 +41,7 @@ module.exports = {
 
         // Object.each(iface_data, function(prop_data, prop){
         Object.each(value, function(prop_data, prop){
-          if(!networkInterface[prop]) networkInterfaces[iface][prop] = {}
+          if(!networkInterface[prop]) networkInterface[prop] = {}
 
           Object.each(prop_data, function(status_data, status){
             if(!networkInterface[prop][status]) networkInterface[prop][status] = {}
