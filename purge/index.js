@@ -56,62 +56,55 @@ module.exports = new Class({
 					search_paths: function(req, next, app){
             debug_internals('search_paths');
 
-            app.between({
+            // app.between({
+            //   _extras: 'path',
+            //   uri: app.options.db+'/periodical',
+            //   args: [
+            //     // roundMilliseconds(Date.now() - 1000),
+            //     // roundMilliseconds(Date.now()),
+            //     Date.now() - 1000,
+            //     Date.now(),
+            //     {
+            //       index: 'timestamp',
+            //       leftBound: 'open',
+            //       rightBound: 'open'
+            //     }
+            //   ]
+            // })
+
+
+            app.distinct({
               _extras: 'path',
               uri: app.options.db+'/periodical',
-              args: [
-                // roundMilliseconds(Date.now() - 1000),
-                // roundMilliseconds(Date.now()),
-                Date.now() - 1000,
-                Date.now(),
-                {
-                  index: 'timestamp',
-                  leftBound: 'open',
-                  rightBound: 'open'
-                }
-              ]
+              args: {index: 'path'}
             })
-
-
-						// next({
-						// 	uri: app.options.db,
-						// 	id: 'search/paths',
-						// 	data: {
-						// 		reduce: true, //avoid geting duplicate host
-						// 		group: true,
-						// 		inclusive_end: true,
-						// 	}
-						// })
 					}
 				},
         {
 					search_hosts: function(req, next, app){
 						debug_internals('search_hosts');
 
-            app.between({
+            // app.between({
+            //   _extras: 'host',
+            //   uri: app.options.db+'/periodical',
+            //   args: [
+            //     // roundMilliseconds(Date.now() - 1000),
+            //     // roundMilliseconds(Date.now()),
+            //     Date.now() - 1000,
+            //     Date.now(),
+            //     {
+            //       index: 'timestamp',
+            //       leftBound: 'open',
+            //       rightBound: 'open'
+            //     }
+            //   ]
+            // })
+
+            app.distinct({
               _extras: 'host',
-              uri: app.options.db+'/periodical',
-              args: [
-                // roundMilliseconds(Date.now() - 1000),
-                // roundMilliseconds(Date.now()),
-                Date.now() - 1000,
-                Date.now(),
-                {
-                  index: 'timestamp',
-                  leftBound: 'open',
-                  rightBound: 'open'
-                }
-              ]
+              uri: app.options.db+'/historical',
+              args: {index: 'host'}
             })
-						// next({
-						// 	uri: app.options.db,
-						// 	id: 'search/hosts',
-						// 	data: {
-						// 		reduce: true, //avoid geting duplicate host
-						// 		group: true,
-						// 		inclusive_end: true,
-						// 	}
-						// })
 					}
 				},
 				{
@@ -239,13 +232,17 @@ module.exports = new Class({
 		},
 
 		routes: {
-      between: [{
-        path: ':database/:table',
-        callbacks: ['between']
-      }],
+      // between: [{
+      //   path: ':database/:table',
+      //   callbacks: ['between']
+      // }],
       delete: [{
         path: ':database/:table',
         callbacks: ['delete']
+      }],
+      distinct: [{
+        path: ':database/:table',
+        callbacks: ['distinct']
       }],
       // view: [
 			// 	{
@@ -266,105 +263,14 @@ module.exports = new Class({
       debug_internals('delete resp %d %o', resp.deleted, params.options._extras)
     }
   },
-  between: function(err, resp, params){
+  distinct: function(err, resp, params){
+    debug_internals('distinct', params.options)
+
     if(err){
-      debug_internals('between err', err)
-    }
-    else{
-      // if(params.options._extras == 'to_delete'){
-      //   debug_internals('to_delete %o', resp);
-      //   this.delete({
-      //     _extras: 'delete',
-      //     uri: this.options.db+'/periodical',
-      //     args:[
-      //       resp,
-      //       {durability: 'soft'}
-      //     ]
-      //   })
-      // }
-      // else{
-        resp.toArray(function(err, arr){
-          debug_internals('between count', arr.length)
-          if(params.options._extras == 'path'){
-            if(arr.length == 0){
-    					debug_internals('No paths yet');
-    				}
-    				else{
+      debug_internals('distinct err', err)
 
-              this.paths = []
-
-    					Array.each(arr, function(row, index){
-    						// debug_internals('Path %s', row);
-    						//this.hosts.push({name: doc.key, last: null});
-
-    						// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
-                if(
-                  (
-                    !this.blacklist_path
-                    || (this.blacklist_path && this.blacklist_path.test(path) == false)
-                  )
-                  && !this.paths.contains(row.metadata['path'])
-                )
-                  this.paths.push(row.metadata['path'])
-
-    					}.bind(this));
-
-    					debug_internals('PATHs %o', this.paths);
-    				}
-    			}
-          else if(params.options._extras == 'host'){
-            if(arr.length == 0){
-    					debug_internals('No hosts yet');
-    				}
-    				else{
-
-    					Array.each(arr, function(row, index){
-    						// debug_internals('Host %s', row);
-    						//this.hosts.push({name: doc.key, last: null});
-
-    						// if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
-                if(!this.hosts.contains(row.metadata['host']))
-                  this.hosts.push(row.metadata['host'])
-
-    					}.bind(this));
-
-    					debug_internals('HOSTs %o', this.hosts);
-    				}
-          }
-          // else if(params.options._extras == 'to_delete'){
-          //   debug_internals('to_delete %o', arr);
-          //   this.delete({
-          //     _extras: 'delete',
-          //     uri: this.options.db+'/periodical',
-          //     args:[
-          //       resp,
-          //       {durability: 'soft'}
-          //     ]
-          //   })
-          // }
-
-
-        }.bind(this))
-      // }
-
-    }
-
-
-
-    // debug_internals('count', this.r.count(resp))
-
-  },
-  search: function (err, resp, info){
-
-		// debug('search %o', resp);
-		// debug('search info %o', info);
-
-		if(err){
-			debug('search err %o', err);
-
-
-			if(info.uri != ''){
-				this.fireEvent('on'+info.uri.charAt(0).toUpperCase() + info.uri.slice(1)+'Error', err);//capitalize first letter
+			if(params.uri != ''){
+				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
 			}
 			else{
 				this.fireEvent('onGetError', err);
@@ -378,102 +284,271 @@ module.exports = new Class({
 				],
 				err
 			);
+    }
+    else{
 
-		}
-		else{
-
-			//if(info.options.data.reduce == true && info.options.data.include_docs != true){
-			if(info.uri == this.options.db && info.options.id == 'search/hosts'){//comes from search/hosts
-				//this.hosts = {};
-
-				if(Object.getLength(resp) == 0){//there are no docs.metadata.host yet
-					//this._add_periodical(host, 0, Date.now());
-					//throw new Error('No hosts yet: implement');
-					debug_internals('No hosts yet');
-				}
-				else{
-					//Array.each(resp, function(doc){
-						//debug_internals('Alerts search doc %o', doc);
-						////this.hosts.push(doc.key);
-						//this._get_last_stat(doc.key);//doc.key == host
-					//}.bind(this));
-					Array.each(resp, function(doc){
-						debug_internals('Host %s', doc.key);
-						//this.hosts.push({name: doc.key, last: null});
-
-						if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
-
-					}.bind(this));
-
-					debug_internals('HOSTs %o', this.hosts);
-				}
-			}
-
-      else if(info.uri == this.options.db && info.options.id == 'search/paths'){//comes from search/hosts
-				//this.hosts = {};
-
-				if(Object.getLength(resp) == 0){
-					debug_internals('No paths yet');
-				}
-				else{
-
-          this.paths = []
-
-					Array.each(resp, function(doc){
-						debug_internals('Path %s', doc.key);
-						//this.hosts.push({name: doc.key, last: null});
-
-						// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
-            if(!this.blacklist_path
-              || (this.blacklist_path && this.blacklist_path.test(doc.key) == false)
-            )
-              this.paths.push(doc.key)
-
-					}.bind(this));
-
-					debug_internals('PATHs %o', this.paths);
-				}
-			}
-
-			else{//from periodical views
-
-				this.hosts = {};
-
-				if(info.uri != ''){
-					this.fireEvent('on'+info.uri.charAt(0).toUpperCase() + info.uri.slice(1), JSON.decode(resp));//capitalize first letter
-				}
-				else{
-					this.fireEvent('onGet', resp);
-				}
-
-				// let to_remove = [];
-
-				if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
-					// Array.each(resp, function(doc){
-					// 	to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
-					// });
-
-          // debug_internals('DOCs %s', resp);
-
-					resp = [resp];
-
-					this.fireEvent(
-						this[
-							'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
-						],
-						resp
-					);
+      resp.toArray(function(err, arr){
+        debug_internals('distinct count', arr)
 
 
-				}
-				else{//no docs
+        if(params.options._extras == 'path'){
+          if(arr.length == 0){
+  					debug_internals('No paths yet');
+  				}
+  				else{
 
-				}
+            this.paths = []
 
-			}
-		}
+  					Array.each(arr, function(row, index){
+  						// debug_internals('Path %s', row);
 
-	},
+              if(
+                (
+                  !this.blacklist_path
+                  || (this.blacklist_path && this.blacklist_path.test(row) == false)
+                )
+                && !this.paths.contains(row)
+              )
+                this.paths.push(row)
+
+  					}.bind(this));
+
+  					debug_internals('PATHs %o', this.paths);
+  				}
+  			}
+        else if(params.options._extras == 'host'){
+          if(arr.length == 0){
+  					debug_internals('No hosts yet');
+  				}
+  				else{
+
+            Array.each(arr, function(row, index){
+              // debug_internals('Host %s', row);
+              //this.hosts.push({name: doc.key, last: null});
+
+              // if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
+              if(!this.hosts.contains(row))
+                this.hosts.push(row)
+
+            }.bind(this));
+
+            debug_internals('HOSTs %o', this.hosts);
+  				}
+        }
+
+      }.bind(this))
+
+
+    }
+  },
+  // between: function(err, resp, params){
+  //   if(err){
+  //     debug_internals('between err', err)
+  //   }
+  //   else{
+  //     // if(params.options._extras == 'to_delete'){
+  //     //   debug_internals('to_delete %o', resp);
+  //     //   this.delete({
+  //     //     _extras: 'delete',
+  //     //     uri: this.options.db+'/periodical',
+  //     //     args:[
+  //     //       resp,
+  //     //       {durability: 'soft'}
+  //     //     ]
+  //     //   })
+  //     // }
+  //     // else{
+  //       resp.toArray(function(err, arr){
+  //         debug_internals('between count', arr.length)
+  //         if(params.options._extras == 'path'){
+  //           if(arr.length == 0){
+  //   					debug_internals('No paths yet');
+  //   				}
+  //   				else{
+  //
+  //             this.paths = []
+  //
+  //   					Array.each(arr, function(row, index){
+  //   						// debug_internals('Path %s', row);
+  //   						//this.hosts.push({name: doc.key, last: null});
+  //
+  //   						// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
+  //               if(
+  //                 (
+  //                   !this.blacklist_path
+  //                   || (this.blacklist_path && this.blacklist_path.test(path) == false)
+  //                 )
+  //                 && !this.paths.contains(row.metadata['path'])
+  //               )
+  //                 this.paths.push(row.metadata['path'])
+  //
+  //   					}.bind(this));
+  //
+  //   					debug_internals('PATHs %o', this.paths);
+  //   				}
+  //   			}
+  //         else if(params.options._extras == 'host'){
+  //           if(arr.length == 0){
+  //   					debug_internals('No hosts yet');
+  //   				}
+  //   				else{
+  //
+  //   					Array.each(arr, function(row, index){
+  //   						// debug_internals('Host %s', row);
+  //   						//this.hosts.push({name: doc.key, last: null});
+  //
+  //   						// if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
+  //               if(!this.hosts.contains(row.metadata['host']))
+  //                 this.hosts.push(row.metadata['host'])
+  //
+  //   					}.bind(this));
+  //
+  //   					debug_internals('HOSTs %o', this.hosts);
+  //   				}
+  //         }
+  //         // else if(params.options._extras == 'to_delete'){
+  //         //   debug_internals('to_delete %o', arr);
+  //         //   this.delete({
+  //         //     _extras: 'delete',
+  //         //     uri: this.options.db+'/periodical',
+  //         //     args:[
+  //         //       resp,
+  //         //       {durability: 'soft'}
+  //         //     ]
+  //         //   })
+  //         // }
+  //
+  //
+  //       }.bind(this))
+  //     // }
+  //
+  //   }
+  //
+  //
+  //
+  //   // debug_internals('count', this.r.count(resp))
+  //
+  // },
+  // search: function (err, resp, info){
+  //
+	// 	// debug('search %o', resp);
+	// 	// debug('search info %o', info);
+  //
+	// 	if(err){
+	// 		debug('search err %o', err);
+  //
+  //
+	// 		if(info.uri != ''){
+	// 			this.fireEvent('on'+info.uri.charAt(0).toUpperCase() + info.uri.slice(1)+'Error', err);//capitalize first letter
+	// 		}
+	// 		else{
+	// 			this.fireEvent('onGetError', err);
+	// 		}
+  //
+	// 		this.fireEvent(this.ON_DOC_ERROR, err);
+  //
+	// 		this.fireEvent(
+	// 			this[
+	// 				'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
+	// 			],
+	// 			err
+	// 		);
+  //
+	// 	}
+	// 	else{
+  //
+	// 		//if(info.options.data.reduce == true && info.options.data.include_docs != true){
+	// 		if(info.uri == this.options.db && info.options.id == 'search/hosts'){//comes from search/hosts
+	// 			//this.hosts = {};
+  //
+	// 			if(Object.getLength(resp) == 0){//there are no docs.metadata.host yet
+	// 				//this._add_periodical(host, 0, Date.now());
+	// 				//throw new Error('No hosts yet: implement');
+	// 				debug_internals('No hosts yet');
+	// 			}
+	// 			else{
+	// 				//Array.each(resp, function(doc){
+	// 					//debug_internals('Alerts search doc %o', doc);
+	// 					////this.hosts.push(doc.key);
+	// 					//this._get_last_stat(doc.key);//doc.key == host
+	// 				//}.bind(this));
+	// 				Array.each(resp, function(doc){
+	// 					debug_internals('Host %s', doc.key);
+	// 					//this.hosts.push({name: doc.key, last: null});
+  //
+	// 					if(this.hosts[doc.key] == undefined) this.hosts[doc.key] = -1;
+  //
+	// 				}.bind(this));
+  //
+	// 				debug_internals('HOSTs %o', this.hosts);
+	// 			}
+	// 		}
+  //
+  //     else if(info.uri == this.options.db && info.options.id == 'search/paths'){//comes from search/hosts
+	// 			//this.hosts = {};
+  //
+	// 			if(Object.getLength(resp) == 0){
+	// 				debug_internals('No paths yet');
+	// 			}
+	// 			else{
+  //
+  //         this.paths = []
+  //
+	// 				Array.each(resp, function(doc){
+	// 					debug_internals('Path %s', doc.key);
+	// 					//this.hosts.push({name: doc.key, last: null});
+  //
+	// 					// if(this.paths[doc.key] == undefined) this.hosts[doc.paths] = -1;
+  //           if(!this.blacklist_path
+  //             || (this.blacklist_path && this.blacklist_path.test(doc.key) == false)
+  //           )
+  //             this.paths.push(doc.key)
+  //
+	// 				}.bind(this));
+  //
+	// 				debug_internals('PATHs %o', this.paths);
+	// 			}
+	// 		}
+  //
+	// 		else{//from periodical views
+  //
+	// 			this.hosts = {};
+  //
+	// 			if(info.uri != ''){
+	// 				this.fireEvent('on'+info.uri.charAt(0).toUpperCase() + info.uri.slice(1), JSON.decode(resp));//capitalize first letter
+	// 			}
+	// 			else{
+	// 				this.fireEvent('onGet', resp);
+	// 			}
+  //
+	// 			// let to_remove = [];
+  //
+	// 			if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp)){
+	// 				// Array.each(resp, function(doc){
+	// 				// 	to_remove.push({id: doc.doc._id, rev: doc.doc._rev});
+	// 				// });
+  //
+  //         // debug_internals('DOCs %s', resp);
+  //
+	// 				resp = [resp];
+  //
+	// 				this.fireEvent(
+	// 					this[
+	// 						'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+	// 					],
+	// 					resp
+	// 				);
+  //
+  //
+	// 			}
+	// 			else{//no docs
+  //
+	// 			}
+  //
+	// 		}
+	// 	}
+  //
+	// },
 
   initialize: function(options){
 
