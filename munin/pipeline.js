@@ -8,6 +8,7 @@ const path = require('path');
 let cron = require('node-cron');
 
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
+// let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.munin.template'));
 
 
 const InputPollerMunin = require ( './input/munin.js' )
@@ -42,7 +43,8 @@ module.exports = function(conn){
     filters: [
    		// require('./snippets/filter.sanitize.template'),
        function(doc, opts, next, pipeline){
-         let { type, input, input_type, app } = opts
+         let { type, input, input_type } = opts
+         let app = opts.app = pipeline
 
          debug_internals('filter %o', pipeline.outputs[0].options.buffer)
 
@@ -53,10 +55,12 @@ module.exports = function(conn){
            type: 'periodical',
            host: doc.host
          }
+         // opts.input_type.options.id = doc.host
+         // opts.app.options.id = 'munin.'+doc.id.replace(/\_/, '.', 'g')
 
-         debug_internals('filter %o %o', new_doc, app.options.requests.periodical.length)
+         debug_internals('filter %o %o', new_doc, input_type.options.requests.periodical.length)
 
-         pipeline.outputs[0].options.buffer.size = app.options.requests.periodical.length
+         pipeline.outputs[0].options.buffer.size = input_type.options.requests.periodical.length
 
          sanitize_filter(
            new_doc,

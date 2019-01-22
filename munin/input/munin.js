@@ -274,6 +274,7 @@ module.exports = new Class({
         this.node = resp[0]
       }
 
+      this.options.id = this.node
       // Array.each(resp, function(module, index){
       //   // module = module.trim()
       //
