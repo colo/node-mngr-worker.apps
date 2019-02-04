@@ -68,6 +68,11 @@ module.exports = function(doc, opts, next, pipeline){
 
 				// Array.each(doc.data, function(proc){
 				Object.each(procs, function(proc){
+					proc['percentage_mem'] = proc['%mem']
+					delete proc['%mem']
+
+					proc['percentage_cpu'] = proc['%cpu']
+					delete proc['%cpu']
 					// let command = proc.command[0]
 
 					/**
@@ -90,20 +95,20 @@ module.exports = function(doc, opts, next, pipeline){
 					})
 					proc['time'] = ss + (mm * 60) + (hs * 3600) + (dd * 86400)
 
-					if(!per_uid[proc.uid]) per_uid[proc.uid] = { count: 0, '%cpu': 0, '%mem': 0, 'time': 0, 'rss': 0, 'vsz': 0 }
-					if(!per_cmd[proc.cmd]) per_cmd[proc.cmd] = { count: 0, '%cpu': 0, '%mem': 0, 'time': 0, 'rss': 0, 'vsz': 0 }
+					if(!per_uid[proc.uid]) per_uid[proc.uid] = { count: 0, 'percentage_cpu': 0, 'percentage_mem': 0, 'time': 0, 'rss': 0, 'vsz': 0 }
+					if(!per_cmd[proc.cmd]) per_cmd[proc.cmd] = { count: 0, 'percentage_cpu': 0, 'percentage_mem': 0, 'time': 0, 'rss': 0, 'vsz': 0 }
 
 					per_uid[proc.uid]['time'] += ss + (mm * 60) + (hs * 3600) + (dd * 86400)
 					per_uid[proc.uid]['count'] += 1
-					per_uid[proc.uid]['%cpu'] += proc['%cpu']
-					per_uid[proc.uid]['%mem'] += proc['%mem']
+					per_uid[proc.uid]['percentage_cpu'] += proc['percentage_cpu']
+					per_uid[proc.uid]['percentage_mem'] += proc['percentage_mem']
 					per_uid[proc.uid]['rss'] += proc['rss']
 					per_uid[proc.uid]['vsz'] += proc['vsz']
 
 					per_cmd[proc.cmd]['time'] += ss + (mm * 60) + (hs * 3600) + (dd * 86400)
 					per_cmd[proc.cmd]['count'] += 1
-					per_cmd[proc.cmd]['%cpu'] += proc['%cpu']
-					per_cmd[proc.cmd]['%mem'] += proc['%mem']
+					per_cmd[proc.cmd]['percentage_cpu'] += proc['percentage_cpu']
+					per_cmd[proc.cmd]['percentage_mem'] += proc['percentage_mem']
 					per_cmd[proc.cmd]['rss'] += proc['rss']
 					per_cmd[proc.cmd]['vsz'] += proc['vsz']
 
@@ -163,7 +168,7 @@ module.exports = function(doc, opts, next, pipeline){
 				// 		count: Object.keys(cmds_doc.data).length
 				// 	}
 				// }
-				// let by_cpu = procs_doc.data.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				// let by_cpu = procs_doc.data.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				let by_cpu = []
 				let by_mem = []
 				let by_elapsed = []
@@ -172,8 +177,8 @@ module.exports = function(doc, opts, next, pipeline){
 				let user_space = []
 
 				Object.each(procs_doc.data, function(proc, pid){
-					by_cpu.push({pid: pid, '%cpu': proc['%cpu'] })
-					by_mem.push({pid: pid, '%mem': proc['%mem'] })
+					by_cpu.push({pid: pid, 'percentage_cpu': proc['percentage_cpu'] })
+					by_mem.push({pid: pid, 'percentage_mem': proc['percentage_mem'] })
 					by_elapsed.push({pid: pid, 'elapsed': proc.elapsed })
 					by_time.push({pid: pid, 'time': proc.time })
 
@@ -186,14 +191,14 @@ module.exports = function(doc, opts, next, pipeline){
 					}
 				})
 
-				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				.reverse()
-				.filter(function(item, index){ return item['%cpu'] > 0})
+				.filter(function(item, index){ return item['percentage_cpu'] > 0})
 
 
-				by_mem = by_mem.sort(function(a,b) {return (a['%mem'] > b['%mem']) ? 1 : ((b['%mem'] > a['%mem']) ? -1 : 0);} )
+				by_mem = by_mem.sort(function(a,b) {return (a['percentage_mem'] > b['percentage_mem']) ? 1 : ((b['percentage_mem'] > a['percentage_mem']) ? -1 : 0);} )
 				.reverse()
-				.filter(function(item, index){ return item['%mem'] > 0})
+				.filter(function(item, index){ return item['percentage_mem'] > 0})
 
 				by_elapsed = by_elapsed.sort(function(a,b) {return (a['elapsed'] > b['elapsed']) ? 1 : ((b['elapsed'] > a['elapsed']) ? -1 : 0);} )
 				.reverse()
@@ -205,8 +210,8 @@ module.exports = function(doc, opts, next, pipeline){
 
 				stats_doc.data = {
 					pids_count: Object.keys(procs_doc.data).length,
-					'%cpu': by_cpu,
-					'%mem': by_mem,
+					'percentage_cpu': by_cpu,
+					'percentage_mem': by_mem,
 					elapsed: by_elapsed,
 					time: by_time,
 					kernel: kernel_space,
@@ -224,19 +229,19 @@ module.exports = function(doc, opts, next, pipeline){
 				by_time = []
 				let by_count = []
 				Object.each(uids_doc.data, function(proc, uid){
-					by_cpu.push({uid: uid, '%cpu': proc['%cpu'] })
-					by_mem.push({uid: uid, '%mem': proc['%mem'] })
+					by_cpu.push({uid: uid, 'percentage_cpu': proc['percentage_cpu'] })
+					by_mem.push({uid: uid, 'percentage_mem': proc['percentage_mem'] })
 					by_time.push({uid: uid, 'time': proc.time })
 					by_count.push({uid: uid, 'count': proc.count })
 				})
 
-				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				.reverse()
-				.filter(function(item, index){ return item['%cpu'] > 0})
+				.filter(function(item, index){ return item['percentage_cpu'] > 0})
 
-				by_mem = by_mem.sort(function(a,b) {return (a['%mem'] > b['%mem']) ? 1 : ((b['%mem'] > a['%mem']) ? -1 : 0);} )
+				by_mem = by_mem.sort(function(a,b) {return (a['percentage_mem'] > b['percentage_mem']) ? 1 : ((b['percentage_mem'] > a['percentage_mem']) ? -1 : 0);} )
 				.reverse()
-				.filter(function(item, index){ return item['%mem'] > 0})
+				.filter(function(item, index){ return item['percentage_mem'] > 0})
 
 				by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
 				.reverse()
@@ -248,8 +253,8 @@ module.exports = function(doc, opts, next, pipeline){
 
 				uids_stats_doc.data = {
 					uids_count: Object.keys(uids_doc.data).length,
-					'%cpu': by_cpu,
-					'%mem': by_mem,
+					'percentage_cpu': by_cpu,
+					'percentage_mem': by_mem,
 					time: by_time,
 					count: by_count,
 				}
@@ -265,19 +270,19 @@ module.exports = function(doc, opts, next, pipeline){
 				by_time = []
 				by_count = []
 				Object.each(cmds_doc.data, function(proc, cmd){
-					by_cpu.push({cmd: cmd, '%cpu': proc['%cpu'] })
-					by_mem.push({cmd: cmd, '%mem': proc['%mem'] })
+					by_cpu.push({cmd: cmd, 'percentage_cpu': proc['percentage_cpu'] })
+					by_mem.push({cmd: cmd, 'percentage_mem': proc['percentage_mem'] })
 					by_time.push({cmd: cmd, 'time': proc.time })
 					by_count.push({cmd: cmd, 'count': proc.count })
 				})
 
-				by_cpu = by_cpu.sort(function(a,b) {return (a['%cpu'] > b['%cpu']) ? 1 : ((b['%cpu'] > a['%cpu']) ? -1 : 0);} )
+				by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				.reverse()
-				.filter(function(item, index){ return item['%cpu'] > 0})
+				.filter(function(item, index){ return item['percentage_cpu'] > 0})
 
-				by_mem = by_mem.sort(function(a,b) {return (a['%mem'] > b['%mem']) ? 1 : ((b['%mem'] > a['%mem']) ? -1 : 0);} )
+				by_mem = by_mem.sort(function(a,b) {return (a['percentage_mem'] > b['percentage_mem']) ? 1 : ((b['percentage_mem'] > a['percentage_mem']) ? -1 : 0);} )
 				.reverse()
-				.filter(function(item, index){ return item['%mem'] > 0})
+				.filter(function(item, index){ return item['percentage_mem'] > 0})
 
 				by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
 				.reverse()
@@ -289,8 +294,8 @@ module.exports = function(doc, opts, next, pipeline){
 
 				cmds_stats_doc.data = {
 					cmds_count: Object.keys(cmds_doc.data).length,
-					'%cpu': by_cpu,
-					'%mem': by_mem,
+					'percentage_cpu': by_cpu,
+					'percentage_mem': by_mem,
 					time: by_time,
 					count: by_count,
 				}
@@ -344,18 +349,18 @@ module.exports = function(doc, opts, next, pipeline){
 	// 			})
 	// 			proc['time'] = ss + (mm * 60) + (hs * 3600) + (dd * 86400)
   //
-	// 			if(!per_uid[proc.uid]) per_uid[proc.uid] = { count: 0, '%cpu': 0, '%mem': 0, 'time': 0 }
-	// 			// if(!per_command[command]) per_command[command] = { count: 0, '%cpu': 0, '%mem': 0, 'time': 0 }
+	// 			if(!per_uid[proc.uid]) per_uid[proc.uid] = { count: 0, 'percentage_cpu': 0, 'percentage_mem': 0, 'time': 0 }
+	// 			// if(!per_command[command]) per_command[command] = { count: 0, 'percentage_cpu': 0, 'percentage_mem': 0, 'time': 0 }
   //
 	// 			per_uid[proc.uid]['time'] += ss + (mm * 60) + (hs * 3600) + (dd * 86400)
 	// 			per_uid[proc.uid]['count'] += 1
-	// 			per_uid[proc.uid]['%cpu'] += proc['%cpu']
-	// 			per_uid[proc.uid]['%mem'] += proc['%mem']
+	// 			per_uid[proc.uid]['percentage_cpu'] += proc['percentage_cpu']
+	// 			per_uid[proc.uid]['percentage_mem'] += proc['percentage_mem']
   //
 	// 			// per_command[command]['time'] += ss + (mm * 60) + (hs * 3600) + (dd * 86400)
 	// 			// per_command[command]['count'] += 1
-	// 			// per_command[command]['%cpu'] += proc['%cpu'] * 1
-	// 			// per_command[command]['%mem'] += proc['%mem'] * 1
+	// 			// per_command[command]['percentage_cpu'] += proc['percentage_cpu'] * 1
+	// 			// per_command[command]['percentage_mem'] += proc['percentage_mem'] * 1
   //
   //
   //

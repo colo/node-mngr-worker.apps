@@ -26,8 +26,8 @@ module.exports = {
         if(!entry_point[prop]) entry_point[prop] = {}
 
         let data = {
-          '%cpu': value['%cpu'],
-          '%mem': value['%mem'],
+          'percentage_cpu': value['percentage_cpu'],
+          'percentage_mem': value['percentage_mem'],
           'rss': value['rss'],
           'vsz': value['vsz']
           // 'time':

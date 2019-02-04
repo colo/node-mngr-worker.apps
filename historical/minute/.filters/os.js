@@ -143,8 +143,8 @@ module.exports = function(doc, opts, next, pipeline){
         //         // '_pid': proc['pid'],
         //         // '_ppid': proc['ppid'],
         //         // '_command': proc['_command'],
-        //         '%cpu': proc['%cpu'],
-        //         '%mem': proc['%mem'],
+        //         'percentage_cpu': proc['percentage_cpu'],
+        //         'percentage_mem': proc['percentage_mem'],
         //         'rss': proc['rss'],
         //         'vsize': proc['vsize']
         //         // 'time':
@@ -169,8 +169,8 @@ module.exports = function(doc, opts, next, pipeline){
         //   // if(!values[host][path+'.uid'][value['uid']]) values[host][path+'.uid'][value['uid']] = {}
         //   //
         //   // let uid_data = {
-        //   // 	'%cpu': value['%cpu'],
-        //   // 	'%mem': value['%mem']
+        //   // 	'percentage_cpu': value['percentage_cpu'],
+        //   // 	'percentage_mem': value['percentage_mem']
         //   // 	// 'time':
         //   // }
         //   //
