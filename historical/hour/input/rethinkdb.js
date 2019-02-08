@@ -14,6 +14,10 @@ const roundMilliseconds = function(timestamp){
   return d.getTime()
 }
 
+const SECOND = 1000
+const MINUTE = SECOND * 60
+const HOUR = MINUTE * 60
+const DAY = HOUR * 24
 
 module.exports = new Class({
   Extends: App,
@@ -31,29 +35,80 @@ module.exports = new Class({
 
 		requests : {
 			periodical: [
+        // {
+				// 	search_paths: function(req, next, app){
+        //     debug_internals('search_paths');
+        //
+        //     // app.between({
+        //     //   _extras: 'path',
+        //     //   uri: app.options.db+'/historical',
+        //     //   args: [
+        //     //     roundMilliseconds(Date.now() - 1000),
+        //     //     roundMilliseconds(Date.now()),
+        //     //     {
+        //     //       index: 'timestamp',
+        //     //       leftBound: 'open',
+        //     //       rightBound: 'open'
+        //     //     }
+        //     //   ]
+        //     // })
+        //
+        //     app.distinct({
+        //       _extras: 'path',
+        //       uri: app.options.db+'/historical',
+        //       args: {index: 'path'}
+        //     })
+        //
+				// 	}
+				// },
+        // {
+				// 	search_hosts: function(req, next, app){
+				// 		debug_internals('search_hosts');
+        //
+        //     // app.between({
+        //     //   _extras: 'host',
+        //     //   uri: app.options.db+'/historical',
+        //     //   args: [
+        //     //     roundMilliseconds(Date.now() - 1000),
+        //     //     roundMilliseconds(Date.now()),
+        //     //     {
+        //     //       index: 'timestamp',
+        //     //       leftBound: 'open',
+        //     //       rightBound: 'open'
+        //     //     }
+        //     //   ]
+        //     // })
+        //     app.distinct({
+        //       _extras: 'host',
+        //       uri: app.options.db+'/historical',
+        //       args: {index: 'host'}
+        //     })
+				// 	}
+				// },
         {
-					search_paths: function(req, next, app){
-            debug_internals('search_paths');
 
-            // app.between({
-            //   _extras: 'path',
-            //   uri: app.options.db+'/historical',
-            //   args: [
-            //     roundMilliseconds(Date.now() - 1000),
-            //     roundMilliseconds(Date.now()),
-            //     {
-            //       index: 'timestamp',
-            //       leftBound: 'open',
-            //       rightBound: 'open'
-            //     }
-            //   ]
-            // })
+          search_paths: function(req, next, app){
+						debug_internals('search_paths');
+            app.reduce({
+              _extras: 'paths',
+              uri: app.options.db+'/periodical',
+              args: function(left, right) {
+                  return left.merge(right)
+              },
 
-            app.distinct({
-              _extras: 'path',
-              uri: app.options.db+'/historical',
-              args: {index: 'path'}
+              query: app.r.db(app.options.db).table('periodical').
+              // getAll(req.host, {index: 'host'}).
+              between(
+                Date.now() - DAY,//last day should be enough
+                Date.now(),
+                {index: 'timestamp'}
+              ).
+              map(function(doc) {
+                return app.r.object(doc("metadata")("path"), true) // return { <country>: true}
+              }.bind(app))
+
             })
+
 
 					}
 				},
@@ -61,24 +116,26 @@ module.exports = new Class({
 					search_hosts: function(req, next, app){
 						debug_internals('search_hosts');
 
-            // app.between({
-            //   _extras: 'host',
-            //   uri: app.options.db+'/historical',
-            //   args: [
-            //     roundMilliseconds(Date.now() - 1000),
-            //     roundMilliseconds(Date.now()),
-            //     {
-            //       index: 'timestamp',
-            //       leftBound: 'open',
-            //       rightBound: 'open'
-            //     }
-            //   ]
-            // })
-            app.distinct({
-              _extras: 'host',
-              uri: app.options.db+'/historical',
-              args: {index: 'host'}
+            app.reduce({
+              _extras: 'hosts',
+              uri: app.options.db+'/periodical',
+              args: function(left, right) {
+                  return left.merge(right)
+              },
+
+              query: app.r.db(app.options.db).table('periodical').
+              // getAll(req.host, {index: 'host'}).
+              between(
+                Date.now() - DAY,//last day should be enough
+                Date.now(),
+                {index: 'timestamp'}
+              ).
+              map(function(doc) {
+                return app.r.object(doc("metadata")("host"), true) // return { <country>: true}
+              }.bind(app))
+
             })
+
 					}
 				},
         {
@@ -178,22 +235,25 @@ module.exports = new Class({
         path: ':database/:table',
         callbacks: ['between']
       }],
-      distinct: [{
+      // distinct: [{
+      //   path: ':database/:table',
+      //   callbacks: ['distinct']
+      // }],
+      reduce: [{
         path: ':database/:table',
-        callbacks: ['distinct']
+        callbacks: ['reduce']
       }],
-
 
 
 		},
 
   },
 
-  distinct: function(err, resp, params){
-    debug_internals('distinct', params.options)
+  reduce: function(err, resp, params){
+    debug_internals('reduce', params.options)
 
     if(err){
-      debug_internals('distinct err', err)
+      debug_internals('reduce err', err)
 
 			if(params.uri != ''){
 				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
@@ -213,56 +273,133 @@ module.exports = new Class({
     }
     else{
 
-      resp.toArray(function(err, arr){
-        debug_internals('distinct count', arr)
+      let arr = (resp) ? Object.keys(resp) : []
+
+      // resp.toArray(function(err, arr){
+      //   debug_internals('distinct count', arr)
 
 
-        if(params.options._extras == 'path'){
-          if(arr.length == 0){
-  					debug_internals('No paths yet');
-  				}
-  				else{
+      if(params.options._extras == 'paths'){
+        if(arr.length == 0){
+					debug_internals('No paths yet');
+				}
+				else{
 
-            this.paths = []
+          this.paths = []
 
-  					Array.each(arr, function(row, index){
-  						// debug_internals('Path %s', row);
+					Array.each(arr, function(row, index){
+						// debug_internals('Path %s', row);
 
-              if(
-                (
-                  !this.blacklist_path
-                  || (this.blacklist_path && this.blacklist_path.test(row) == false)
-                )
-                && !this.paths.contains(row)
+            if(
+              (
+                !this.blacklist_path
+                || (this.blacklist_path && this.blacklist_path.test(row) == false)
               )
-                this.paths.push(row)
+              && !this.paths.contains(row)
+            )
+              this.paths.push(row)
 
-  					}.bind(this));
+					}.bind(this));
 
-  					debug_internals('PATHs %o', this.paths);
-  				}
-  			}
-        else if(params.options._extras == 'host'){
-          if(arr.length == 0){
-  					debug_internals('No hosts yet');
-  				}
-  				else{
+					debug_internals('PATHs %o', this.paths);
+				}
+			}
+      else if(params.options._extras == 'hosts'){
+        if(arr.length == 0){
+					debug_internals('No hosts yet');
+				}
+				else{
 
-  					Array.each(arr, function(row, index){
-  						let host = row
-              if(this.hosts[host] == undefined) this.hosts[host] = {}
+					Array.each(arr, function(row, index){
+						let host = row
+            if(this.hosts[host] == undefined) this.hosts[host] = {}
 
-  					}.bind(this));
+					}.bind(this));
 
-  					debug_internals('HOSTs %o', this.hosts);
-  				}
-        }
+					debug_internals('HOSTs %o', this.hosts);
+				}
+      }
 
-      }.bind(this))
+      // }.bind(this))
 
 
     }
   },
+
+  // distinct: function(err, resp, params){
+  //   debug_internals('distinct', params.options)
+  //
+  //   if(err){
+  //     debug_internals('distinct err', err)
+  //
+	// 		if(params.uri != ''){
+	// 			this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
+	// 		}
+	// 		else{
+	// 			this.fireEvent('onGetError', err);
+	// 		}
+  //
+	// 		this.fireEvent(this.ON_DOC_ERROR, err);
+  //
+	// 		this.fireEvent(
+	// 			this[
+	// 				'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
+	// 			],
+	// 			err
+	// 		);
+  //   }
+  //   else{
+  //
+  //     resp.toArray(function(err, arr){
+  //       debug_internals('distinct count', arr)
+  //
+  //
+  //       if(params.options._extras == 'path'){
+  //         if(arr.length == 0){
+  // 					debug_internals('No paths yet');
+  // 				}
+  // 				else{
+  //
+  //           this.paths = []
+  //
+  // 					Array.each(arr, function(row, index){
+  // 						// debug_internals('Path %s', row);
+  //
+  //             if(
+  //               (
+  //                 !this.blacklist_path
+  //                 || (this.blacklist_path && this.blacklist_path.test(row) == false)
+  //               )
+  //               && !this.paths.contains(row)
+  //             )
+  //               this.paths.push(row)
+  //
+  // 					}.bind(this));
+  //
+  // 					debug_internals('PATHs %o', this.paths);
+  // 				}
+  // 			}
+  //       else if(params.options._extras == 'host'){
+  //         if(arr.length == 0){
+  // 					debug_internals('No hosts yet');
+  // 				}
+  // 				else{
+  //
+  // 					Array.each(arr, function(row, index){
+  // 						let host = row
+  //             if(this.hosts[host] == undefined) this.hosts[host] = {}
+  //
+  // 					}.bind(this));
+  //
+  // 					debug_internals('HOSTs %o', this.hosts);
+  // 				}
+  //       }
+  //
+  //     }.bind(this))
+  //
+  //
+  //   }
+  // },
   between: function(err, resp, params){
     debug_internals('between', params.options)
 

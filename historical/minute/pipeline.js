@@ -58,7 +58,7 @@ module.exports = function(conn){
               }
             )
     			],
-    			connect_retry_count: 5,
+    			connect_retry_count: -1,
     			connect_retry_periodical: 1000,
     			// requests: {
     			// 	periodical: 1000,
@@ -75,7 +75,7 @@ module.exports = function(conn){
               return cron.schedule('*/20 * * * * *', dispatch);//every 20 secs
     				},
     				// periodical: 15000,
-    				// periodical: 2000,//test
+    				// periodical: 1000,//test
     			},
     		},
     	}
