@@ -55,7 +55,7 @@ module.exports = new Class({
 
   options: {
 
-		id: 'periodical.purge',
+		id: 'purge',
 
 		requests : {
 			periodical: [
@@ -70,15 +70,15 @@ module.exports = new Class({
             // })
             app.reduce({
               _extras: 'paths',
-              uri: app.options.db+'/periodical',
+              uri: app.options.db+'/'+app.options.table,
               args: function(left, right) {
                   return left.merge(right)
               },
 
-              query: app.r.db(app.options.db).table('periodical').
+              query: app.r.db(app.options.db).table(app.options.table).
               // getAll(req.host, {index: 'host'}).
               between(
-                Date.now() - HOUR,//last hour should be enough
+                Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
                 Date.now(),
                 {index: 'timestamp'}
               ).
@@ -100,15 +100,15 @@ module.exports = new Class({
             // })
             app.reduce({
               _extras: 'hosts',
-              uri: app.options.db+'/periodical',
+              uri: app.options.db+'/'+app.options.table,
               args: function(left, right) {
                   return left.merge(right)
               },
 
-              query: app.r.db(app.options.db).table('periodical').
+              query: app.r.db(app.options.db).table(app.options.table).
               // getAll(req.host, {index: 'host'}).
               between(
-                Date.now() - HOUR,//last hour should be enough
+                Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
                 Date.now(),
                 {index: 'timestamp'}
               ).
@@ -141,12 +141,13 @@ module.exports = new Class({
 
                 Array.each(app.paths, function(path){
 
-                  let types = [DEFAULT_TYPE] //make an array to loop on "types"
+                  // let types = [DEFAULT_TYPE] //make an array to loop on "types"
 
-                  if(path.indexOf('historical') == 0){
-                    // debug_internals('fetching Historical %s', path, path.indexOf('historical'));
-                    types = HISTORICAL_TYPES
-                  }
+                  // if(path.indexOf('historical') == 0){
+                  //   // debug_internals('fetching Historical %s', path, path.indexOf('historical'));
+                  //   types = HISTORICAL_TYPES
+                  // }
+                  let types = (app.options.table == 'periodical') ? [DEFAULT_TYPE] : HISTORICAL_TYPES
 
                   Array.each(types, function(type){
                     let expire = DEFAULT_EXPIRE_SECONDS
@@ -157,24 +158,10 @@ module.exports = new Class({
 
                     debug_internals('fetching expire:type %s %d %s', path, expire, type);
 
-                    // let cb = app.between({
-                    //   _extras: 'to_delete',
-                    //   uri: app.options.db+'/periodical',
-                    //   args: [
-                    //     [path, host, type, 0],
-                    //     [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
-                    //     {
-                    //       index: 'sort_by_path',
-                    //       leftBound: 'open',
-                    //       rightBound: 'open'
-                    //     }
-                    //   ],
-                    //   field: 'id'
-                    // })
                     let cb = app.delete({
                       _extras: {fn: 'delete', path: path, host: host, type:type},
-                      uri: app.options.db+'/periodical',
-                      query: app.r.db(app.options.db).table('periodical').between(
+                      uri: app.options.db+'/'+app.options.table,
+                      query: app.r.db(app.options.db).table(app.options.table).between(
                         [path, host, type, 0],
                         [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
                         {
@@ -185,37 +172,7 @@ module.exports = new Class({
                       ).limit(expire),
                       args:{durability:"soft", return_changes: true}
                     })
-                    // app.between({
-                    //   _extras: 'to_delete',
-                    //   uri: app.options.db+'/periodical',
-                    //   args: [
-                    //     [path, host, type, 0],
-                    //     [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
-                    //     {
-                    //       index: 'sort_by_path',
-                    //       leftBound: 'open',
-                    //       rightBound: 'open'
-                    //     }
-                    //   ],
-                    //   field: 'id'
-                    // })
-
-    									// app.view({
-    									// 	uri: app.options.db,
-    									// 	id: 'sort/by_path',
-    									// 	data: {
-    									// 		// startkey: [path, host, "periodical", Date.now() - 1000],//1.5 sec
-    									// 		// endkey: [path, host, "periodical", Date.now()],
-                      //     startkey: [path, host, type, 0],//1.5 sec
-    									// 		endkey: [path, host, type, Date.now() - (expire * 1000)],
-    									// 		// limit: limit,
-    									// 		//limit: 60, //60 docs = 1 minute of docs
-    									// 		inclusive_end: true,
-    									// 		include_docs: false
-    									// 	}
-    									// })
-
-
+                    
     								views.push(cb);
 
                   })

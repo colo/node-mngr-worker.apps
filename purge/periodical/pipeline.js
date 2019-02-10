@@ -28,6 +28,7 @@ module.exports = {
 					host:'elk',
 					// port: 5984 ,
 					db: 'servers',
+          table: 'periodical',
 					module: InputPollerRethinkDBPurge,
 					// load: ['apps/os/purge/'],
 				}
@@ -38,10 +39,10 @@ module.exports = {
 				 * needs 3 runs to start analyzing from last stats (or from begining)
 				 * it takes 60 secs to complete, so it makes stats each minute
 				 * */
-				// periodical: 10000,//test
+				// periodical: 5000,//test
         periodical: function(dispatch){
 					// return cron.schedule('*/15 * * * *', dispatch);//every 15 mins
-          return cron.schedule('* * * * *', dispatch);//every minute
+          return cron.schedule('0 * * * * *', dispatch);//every minute
 				}
 			},
 		},
