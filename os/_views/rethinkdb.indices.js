@@ -376,7 +376,7 @@ let MyApp = new Class({
 // })
 
 let run = new MyApp({
-  host: 'elk'
+  host: HOST
 })
 
 run.addEvent('onConnect', function(){
