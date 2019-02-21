@@ -1,7 +1,9 @@
 //const HOST = '127.0.0.1'
 const HOST = 'elk'
 const DATABASES = ['servers']
-const TABLES = ['once', 'periodical', 'historical']
+const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
+
+
 // const DATABASE = 'historical'
 
 let App = require('node-app-rethinkdb-client')
@@ -37,10 +39,10 @@ let MyApp = new Class({
 			// 	path: '',
 			// 	callbacks: ['dbList']
       // }],
-      // dbDrop: [{
-			// 	path: ':database',
-			// 	callbacks: ['dbDrop']
-      // }],
+      dbDrop: [{
+				path: ':database',
+				callbacks: ['dbDrop']
+      }],
       dbCreate: [{
 				path: ':database',
 				callbacks: ['dbCreate']
@@ -163,10 +165,10 @@ let MyApp = new Class({
   //   debug('dbList %o', arguments)
   //   this.dbDrop({uri: 'test'})
   // },
-  // dbDrop: function(){
-  //   debug('dbDrop %o', arguments)
-  //   this.dbCreate({uri: 'test'})
-  // },
+  dbDrop: function(err, resp, params){
+    debug('dbDrop %o', params)
+    this.dbCreate({uri: params.uri})
+  },
   dbCreate: function(err, resp, params){
     debug('dbCreate %o', params)
 
@@ -383,7 +385,8 @@ run.addEvent('onConnect', function(){
   // console.log(arguments)
   // run.close({args: [{noreplyWait: true}]})
   Array.each(DATABASES, function(db){
-    run.dbCreate({uri: db})
+    // run.dbCreate({uri: db})
+    run.dbDrop({uri: db})
   })
 
 
