@@ -82,14 +82,19 @@ let __process_chart = function(chart, name, stat){
 
 }
 
+let os_mounts_type_filter = /^(ext.*|xfs)$/ //filter mounts
+
 let return_charts = function(stats){
-  debug_internals('return_charts', stats)
+  // debug_internals('return_charts', stats)
   let charts = {}
 
   if(stats && stats !== null)
     Object.each(stats, function(stat, name){
-      // debug_internals('return_charts name stat', name, stat)
-      charts[name] = __process_stat(Object.clone(chart), name, stat)
+      debug_internals('return_charts name stat', name, stat)
+
+      if(stat[0] && os_mounts_type_filter.test(stat[0].value.type))
+        charts[name] = __process_stat(Object.clone(chart), name, stat)
+
       // switch(name){
       //   case 'cpus':
       //     charts['cpus.times'] = __process_stat(os_charts[name].times, 'os.cpus.times', stat)

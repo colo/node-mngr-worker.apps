@@ -21,26 +21,32 @@ const InputPollerRethinkDBPeriodical = require ( './input/rethinkdb.js' )
 // // let hooks = {}
 //
 // // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
-// let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-// let paths_whitelist = /^os$|^os\.networkInterfaces\.stats$|^os\.blockdevices$|^os\.mounts$|^os\.procs\.stats$|^os\.procs\.uid\.stats$|^os\.procs\.cmd\.stats$|^munin/
-//
-// let __white_black_lists_filter = function(whitelist, blacklist, str){
-//   let filtered = false
-//   if(!blacklist && !whitelist){
-//     filtered = true
-//   }
-//   else if(blacklist && !blacklist.test(str)){
-//     filtered = true
-//   }
-//   else if(blacklist && blacklist.test(str) && (whitelist && whitelist.test(str))){
-//     filtered = true
-//   }
-//   else if(!blacklist && (whitelist && whitelist.test(str))){
-//     filtered = true
-//   }
-//
-//   return filtered
-// }
+let paths_blacklist = /^(os\.procs|os\.procs\.cmd|os\.procs\.uid|os\.networkInterfaces)$/
+let paths_whitelist = undefined
+
+let stat_blacklist = /^[a-zA-Z0-9_\.]+$/
+let stat_whitelist = /^(os\.freemem|os\.cpus|os\.totalmem)$/
+
+let tabular_blacklist = undefined
+let tabular_whitelist = /^[a-zA-Z0-9_\.]+$/
+
+let __white_black_lists_filter = function(whitelist, blacklist, str){
+  let filtered = false
+  if(!blacklist && !whitelist){
+    filtered = true
+  }
+  else if(blacklist && !blacklist.test(str)){
+    filtered = true
+  }
+  else if(blacklist && blacklist.test(str) && (whitelist && whitelist.test(str))){
+    filtered = true
+  }
+  else if(!blacklist && (whitelist && whitelist.test(str))){
+    filtered = true
+  }
+
+  return filtered
+}
 
 let jscaching = require('js-caching')
 let RethinkDBStoreIn = require('js-caching/libs/stores/rethinkdb').input
@@ -412,38 +418,91 @@ module.exports = function(conn){
 
          if(doc){
            Object.each(doc, function(data, host){
+             Object.each(data, function(value, path){
+               if(!__white_black_lists_filter(paths_whitelist, paths_blacklist, path))
+                  delete data[path]
+             })
+
+             // debug_internals(data)
+
              __transform_data('stat', data, host, function(stat){
+                // debug_internals(stat)
+                Object.each(stat, function(stat_data, stat_path){
+                  // debug_internals(stat_data, stat_path)
+
+                  Object.each(stat_data, function(stat_data_value, stat_data_path){
+                    let joined_stat_path = stat_path+'.'+stat_data_path
+
+                    if(
+                      __white_black_lists_filter(stat_whitelist, stat_blacklist, joined_stat_path)
+                      || __white_black_lists_filter(stat_whitelist, stat_blacklist, joined_stat_path.replace(/\./g, '_'))
+                    ){
+                      Array.each(stat_data_value, function(doc_data, index){
+                        let new_doc = {
+                          data: doc_data,
+                          metadata: {
+                            host: host,
+                            // path: stat_path+'_'+stat_data_path,
+                            path: joined_stat_path.replace(/\./g, '_'),//mngr-ui trasnform '_' -> '.' to query
+                            timestamp: doc_data.timestamp,
+                            type: 'periodical',
+                            format: 'stat'
+                          }
+                        }
+
+                        // debug_internals(new_doc)
+
+                        sanitize_filter(
+                          new_doc,
+                          opts,
+                          pipeline.output.bind(pipeline),
+                          pipeline
+                        )
+
+                      })
+                    }
+
+                  })
+
+
+                })
+
+
                 __transform_data('tabular', stat, host, function(tabular){
                   // output[host] = tabular
-                  // debug_internals(output)
+                  debug_internals(tabular)
                   //
                   // if(output[host].os_uptime)
                   //   debug_internals(output[host].os_uptime)
-                  Object.each(tabular, function(tabular_data, path){
+                  Object.each(tabular, function(tabular_data, tabular_path){
 
-                    Array.each(tabular_data, function(doc_data){
-                      let new_doc = {
-                        data: doc_data,
-                        metadata: {
-                          host: host,
-                          path: path,
-                          // path: path.replace(/_/g, '.'),//mngr-ui trasnform '_' -> '.' to query
-                          timestamp: doc_data[0],
-                          type: 'periodical',
-                          format: 'tabular'
+                    if(__white_black_lists_filter(tabular_whitelist, tabular_blacklist, tabular_path)){
+                      Array.each(tabular_data, function(doc_data){
+                        let new_doc = {
+                          data: doc_data,
+                          metadata: {
+                            host: host,
+                            path: tabular_path,
+                            // path: path.replace(/_/g, '.'),//mngr-ui trasnform '_' -> '.' to query
+                            timestamp: doc_data[0],
+                            type: 'periodical',
+                            format: 'tabular'
+                          }
                         }
-                      }
 
-                      debug_internals(new_doc)
+                        // debug_internals(new_doc)
 
-                      sanitize_filter(
-                        new_doc,
-                        opts,
-                        pipeline.output.bind(pipeline),
-                        pipeline
-                      )
+                        sanitize_filter(
+                          new_doc,
+                          opts,
+                          pipeline.output.bind(pipeline),
+                          pipeline
+                        )
 
-                    })
+                      })
+                    }
+
+
 
                   })
                 })
