@@ -1,8 +1,8 @@
 'use stric'
 
 
-var debug = require('debug')('Server:Apps:Purge:Periodical:Pipeline');
-var debug_internals = require('debug')('Server:Apps:Purge:Periodical:Pipeline:Internals');
+var debug = require('debug')('Server:Apps:Purge:UI:Pipeline');
+var debug_internals = require('debug')('Server:Apps:Purge:UI:Pipeline:Internals');
 
 
 const path = require('path');
@@ -27,7 +27,7 @@ module.exports = function(conn){
             Object.merge(
               Object.clone(conn),
               {
-                table: 'periodical',
+                table: 'ui',
                 module: InputPollerRethinkDBPurge,
               }
             )

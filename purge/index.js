@@ -78,7 +78,8 @@ module.exports = new Class({
               query: app.r.db(app.options.db).table(app.options.table).
               // getAll(req.host, {index: 'host'}).
               between(
-                Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
+                // Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
+                Date.now() - ((app.options.table == 'historical') ? DAY : HOUR),//last hour/day should be enough
                 Date.now(),
                 {index: 'timestamp'}
               ).
@@ -108,7 +109,8 @@ module.exports = new Class({
               query: app.r.db(app.options.db).table(app.options.table).
               // getAll(req.host, {index: 'host'}).
               between(
-                Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
+                // Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
+                Date.now() - ((app.options.table == 'historical') ? DAY : HOUR),//last hour/day should be enough
                 Date.now(),
                 {index: 'timestamp'}
               ).
@@ -147,7 +149,8 @@ module.exports = new Class({
                   //   // debug_internals('fetching Historical %s', path, path.indexOf('historical'));
                   //   types = HISTORICAL_TYPES
                   // }
-                  let types = (app.options.table == 'periodical') ? [DEFAULT_TYPE] : HISTORICAL_TYPES
+                  // let types = (app.options.table == 'periodical') ? [DEFAULT_TYPE] : HISTORICAL_TYPES
+                  let types = (app.options.table == 'historical') ? HISTORICAL_TYPES : [DEFAULT_TYPE]
 
                   Array.each(types, function(type){
                     let expire = DEFAULT_EXPIRE_SECONDS
@@ -172,7 +175,7 @@ module.exports = new Class({
                       ).limit(expire),
                       args:{durability:"soft", return_changes: true}
                     })
-                    
+
     								views.push(cb);
 
                   })
