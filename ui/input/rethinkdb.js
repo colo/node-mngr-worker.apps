@@ -245,6 +245,7 @@ module.exports = new Class({
           if(row && row !== null ){
             if(row.type == 'add'){
               // debug_internals('changes add %s %o', new Date(), row.new_val)
+              debug_internals('changes add %s', new Date())
               // this.fireEvent('onPeriodicalDoc', [row.new_val, {type: 'periodical', input_type: this, app: null}]);
               this.changes_buffer.push(row.new_val)
             }

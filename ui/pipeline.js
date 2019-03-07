@@ -128,7 +128,8 @@ let __transform_data = function(type, data, cache_key, cb){
               // debug_internals('transform_result', transform_result)
 
               cache.get(cache_key+'.'+type+'.'+__transform_name(path+'.'+path_key), function(err, chart_instance){
-                chart_instance = (chart_instance) ? JSON.parse(chart_instance) : chart
+                // chart_instance = (chart_instance) ? JSON.parse(chart_instance) : chart
+                chart_instance = (chart_instance) ? chart_instance : chart
 
                 chart_instance = Object.merge(chart, chart_instance)
 
@@ -139,7 +140,9 @@ let __transform_data = function(type, data, cache_key, cb){
 
                   instances[__transform_name(path+'.'+path_key)] = chart_instance
 
-                  cache.set(cache_key+'.'+type+'.'+__transform_name(path+'.'+path_key), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
+                  // cache.set(cache_key+'.'+type+'.'+__transform_name(path+'.'+path_key), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
+                  chart_instance = JSON.parse(JSON.stringify(chart_instance))
+                  cache.set(cache_key+'.'+type+'.'+__transform_name(path+'.'+path_key), chart_instance, CHART_INSTANCE_TTL)
 
                   if(
                     transform_result_counter == transform_result_length - 1
@@ -186,7 +189,8 @@ let __transform_data = function(type, data, cache_key, cb){
           **/
           if(type == 'tabular'){
             cache.get(cache_key+'.'+type+'.'+__transform_name(path), function(err, chart_instance){
-              chart_instance = (chart_instance) ? JSON.parse(chart_instance) : transform
+              // chart_instance = (chart_instance) ? JSON.parse(chart_instance) : transform
+              chart_instance = (chart_instance) ? chart_instance : transform
 
               chart_instance = Object.merge(chart_instance, transform)
               // debug_internals('chart_instance NOT FUNC %o', chart_instance)
@@ -198,7 +202,9 @@ let __transform_data = function(type, data, cache_key, cb){
                 transformed = __merge_transformed(name, stat, transformed)
 
                 instances[__transform_name(path)] = chart_instance
-                cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
+                // cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
+                chart_instance = JSON.parse(JSON.stringify(chart_instance))
+                cache.set(cache_key+'.'+type+'.'+__transform_name(path), chart_instance, CHART_INSTANCE_TTL)
 
                 if(
                   transform_result_counter == transform_result_length - 1
@@ -238,7 +244,8 @@ let __transform_data = function(type, data, cache_key, cb){
           let chart = Object.clone(require('./libs/'+type)(d, path))
 
           cache.get(cache_key+'.'+type+'.'+__transform_name(path), function(err, chart_instance){
-            chart_instance = (chart_instance) ? JSON.parse(chart_instance) : chart
+            // chart_instance = (chart_instance) ? JSON.parse(chart_instance) : chart
+            chart_instance = (chart_instance) ? chart_instance : chart
 
             chart_instance = Object.merge(chart, chart_instance)
 
@@ -264,7 +271,9 @@ let __transform_data = function(type, data, cache_key, cb){
 
               instances[__transform_name(path)] = chart_instance
 
-              cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
+              // cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
+              chart_instance = JSON.parse(JSON.stringify(chart_instance))
+              cache.set(cache_key+'.'+type+'.'+__transform_name(path), chart_instance, CHART_INSTANCE_TTL)
 
               if(
                 transform_result_counter == transform_result_length - 1
