@@ -427,6 +427,8 @@ module.exports = function(conn){
 
              __transform_data('stat', data, host, function(stat){
                 // debug_internals(stat)
+                debug_internals('__transform_data -> stat')
+
                 Object.each(stat, function(stat_data, stat_path){
                   // debug_internals(stat_data, stat_path)
 
@@ -470,7 +472,8 @@ module.exports = function(conn){
 
                 __transform_data('tabular', stat, host, function(tabular){
                   // output[host] = tabular
-                  debug_internals(tabular)
+                  // debug_internals('__transform_data -> tabular', tabular)
+                  debug_internals('__transform_data -> tabular')
                   //
                   // if(output[host].os_uptime)
                   //   debug_internals(output[host].os_uptime)
@@ -531,8 +534,8 @@ module.exports = function(conn){
   				],
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
-  					size: 0,
-  					expire:0
+  					// size: 0,
+  					expire: 999,
   				}
   			}
   		}

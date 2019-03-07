@@ -311,8 +311,9 @@ module.exports = {
 				],
 				module: require('js-pipeline/output/rethinkdb'),
         buffer:{
-					size: 0,
-					expire:0
+					// size: 0,
+					// expire:0
+          expire: 999,
 				}
 			}
 		}

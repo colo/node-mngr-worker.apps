@@ -59,37 +59,37 @@ module.exports = new Class({
 
 		requests : {
 			periodical: [
-        {
-					search_paths: function(req, next, app){
-            debug_internals('search_paths');
-
-            // app.distinct({
-            //   _extras: 'path',
-            //   uri: app.options.db+'/periodical',
-            //   args: {index: 'path'}
-            // })
-            app.reduce({
-              _extras: 'paths',
-              uri: app.options.db+'/'+app.options.table,
-              args: function(left, right) {
-                  return left.merge(right)
-              },
-
-              query: app.r.db(app.options.db).table(app.options.table).
-              // getAll(req.host, {index: 'host'}).
-              between(
-                // Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
-                Date.now() - ((app.options.table == 'historical') ? DAY : HOUR),//last hour/day should be enough
-                Date.now(),
-                {index: 'timestamp'}
-              ).
-              map(function(doc) {
-                return app.r.object(doc("metadata")("path"), true) // return { <country>: true}
-              }.bind(app))
-
-            })
-					}
-				},
+        // {
+				// 	search_paths: function(req, next, app){
+        //     debug_internals('search_paths');
+        //
+        //     // app.distinct({
+        //     //   _extras: 'path',
+        //     //   uri: app.options.db+'/periodical',
+        //     //   args: {index: 'path'}
+        //     // })
+        //     app.reduce({
+        //       _extras: 'paths',
+        //       uri: app.options.db+'/'+app.options.table,
+        //       args: function(left, right) {
+        //           return left.merge(right)
+        //       },
+        //
+        //       query: app.r.db(app.options.db).table(app.options.table).
+        //       // getAll(req.host, {index: 'host'}).
+        //       between(
+        //         // Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
+        //         Date.now() - ((app.options.table == 'historical') ? DAY : HOUR),//last hour/day should be enough
+        //         Date.now(),
+        //         {index: 'timestamp'}
+        //       ).
+        //       map(function(doc) {
+        //         return app.r.object(doc("metadata")("path"), true) // return { <country>: true}
+        //       }.bind(app))
+        //
+        //     })
+				// 	}
+				// },
         {
 					search_hosts: function(req, next, app){
 						debug_internals('search_hosts');
@@ -121,7 +121,88 @@ module.exports = new Class({
             })
 					}
 				},
-				{
+        /**
+        * kind of point less to remove "by_path"...was used on couchdb to split deletes
+        * and make them more "io friendly"
+        **/
+				// {
+				// 	view: function(req, next, app){
+				// 		let now = new Date();
+				// 		debug_internals('fetch_history time %s', now);
+        //
+				// 		// let limit = 1;//only last doc
+        //     // let limit = 1000;//only last doc
+        //
+				// 		let views = [];
+        //
+        //     // console.log('sort by path', app.paths)
+        //
+				// 		Array.each(app.hosts, function(host, index){
+				// 			debug_internals('fetch_history host %s', host);
+				// 			//console.log(value);
+        //
+				// 			// if(value >= 0){
+        //
+        //
+        //
+        //         Array.each(app.paths, function(path){
+        //
+        //           // let types = [DEFAULT_TYPE] //make an array to loop on "types"
+        //
+        //           // if(path.indexOf('historical') == 0){
+        //           //   // debug_internals('fetching Historical %s', path, path.indexOf('historical'));
+        //           //   types = HISTORICAL_TYPES
+        //           // }
+        //           // let types = (app.options.table == 'periodical') ? [DEFAULT_TYPE] : HISTORICAL_TYPES
+        //           let types = (app.options.table == 'historical') ? HISTORICAL_TYPES : [DEFAULT_TYPE]
+        //
+        //           Array.each(types, function(type){
+        //             let expire = DEFAULT_EXPIRE_SECONDS
+        //
+        //             if(HISTORICAL_EXPIRE_SECONDS[type]){
+        //               expire = HISTORICAL_EXPIRE_SECONDS[type]
+        //             }
+        //
+        //             debug_internals('fetching expire:type %s %d %s', path, expire, type);
+        //
+        //             let cb = app.delete({
+        //               _extras: {fn: 'delete', path: path, host: host, type:type},
+        //               uri: app.options.db+'/'+app.options.table,
+        //               query: app.r.db(app.options.db).table(app.options.table).between(
+        //                 [path, host, type, 0],
+        //                 [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
+        //                 {
+        //                   index: 'sort_by_path',
+        //                   leftBound: 'open',
+        //                   rightBound: 'open'
+        //                 }
+        //               ),
+        //               // ).limit(expire),
+        //               args:{durability:"soft", return_changes: false}
+        //             })
+        //
+    		// 						views.push(cb);
+        //
+        //           })
+        //
+        //
+        //         })
+        //
+        //
+        //
+				// 			// }
+				// 		}.bind(app));
+        //
+				// 		Array.each(views, function(view){
+				// 			view();
+				// 		});
+        //
+				// 		//next(views);
+				// 		//app.hosts = {};
+				// 	}
+        //
+				// },
+        {
 					view: function(req, next, app){
 						let now = new Date();
 						debug_internals('fetch_history time %s', now);
@@ -134,14 +215,14 @@ module.exports = new Class({
             // console.log('sort by path', app.paths)
 
 						Array.each(app.hosts, function(host, index){
-							debug_internals('fetch_history host %s', host);
+							debug_internals('fetch_history host %s %s', host, app.options.table);
 							//console.log(value);
 
 							// if(value >= 0){
 
 
 
-                Array.each(app.paths, function(path){
+                // Array.each(app.paths, function(path){
 
                   // let types = [DEFAULT_TYPE] //make an array to loop on "types"
 
@@ -159,21 +240,22 @@ module.exports = new Class({
                       expire = HISTORICAL_EXPIRE_SECONDS[type]
                     }
 
-                    debug_internals('fetching expire:type %s %d %s', path, expire, type);
+                    debug_internals('fetching expire:type %s %d %s', host, expire, type);
 
                     let cb = app.delete({
-                      _extras: {fn: 'delete', path: path, host: host, type:type},
+                      _extras: {fn: 'delete', host: host, type:type},
                       uri: app.options.db+'/'+app.options.table,
                       query: app.r.db(app.options.db).table(app.options.table).between(
-                        [path, host, type, 0],
-                        [path, host, type, roundMilliseconds(Date.now() - (expire * 1000))],
+                        [host, type, 0],
+                        [host, type, roundMilliseconds(Date.now() - (expire * 1000))],
                         {
-                          index: 'sort_by_path',
+                          index: 'sort_by_host',
                           leftBound: 'open',
                           rightBound: 'open'
                         }
-                      ).limit(expire),
-                      args:{durability:"soft", return_changes: true}
+                      ),
+                      // ).limit(expire),
+                      args:{durability:"soft", return_changes: false}
                     })
 
     								views.push(cb);
@@ -181,7 +263,7 @@ module.exports = new Class({
                   })
 
 
-                })
+                // })
 
 
 
@@ -197,7 +279,6 @@ module.exports = new Class({
 					}
 
 				},
-
 			],
 
 
@@ -236,7 +317,7 @@ module.exports = new Class({
     }
     else{
       //fireEvent to acknowledge deleted docs, maybe log
-      debug_internals('delete resp %d %o', resp.deleted, params.options._extras)
+      debug_internals('delete resp %d %o', resp, params.options._extras)
     }
   },
   reduce: function(err, resp, params){
