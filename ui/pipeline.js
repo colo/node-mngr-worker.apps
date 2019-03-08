@@ -406,10 +406,10 @@ module.exports = function(conn){
     				 * it takes 60 secs to complete, so it makes ui each minute
     				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
     				 * */
-    				periodical: function(dispatch){
-    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    				},
+    				// periodical: function(dispatch){
+    				// 	// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+            //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
+    				// },
     				// periodical: 15000,
     				// periodical: 1000,//test
     			},
@@ -544,7 +544,7 @@ module.exports = function(conn){
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
   					// size: 0,
-  					expire: 999,
+  					expire: 1000,
   				}
   			}
   		}
