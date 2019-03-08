@@ -517,8 +517,8 @@ module.exports = function(conn){
 
 
                   })
-                })
-              })
+                }) //_transform 'tabular'
+              }) //_transform 'stat'
            })
          }
 

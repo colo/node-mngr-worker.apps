@@ -157,18 +157,6 @@ module.exports = function(doc, opts, next, pipeline){
 				cmds_stats_doc.metadata.path = 'os.procs.cmd.stats'
 
 
-				// stats_doc.data = {
-				// 	pid: {
-				// 		count: Object.keys(procs_doc.data).length
-				// 	},
-				// 	uid: {
-				// 		count: Object.keys(uids_doc.data).length
-				// 	},
-				// 	cmd: {
-				// 		count: Object.keys(cmds_doc.data).length
-				// 	}
-				// }
-				// let by_cpu = procs_doc.data.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				let by_cpu = []
 				let by_mem = []
 				let by_elapsed = []
@@ -259,7 +247,7 @@ module.exports = function(doc, opts, next, pipeline){
 					count: by_count,
 				}
 
-				next(uids_doc, opts, next, pipeline)
+				// next(uids_doc, opts, next, pipeline)
 				next(uids_stats_doc, opts, next, pipeline)
 
 				/**
@@ -299,7 +287,7 @@ module.exports = function(doc, opts, next, pipeline){
 					time: by_time,
 					count: by_count,
 				}
-				next(cmds_doc, opts, next, pipeline)
+				// next(cmds_doc, opts, next, pipeline)
 				next(cmds_stats_doc, opts, next, pipeline)
 
 			}
