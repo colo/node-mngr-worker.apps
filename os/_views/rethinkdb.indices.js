@@ -1,5 +1,7 @@
 //const HOST = '127.0.0.1'
 const HOST = 'elk'
+// const PORT = 28016
+const PORT = 28015
 const DATABASES = ['servers']
 const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
 
@@ -378,7 +380,8 @@ let MyApp = new Class({
 // })
 
 let run = new MyApp({
-  host: HOST
+  host: HOST,
+  port: PORT
 })
 
 run.addEvent('onConnect', function(){

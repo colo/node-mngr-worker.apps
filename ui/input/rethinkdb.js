@@ -40,7 +40,7 @@ module.exports = new Class({
 		id: 'ui',
 
 		requests : {
-			// periodical: [
+			periodical: [
       //   {
       //
       //     search_paths: function(req, next, app){
@@ -94,49 +94,50 @@ module.exports = new Class({
       //
 			// 		}
 			// 	},
-      //   {
-			// 		get_last_stat: function(req, next, app){
-			// 			//debug_internals('_get_last_stat %o', next);
-			// 			debug_internals('_get_last_stat %o', app.hosts);
-      //
-			// 			let views = [];
-			// 			Object.each(app.hosts, function(value, host){
-			// 				debug_internals('_get_last_stat %s', host);
-      //
-      //         Array.each(app.paths, function(path){
-      //           debug_internals('_get_last_stat %s %s', host, path);
-      //           let _func = function(){
-      //             app.between({
-      //               _extras: {'get_last_stat': true, host: host, path: path},
-      //               uri: app.options.db+'/ui',
-      //               args: [
-      //                 [path, host, 'periodical', roundMilliseconds(0)],
-      //                 [path, host, 'periodical', roundMilliseconds(Date.now())],
-      //                 {
-      //                   index: 'sort_by_path',
-      //                   leftBound: 'open',
-      //                   rightBound: 'open'
-      //                 }
-      //               ],
-      //               chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
-      //               // orderBy: { index: app.r.desc('sort_by_path') }
-      //             })
-      //
-      //           }.bind(app)
-      //
-      //
-  		// 					views.push(_func);
-      //
-      //         })
-      //
-			// 			});
-      //
-			// 			Array.each(views, function(view){
-			// 				view();
-			// 			});
-			// 			// next(views);
-			// 		}
-			// 	},
+        {
+					get_changes: function(req, next, app){
+						//debug_internals('_get_last_stat %o', next);
+						debug_internals('get_changes %s', new Date());
+
+						// let views = [];
+						// Object.each(app.hosts, function(value, host){
+							// debug_internals('_get_last_stat %s', host);
+
+              // Array.each(app.paths, function(path){
+                // debug_internals('_get_last_stat %s %s', host, path);
+                // let _func = function(){
+                
+                  app.between({
+                    // _extras: {'get_changes': true, host: host, path: path},
+                    uri: app.options.db+'/periodical',
+                    args: [
+                      Date.now() - 1100,
+                      '\ufff0',
+                      {
+                        index: 'timestamp',
+                        leftBound: 'open',
+                        rightBound: 'open'
+                      }
+                    ],
+                    // chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
+                    // orderBy: { index: app.r.desc('sort_by_path') }
+                  })
+
+                // }.bind(app)
+
+
+  							// views.push(_func);
+
+              // })
+
+						// });
+
+						// Array.each(views, function(view){
+						// 	view();
+						// });
+						// next(views);
+					}
+				},
       //   {
 			// 		fetch_history: function(req, next, app){
 			// 			let now = new Date();
@@ -181,22 +182,59 @@ module.exports = new Class({
       //
       //
       //
-			// ],
+			],
 
 
 		},
 
 		routes: {
-      // between: [{
-      //   path: ':database/:table',
-      //   callbacks: ['between']
-      // }],
+      between: [{
+        path: ':database/:table',
+        callbacks: ['between']
+      }],
       // reduce: [{
       //   path: ':database/:table',
       //   callbacks: ['reduce']
       // }],
 		},
 
+  },
+  between: function(err, resp, params){
+    if(resp)
+      resp.toArray(function(err, results) {
+        if (err) throw err;
+        // debug_internals('changes', results)
+
+        if(results.length > 0)
+          this.__process_changes(results)
+
+      }.bind(this));
+
+  },
+  __process_changes: function(buffer){
+    let data = {}
+    Array.each(buffer, function(doc){
+      let path = doc.metadata.path
+      let host = doc.metadata.host
+
+      if(!data[host]) data[host] = {}
+      if(!data[host][path]) data[host][path] = []
+      data[host][path].push(doc)
+
+    }.bind(this))
+
+    Object.each(data, function(host_data, host){
+      // debug_internals('changes emiting %o', host, host_data)
+      let doc = {}
+      doc[host] = host_data
+      this.fireEvent('onDoc', [doc, Object.merge(
+        {input_type: this, app: null},
+        // {host: host, type: 'host', prop: prop, id: id}
+        // {type: prop, host: host}
+      )])
+
+
+    }.bind(this))
   },
   __changes: function(){
     debug_internals('__changes')
@@ -228,6 +266,8 @@ module.exports = new Class({
 
       this.r.db(this.options.db).
       table('periodical').
+      // between(Date.now() - 1000, '\ufff0', {index: 'timestamp'}).
+      // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
       changes({includeTypes: true, squash: 1}).
       run(this.conn, function(err, cursor) {
 
@@ -245,7 +285,13 @@ module.exports = new Class({
           if(row && row !== null ){
             if(row.type == 'add'){
               // debug_internals('changes add %s %o', new Date(), row.new_val)
-              debug_internals('changes add %s', new Date())
+              debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
+                new Date(roundMilliseconds(Date.now())),
+                new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
+                new Date(roundMilliseconds(this.changes_buffer_expire)),
+                row.new_val.metadata.host,
+                row.new_val.metadata.path
+              )
               // this.fireEvent('onPeriodicalDoc', [row.new_val, {type: 'periodical', input_type: this, app: null}]);
               this.changes_buffer.push(row.new_val)
             }
@@ -253,29 +299,8 @@ module.exports = new Class({
             if(this.changes_buffer_expire < Date.now() - 900 && this.changes_buffer.length > 0){
               // console.log('onPeriodicalDoc', this.changes_buffer.length)
               // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
-              let data = {}
-              Array.each(this.changes_buffer, function(doc){
-                let path = doc.metadata.path
-                let host = doc.metadata.host
 
-                if(!data[host]) data[host] = {}
-                if(!data[host][path]) data[host][path] = []
-                data[host][path].push(doc)
-
-              }.bind(this))
-
-              Object.each(data, function(host_data, host){
-                // debug_internals('changes emiting %o', host, host_data)
-                let doc = {}
-                doc[host] = host_data
-                this.fireEvent('onDoc', [doc, Object.merge(
-                  {input_type: this, app: null},
-                  // {host: host, type: 'host', prop: prop, id: id}
-                  // {type: prop, host: host}
-                )])
-
-
-              }.bind(this))
+              this.__process_changes(this.changes_buffer)
 
 
               // debug_internals('changes %s', new Date(), data)
@@ -291,6 +316,9 @@ module.exports = new Class({
 
       }.bind(this))
 
+    }
+    else{
+      throw new Error('feed already exist')
     }
   },
   // reduce: function(err, resp, params){
@@ -476,7 +504,8 @@ module.exports = new Class({
 
   initialize: function(options){
 
-    this.addEvent('onConnect', this.__changes.bind(this))
+    // this.addEvent('onConnect', this.__changes.bind(this))
+
 		this.parent(options);//override default options
 
 		this.log('ui', 'info', 'ui started');

@@ -67,6 +67,7 @@ let cache = new jscaching({
         {
           host: 'elk',
           port: 28015,
+          // port: 28016,
           db: 'servers',
           table: 'cache',
           module: RethinkDBStoreIn,
@@ -93,22 +94,27 @@ let __transform_data = function(type, data, cache_key, cb){
   * first count how many "transform" there are for this data set, so we can fire callback on last one
   **/
   let transform_result_length = 0
+  let transforms = {}
   Object.each(data, function(d, path){
     let transform = __traverse_path_require(type, path, d)
 
-      if(transform && typeof transform == 'function'){
-        transform_result_length += Object.getLength(transform(d))
-      }
-      else if(transform){
-        transform_result_length++
-      }
+    if(transform)
+      transforms[path] = transform
+
+    if(transform && typeof transform == 'function'){
+      transform_result_length += Object.getLength(transform(d))
+    }
+    else if(transform){
+      transform_result_length++
+    }
   })
 
   let transform_result_counter = 0
 
   Object.each(data, function(d, path){
     if(d && d !== null){
-      let transform = __traverse_path_require(type, path, d) //for each path find a trasnform or use "default"
+      // let transform = __traverse_path_require(type, path, d) //for each path find a transform or use "default"
+      let transform = transforms[path] //for each path find a transform or use "default"
 
       if(transform){
 
@@ -237,11 +243,12 @@ let __transform_data = function(type, data, cache_key, cb){
 
       }
       else{//default
-        if(type == 'tabular'){ //default trasnform for "tabular"
+        if(type == 'tabular'){ //default transform for "tabular"
 
           // debug_internals('transform default', path)
 
-          let chart = Object.clone(require('./libs/'+type)(d, path))
+          // let chart = Object.clone(require('./libs/'+type)(d, path))
+          let chart = require('./libs/'+type)(d, path)
 
           cache.get(cache_key+'.'+type+'.'+__transform_name(path), function(err, chart_instance){
             // chart_instance = (chart_instance) ? JSON.parse(chart_instance) : chart
@@ -290,7 +297,7 @@ let __transform_data = function(type, data, cache_key, cb){
 
           })
         }
-        else{//default trasnform for "stat"
+        else{//default transform for "stat"
           require('./libs/'+type)(d, path, function(name, stat){
             transformed = __merge_transformed(name, stat, transformed)
 
@@ -383,7 +390,7 @@ module.exports = function(conn){
     input: [
     	{
     		poll: {
-          suspended: true,
+          // suspended: true,
     			id: "input.periodical",
     			conn: [
             Object.merge(
@@ -406,10 +413,10 @@ module.exports = function(conn){
     				 * it takes 60 secs to complete, so it makes ui each minute
     				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
     				 * */
-    				// periodical: function(dispatch){
-    				// 	// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-            //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    				// },
+    				periodical: function(dispatch){
+    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('* * * * * *', dispatch);//every 20 secs
+    				},
     				// periodical: 15000,
     				// periodical: 1000,//test
     			},
@@ -420,7 +427,7 @@ module.exports = function(conn){
     filters: [
    		// require('./snippets/filter.sanitize.template'),
        function(doc, opts, next, pipeline){
-         let { type, input, input_type, app } = opts
+         // let { type, input, input_type, app } = opts
 
          // let output = {}
          // debug_internals(doc)
@@ -436,7 +443,7 @@ module.exports = function(conn){
 
              __transform_data('stat', data, host, function(stat){
                 // debug_internals(stat)
-                debug_internals('__transform_data -> stat')
+                debug_internals('__transform_data -> stat', host)
 
                 Object.each(stat, function(stat_data, stat_path){
                   // debug_internals(stat_data, stat_path)
@@ -454,7 +461,7 @@ module.exports = function(conn){
                           metadata: {
                             host: host,
                             // path: stat_path+'_'+stat_data_path,
-                            path: joined_stat_path.replace(/\./g, '_'),//mngr-ui trasnform '_' -> '.' to query
+                            path: joined_stat_path.replace(/\./g, '_'),//mngr-ui transform '_' -> '.' to query
                             timestamp: doc_data.timestamp,
                             type: 'periodical',
                             format: 'stat'
@@ -482,7 +489,7 @@ module.exports = function(conn){
                 __transform_data('tabular', stat, host, function(tabular){
                   // output[host] = tabular
                   // debug_internals('__transform_data -> tabular', tabular)
-                  debug_internals('__transform_data -> tabular')
+                  debug_internals('__transform_data -> tabular', host)
                   //
                   // if(output[host].os_uptime)
                   //   debug_internals(output[host].os_uptime)
@@ -495,7 +502,7 @@ module.exports = function(conn){
                           metadata: {
                             host: host,
                             path: tabular_path,
-                            // path: path.replace(/_/g, '.'),//mngr-ui trasnform '_' -> '.' to query
+                            // path: path.replace(/_/g, '.'),//mngr-ui transform '_' -> '.' to query
                             timestamp: doc_data[0],
                             type: 'periodical',
                             format: 'tabular'
@@ -537,14 +544,19 @@ module.exports = function(conn){
   					{
               host: 'elk',
   						port: 28015,
+              // port: 28016,
   						db: 'servers',
               table: 'ui',
   					},
   				],
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
-  					// size: 0,
-  					expire: 1000,
+            size: -1,
+  					expire: 0,
+            // periodical: 100 //how often will check if buffer timestamp has expire
+  					// size: -1,
+  					// expire: 999,
+            // periodical: 100 //how often will check if buffer timestamp has expire
   				}
   			}
   		}
