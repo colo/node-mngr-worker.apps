@@ -41,63 +41,14 @@ module.exports = new Class({
 
 		requests : {
 			periodical: [
-      //   {
-      //
-      //     search_paths: function(req, next, app){
-			// 			debug_internals('search_paths');
-      //       app.reduce({
-      //         _extras: 'paths',
-      //         uri: app.options.db+'/periodical',
-      //         args: function(left, right) {
-      //             return left.merge(right)
-      //         },
-      //
-      //         query: app.r.db(app.options.db).table('periodical').
-      //         // getAll(req.host, {index: 'host'}).
-      //         between(
-      //           Date.now() - HOUR,//last hour should be enough
-      //           Date.now(),
-      //           {index: 'timestamp'}
-      //         ).
-      //         map(function(doc) {
-      //           return app.r.object(doc("metadata")("path"), true) // return { <country>: true}
-      //         }.bind(app))
-      //
-      //       })
-      //
-      //
-			// 		}
-			// 	},
-      //   {
-			// 		search_hosts: function(req, next, app){
-			// 			debug_internals('search_hosts');
-      //
-      //       app.reduce({
-      //         _extras: 'hosts',
-      //         uri: app.options.db+'/periodical',
-      //         args: function(left, right) {
-      //             return left.merge(right)
-      //         },
-      //
-      //         query: app.r.db(app.options.db).table('periodical').
-      //         // getAll(req.host, {index: 'host'}).
-      //         between(
-      //           Date.now() - HOUR,//last hour should be enough
-      //           Date.now(),
-      //           {index: 'timestamp'}
-      //         ).
-      //         map(function(doc) {
-      //           return app.r.object(doc("metadata")("host"), true) // return { <country>: true}
-      //         }.bind(app))
-      //
-      //       })
-      //
-			// 		}
-			// 	},
+
         {
 					get_changes: function(req, next, app){
 						//debug_internals('_get_last_stat %o', next);
-						debug_internals('get_changes %s', new Date());
+            let start = Date.now() - 1100
+            let end = Date.now()
+
+						debug_internals('get_changes %s', new Date(), new Date(start));
 
 						// let views = [];
 						// Object.each(app.hosts, function(value, host){
@@ -106,13 +57,13 @@ module.exports = new Class({
               // Array.each(app.paths, function(path){
                 // debug_internals('_get_last_stat %s %s', host, path);
                 // let _func = function(){
-                
+
                   app.between({
                     // _extras: {'get_changes': true, host: host, path: path},
                     uri: app.options.db+'/periodical',
                     args: [
-                      Date.now() - 1100,
-                      '\ufff0',
+                      start,
+                      end,
                       {
                         index: 'timestamp',
                         leftBound: 'open',
@@ -203,7 +154,8 @@ module.exports = new Class({
     if(resp)
       resp.toArray(function(err, results) {
         if (err) throw err;
-        // debug_internals('changes', results)
+
+        debug_internals('changes', results.length)
 
         if(results.length > 0)
           this.__process_changes(results)
