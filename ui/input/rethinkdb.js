@@ -45,7 +45,7 @@ module.exports = new Class({
         {
 					get_changes: function(req, next, app){
 						//debug_internals('_get_last_stat %o', next);
-            let start = Date.now() - 1100
+            let start = Date.now() - 1999
             let end = Date.now()
 
 						debug_internals('get_changes %s', new Date(), new Date(start));

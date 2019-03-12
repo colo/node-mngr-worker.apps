@@ -40,23 +40,23 @@ module.exports = {
 			},
 		},
 	},
-  // {
-	// 	poll: {
-	// 		id: "input.os.procs.http",
-	// 		conn: [
-	// 			{
-	// 				scheme: 'http',
-	// 				host:'127.0.0.1',
-	// 				port: 8081,
-	// 				module: ProcsPollHttp,
-  //         load: ['apps/os/input/procs']
-	// 			}
-	// 		],
-	// 		requests: {
-	// 			periodical: 1000,//ms
-	// 		},
-	// 	},
-	// }
+  {
+		poll: {
+			id: "input.os.procs.http",
+			conn: [
+				{
+					scheme: 'http',
+					host:'127.0.0.1',
+					port: 8081,
+					module: ProcsPollHttp,
+          load: ['apps/os/input/procs']
+				}
+			],
+			requests: {
+				periodical: 1000,//ms
+			},
+		},
+	}
  ],
  filters: [
 		// require('./snippets/filter.sanitize.template'),
