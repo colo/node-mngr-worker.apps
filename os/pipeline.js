@@ -5,6 +5,8 @@ var debug_internals = require('debug')('filter:os:Internals');
 
 const path = require('path');
 
+let cron = require('node-cron');
+
 let procs_filter = require('./filters/proc'),
     networkInterfaces_filter = require('./filters/networkInterfaces'),
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
@@ -36,7 +38,11 @@ module.exports = {
 				}
 			],
 			requests: {
-				periodical: 1000,
+				// periodical: 1000,
+        periodical: function(dispatch){
+          // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+          return cron.schedule('* * * * * *', dispatch);//every 20 secs
+        },
 			},
 		},
 	},
@@ -311,7 +317,7 @@ module.exports = {
 				],
 				module: require('js-pipeline/output/rethinkdb'),
         buffer:{
-					// size: 0,
+					size: -1,
 					// expire:0
           expire: 999,
 				}

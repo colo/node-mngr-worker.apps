@@ -552,10 +552,10 @@ module.exports = function(conn){
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
             size: -1,
-  					expire: 0,
+  					// expire: 0,
             // periodical: 100 //how often will check if buffer timestamp has expire
   					// size: -1,
-  					// expire: 999,
+  					expire: 999,
             // periodical: 100 //how often will check if buffer timestamp has expire
   				}
   			}

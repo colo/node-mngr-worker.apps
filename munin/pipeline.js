@@ -33,7 +33,11 @@ module.exports = function(conn){
       		connect_retry_count: 5,
       		connect_retry_periodical: 5000,
       		requests: {
-      			periodical: 5000,
+      			// periodical: 5000,
+            periodical: function(dispatch){
+    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+    				},
       		},
       	}
 
@@ -86,7 +90,8 @@ module.exports = function(conn){
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
   					size: -1,
-  					expire: 0 //ms
+  					// expire: 0 //ms
+            expire: 999 //ms
   				}
   			}
   		}
