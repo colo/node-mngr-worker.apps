@@ -1,5 +1,6 @@
 'use stric'
 
+
 let debug = require('debug')('Server:Apps:Munin:Pipeline');
 let debug_internals = require('debug')('Server:Apps:Munin:Pipeline:Internals');
 
@@ -13,7 +14,9 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 
 const InputPollerMunin = require ( './input/munin.js' )
 
-
+let modules = {}
+let meta_doc = { data: [], metadata: { path: 'munin', type: 'periodical', merged: true }}
+let meta_docs = {}
 
 module.exports = function(conn){
   let conf = {
@@ -50,28 +53,50 @@ module.exports = function(conn){
          let { type, input, input_type } = opts
          let app = opts.app = pipeline
 
-         debug_internals('filter %o', pipeline.outputs[0].options.buffer)
+        if(doc.modules){
+          if(!modules[doc.host]) modules[doc.host] = {}
+          Array.each(doc.modules, function(mod){ modules[doc.host][mod] = false })
+          debug_internals('modules %o', doc, modules)
+        }
+        else{
+         // debug_internals('filter %o', pipeline.outputs[0].options.buffer)
+         modules[doc.host][doc.id] = true
 
          let new_doc = {data: {}, metadata: {}}
          new_doc.data = doc.data
+         let path = 'munin.'+doc.id.replace(/\_/, '.', 'g')
          new_doc.metadata = {
-           path: 'munin.'+doc.id.replace(/\_/, '.', 'g'),
-           type: 'periodical',
-           host: doc.host
+           path: path,
+           // type: 'periodical',
+           // host: doc.host
          }
+
+         if(!meta_docs[doc.host]) meta_docs[doc.host] = Object.clone(meta_doc)
+         // meta_docs[doc.host].data[path] = new_doc
+         meta_docs[doc.host].data.push(new_doc)
+         meta_docs[doc.host].metadata['host'] = doc.host
          // opts.input_type.options.id = doc.host
          // opts.app.options.id = 'munin.'+doc.id.replace(/\_/, '.', 'g')
 
-         debug_internals('filter %o %o', new_doc, input_type.options.requests.periodical.length)
+         // debug_internals('filter %o %o', new_doc, input_type.options.requests.periodical.length)
 
-         pipeline.outputs[0].options.buffer.size = input_type.options.requests.periodical.length
+         // pipeline.outputs[0].options.buffer.size = input_type.options.requests.periodical.length
+         debug_internals('modules %o', modules)
 
-         sanitize_filter(
-           new_doc,
-           opts,
-           pipeline.output.bind(pipeline),
-           pipeline
-         )
+         if(Object.every(modules[doc.host], function(val, mod){ return val })){
+           debug_internals('META %o', meta_docs[doc.host])
+           sanitize_filter(
+             Object.clone(meta_docs[doc.host]),
+             opts,
+             pipeline.output.bind(pipeline),
+             pipeline
+           )
+
+           meta_docs[doc.host].data = []
+           Object.each(modules[doc.host], function(val, mod){ modules[doc.host][mod] = false })
+         }
+
+        }
        },
 
    	],

@@ -433,7 +433,30 @@ module.exports = function(conn){
          // debug_internals(doc)
 
          if(doc){
+
            Object.each(doc, function(data, host){
+             Object.each(data, function(value, path){
+
+                let merged = false
+                Array.each(value, function(row){//value are the docs, array, as if can be a range of docs
+                  if(row.metadata && row.metadata.merged == true){//(merged docs: ex-> munin)
+                    // debug_internals(row.metadata)
+                    merged = true
+                    Array.each(row.data, function(real_doc){
+                      if(!data[real_doc.metadata.path]) data[real_doc.metadata.path] = []
+
+                      data[real_doc.metadata.path].push(Object.merge({metadata: row.metadata}, real_doc))
+                      debug_internals(data[real_doc.metadata.path])
+                    })
+
+                  }
+
+                })
+
+               if(merged == true)
+                  delete data[path]
+             })
+
              Object.each(data, function(value, path){
                if(!__white_black_lists_filter(paths_whitelist, paths_blacklist, path))
                   delete data[path]

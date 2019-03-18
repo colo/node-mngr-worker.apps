@@ -198,6 +198,8 @@ module.exports = new Class({
 		else{
       let whitelist = this.options.whitelist
       let blacklist = this.options.blacklist
+      let modules = []
+
 			Array.each(resp, function(module, index){
         // module = module.trim()
 
@@ -213,14 +215,25 @@ module.exports = new Class({
 			      this.options.requests.periodical.push( { fetch: { uri: module } });
 
             debug_internals('module %s', module);
+            modules.push(module)
         }
 
 				if(index == resp.length - 1){
 					// this.fireEvent(this.ON_PERIODICAL_REQUESTS_UPDATED);
+
+          this.fireEvent(
+            this[
+              'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+            ],
+            [{modules: modules, host: this.node}, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+          )
+          
           this.fireEvent(
             this['ON_PERIODICAL_REQUESTS_UPDATED'],
             [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
           )
+
+
         }
 
         // blacklist.lastIndex = 0
