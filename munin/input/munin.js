@@ -43,7 +43,7 @@ module.exports = new Class({
     requests : {
 			once: [
         { nodes: { uri: '' } },
-				{ list: { uri: '' } },
+				// { list: { uri: '' } },
 			],
 			periodical: [
 				//{ list: { uri: '' } },
@@ -121,7 +121,10 @@ module.exports = new Class({
 				err
 			);
 		}
-		else{
+		// else{
+    /**
+    * even with err response emit doc (doc.data = {}) and filter later
+    **/
 			////console.log('success');
 
 			if(params.uri != ''){
@@ -137,15 +140,16 @@ module.exports = new Class({
       let new_data = {}
       let mem = /memory/
 
-      Object.each(resp, function(data, key){
-        let new_key = key.replace(/\_/, '')
+      if(resp && resp !== null)
+        Object.each(resp, function(data, key){
+          let new_key = key.replace(/\_/, '')
 
-        if(mem.test(params.uri))
-          data = (data / 1024 / 1024).toFixed(2) * 1
+          if(mem.test(params.uri))
+            data = (data / 1024 / 1024).toFixed(2) * 1
 
-        new_data[new_key] = data
-        // delete resp[key]
-      })
+          new_data[new_key] = data
+          // delete resp[key]
+        })
 
       debug('modified data %o', new_data);
 
@@ -170,7 +174,7 @@ module.exports = new Class({
         [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
       )
 
-		}
+		// }
 	},
 	list: function (err, resp, params){
 		debug_internals('list %o', resp);
@@ -227,7 +231,7 @@ module.exports = new Class({
             ],
             [{modules: modules, host: this.node}, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
           )
-          
+
           this.fireEvent(
             this['ON_PERIODICAL_REQUESTS_UPDATED'],
             [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
@@ -288,6 +292,8 @@ module.exports = new Class({
       }
 
       this.options.id = this.node
+
+      this.list({uri: ''})
       // Array.each(resp, function(module, index){
       //   // module = module.trim()
       //
