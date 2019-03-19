@@ -1,7 +1,7 @@
 'use stric'
 
-var debug = require('debug')('pipeline:os');
-var debug_internals = require('debug')('filter:os:Internals');
+var debug = require('debug')('Server:Apps:OS:Pipeline');
+var debug_internals = require('debug')('Server:Apps:OS:Pipeline:Internals');
 
 const path = require('path');
 
@@ -21,6 +21,24 @@ let PollHttp = require('js-pipeline/input/poller/poll/http')
 
 let OSPollHttp = require('node-app-http-client/load')(PollHttp)
 let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
+
+let modules = {}
+let all_modules = {
+  'os': false,
+  'os.procs': false,
+  'os.procs.stats': false,
+  // 'os.procs.uid': false,
+  'os.procs.uid.stats': false,
+  // 'os.procs.cmd': false,
+  'os.procs.cmd.stats': false,
+  'os.mounts': false,
+  'os.blockdevices': false,
+  'os.networkInterfaces': false,
+  'os.networkInterfaces.stats': false
+}
+
+let meta_doc = { data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
+let meta_docs = {}
 
 module.exports = {
  input: [
@@ -46,28 +64,31 @@ module.exports = {
 			},
 		},
 	},
-  // {
-	// 	poll: {
-	// 		id: "input.os.procs.http",
-	// 		conn: [
-	// 			{
-	// 				scheme: 'http',
-	// 				host:'127.0.0.1',
-	// 				port: 8081,
-	// 				module: ProcsPollHttp,
-  //         load: ['apps/os/input/procs']
-	// 			}
-	// 		],
-	// 		requests: {
-	// 			periodical: 1000,//ms
-	// 		},
-	// 	},
-	// }
+  {
+		poll: {
+			id: "input.os.procs.http",
+			conn: [
+				{
+					scheme: 'http',
+					host:'127.0.0.1',
+					port: 8081,
+					module: ProcsPollHttp,
+          load: ['apps/os/input/procs']
+				}
+			],
+			requests: {
+				periodical: 1000,//ms
+			},
+		},
+	}
  ],
  filters: [
 		// require('./snippets/filter.sanitize.template'),
     function(doc, opts, next, pipeline){
       let { type, input, input_type, app } = opts
+
+      let host = input_type.options.id
+      let module = app.options.id
 
       // console.log('os filter',doc)
 
@@ -76,82 +97,9 @@ module.exports = {
         procs_filter(
           doc,
           opts,
-          function(doc, opts, next, pipeline){
-            sanitize_filter(
-              doc,
-              opts,
-              // function(doc, opts, next, pipeline){
-              //   zipson_filter(
-              //     doc,
-              //     opts,
-              //     pipeline.output.bind(pipeline),
-              //     pipeline
-              //   )
-              // },
-              // function(doc, opts, next, pipeline){
-              //   lzutf8_filter(
-              //     doc,
-              //     opts,
-              //     pipeline.output.bind(pipeline),
-              //     pipeline
-              //   )
-              // },
-              // function(doc, opts, next, pipeline){
-              //   lzstring_filter(
-              //     doc,
-              //     opts,
-              //     pipeline.output.bind(pipeline),
-              //     pipeline
-              //   )
-              // },
-              // function(doc, opts, next, pipeline){
-              //   compress_filter(
-              //     doc,
-              //     opts,
-              //     pipeline.output.bind(pipeline),
-              //     pipeline
-              //   )
-              // },
-              pipeline.output.bind(pipeline),
-              pipeline
-            )
-          },
-          // sanitize_filter,
-          pipeline
-        )
-      }
-      else{
-        if(doc && doc.uptime)
-          pipeline.current_uptime = doc.uptime
-
-        if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
-          networkInterfaces_filter(
-            doc.networkInterfaces,
-            opts,
-            function(doc, opts, next, pipeline){
-              sanitize_filter(
-                doc,
-                opts,
-                pipeline.output.bind(pipeline),
-                pipeline
-              )
-            },
-            // sanitize_filter,
-            pipeline
-          )
-
-          delete doc.networkInterfaces
-
-          // Object.each(doc, function(data, key){
-          //   let new_doc = {
-          //     data: data,
-          //     metadata:{
-          //       path: 'os.'+key
-          //     }
-          //   }
-          //
+          // function(doc, opts, next, pipeline){
           //   sanitize_filter(
-          //     new_doc,
+          //     doc,
           //     opts,
           //     // function(doc, opts, next, pipeline){
           //     //   zipson_filter(
@@ -188,95 +136,121 @@ module.exports = {
           //     pipeline.output.bind(pipeline),
           //     pipeline
           //   )
-          // })
+          // },
+          next,
+          pipeline
+        )
+      }
+      else{
+        if(doc && doc.uptime)
+          pipeline.current_uptime = doc.uptime
+
+        if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
+          networkInterfaces_filter(
+            doc.networkInterfaces,
+            opts,
+            // function(doc, opts, next, pipeline){
+            //   sanitize_filter(
+            //     doc,
+            //     opts,
+            //     pipeline.output.bind(pipeline),
+            //     pipeline
+            //   )
+            // },
+            next,
+            // sanitize_filter,
+            pipeline
+          )
+
+          delete doc.networkInterfaces
+
         }
-        // else if(doc){//mounts, blockdevices...
-        //   sanitize_filter(
-        //     doc,
-        //     opts,
-        //     // function(doc, opts, next, pipeline){
-        //     //   zipson_filter(
-        //     //     doc,
-        //     //     opts,
-        //     //     pipeline.output.bind(pipeline),
-        //     //     pipeline
-        //     //   )
-        //     // },
-        //     // function(doc, opts, next, pipeline){
-        //     //   lzutf8_filter(
-        //     //     doc,
-        //     //     opts,
-        //     //     pipeline.output.bind(pipeline),
-        //     //     pipeline
-        //     //   )
-        //     // },
-        //     // function(doc, opts, next, pipeline){
-        //     //   lzstring_filter(
-        //     //     doc,
-        //     //     opts,
-        //     //     pipeline.output.bind(pipeline),
-        //     //     pipeline
-        //     //   )
-        //     // },
-        //     // function(doc, opts, next, pipeline){
-        //     //   compress_filter(
-        //     //     doc,
-        //     //     opts,
-        //     //     pipeline.output.bind(pipeline),
-        //     //     pipeline
-        //     //   )
-        //     // },
-        //     pipeline.output.bind(pipeline),
-        //     pipeline
-        //   )
-        //
-        // }
 
 
+
+        // sanitize_filter(
+        //   doc,
+        //   opts,
+        //   // function(doc, opts, next, pipeline){
+        //   //   zipson_filter(
+        //   //     doc,
+        //   //     opts,
+        //   //     pipeline.output.bind(pipeline),
+        //   //     pipeline
+        //   //   )
+        //   // },
+        //   // function(doc, opts, next, pipeline){
+        //   //   lzutf8_filter(
+        //   //     doc,
+        //   //     opts,
+        //   //     pipeline.output.bind(pipeline),
+        //   //     pipeline
+        //   //   )
+        //   // },
+        //   // function(doc, opts, next, pipeline){
+        //   //   lzstring_filter(
+        //   //     doc,
+        //   //     opts,
+        //   //     pipeline.output.bind(pipeline),
+        //   //     pipeline
+        //   //   )
+        //   // },
+        //   // function(doc, opts, next, pipeline){
+        //   //   compress_filter(
+        //   //     doc,
+        //   //     opts,
+        //   //     pipeline.output.bind(pipeline),
+        //   //     pipeline
+        //   //   )
+        //   // },
+        //   pipeline.output.bind(pipeline),
+        //   pipeline
+        // )
+        next({data: doc, metadata: {host: host, path: module}})
+
+      }
+
+      // debug_internals(input_type.options.id)
+
+    },
+    /**
+    * merge
+    **/
+
+    function(doc, opts, next, pipeline){
+      let { type, input, input_type, app } = opts
+
+
+      let host = doc.metadata.host
+      let module = doc.metadata.path
+
+      if(!modules[host]) modules[host] = Object.clone(all_modules)
+
+      modules[host][module] = true
+
+      debug_internals('merge', host, module, modules[host])
+
+      if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
+
+      meta_docs[host].data.push(doc)
+      meta_docs[host].metadata['host'] = host
+
+      if(Object.every(modules[host], function(val, mod){ return val })){
+        // debug_internals('META %o', meta_docs[host])
         sanitize_filter(
-          doc,
+          Object.clone(meta_docs[host]),
           opts,
-          // function(doc, opts, next, pipeline){
-          //   zipson_filter(
-          //     doc,
-          //     opts,
-          //     pipeline.output.bind(pipeline),
-          //     pipeline
-          //   )
-          // },
-          // function(doc, opts, next, pipeline){
-          //   lzutf8_filter(
-          //     doc,
-          //     opts,
-          //     pipeline.output.bind(pipeline),
-          //     pipeline
-          //   )
-          // },
-          // function(doc, opts, next, pipeline){
-          //   lzstring_filter(
-          //     doc,
-          //     opts,
-          //     pipeline.output.bind(pipeline),
-          //     pipeline
-          //   )
-          // },
-          // function(doc, opts, next, pipeline){
-          //   compress_filter(
-          //     doc,
-          //     opts,
-          //     pipeline.output.bind(pipeline),
-          //     pipeline
-          //   )
-          // },
           pipeline.output.bind(pipeline),
           pipeline
         )
 
+        meta_docs[host].data = []
+        Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
 
       }
 
 
-    },
+    }
 
 	],
 	output: [

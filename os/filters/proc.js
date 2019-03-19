@@ -1,5 +1,5 @@
-var debug = require('debug')('filter:os-procs');
-var debug_internals = require('debug')('filter:os-procs:Internals');
+var debug = require('debug')('Server:Apps:OS:Filter:Procs');
+var debug_internals = require('debug')('Server:Apps:OS:Filter:Procs:Internals');
 
 /**
 * we only want a doc per sec, so we buffer all docs = 1000 ms / perdiocal ms
@@ -7,6 +7,9 @@ var debug_internals = require('debug')('filter:os-procs:Internals');
 * good read -> https://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
 **/
 module.exports = function(doc, opts, next, pipeline){
+	let { type, input, input_type, app } = opts
+	let host = input_type.options.id
+
 	try{
 		if(
 			doc !== null
@@ -132,7 +135,7 @@ module.exports = function(doc, opts, next, pipeline){
 				// next(procs_doc, opts, next, pipeline)
 
 				delete procs_doc.data
-				if(!procs_doc.metadata) procs_doc.metadata = {}
+				if(!procs_doc.metadata) procs_doc.metadata = { host: host }
 				let stats_doc = Object.clone(procs_doc)
 
 				let uids_doc = Object.clone(procs_doc)
@@ -296,7 +299,7 @@ module.exports = function(doc, opts, next, pipeline){
 		}//if
 	}
 	catch(e){
-		console.log(doc)
+		// console.log(doc)
 		throw e
 	}
 

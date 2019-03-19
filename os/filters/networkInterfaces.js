@@ -7,6 +7,9 @@ var debug_internals = require('debug')('filter:os-networkInterfaces:Internals');
 * good read -> https://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
 **/
 module.exports = function(val, opts, next, pipeline){
+	let { type, input, input_type, app } = opts
+	let host = input_type.options.id
+
 	try{
 		if(
 			val !== null
@@ -58,12 +61,14 @@ module.exports = function(val, opts, next, pipeline){
       let networkInterfaces_stats_doc = {
         data: networkInterfaces,
         metadata:{
+					host: host,
           path: 'os.networkInterfaces.stats'
         }
       }
 			let networkInterfaces_doc = {
         data: val,
         metadata:{
+					host: host,
           path: 'os.networkInterfaces'
         }
       }

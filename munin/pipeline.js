@@ -33,8 +33,8 @@ module.exports = function(conn){
       				load: [],
       			}
       		],
-      		connect_retry_count: 5,
-      		connect_retry_periodical: 5000,
+      		connect_retry_count: -1,
+      		connect_retry_periodical: 1000,
       		requests: {
       			// periodical: 5000,
             periodical: function(dispatch){
@@ -45,30 +45,30 @@ module.exports = function(conn){
       	}
 
     	},
-      // {
-      //   poll: {
-      // 		id: "input.elk.munin",
-      // 		conn: [
-      // 			{
-      // 				scheme: 'munin',
-      // 				host:'elk',
-      // 				port: 4949,
-      // 				module: InputPollerMunin,
-      // 				load: [],
-      // 			}
-      // 		],
-      // 		connect_retry_count: 5,
-      // 		connect_retry_periodical: 5000,
-      // 		requests: {
-      // 			// periodical: 5000,
-      //       periodical: function(dispatch){
-    	// 				// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-      //         return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
-    	// 			},
-      // 		},
-      // 	}
-      //
-    	// }
+      {
+        poll: {
+      		id: "input.elk.munin",
+      		conn: [
+      			{
+      				scheme: 'munin',
+      				host:'elk',
+      				port: 4949,
+      				module: InputPollerMunin,
+      				load: [],
+      			}
+      		],
+      		connect_retry_count: -1,
+      		connect_retry_periodical: 1000,
+      		requests: {
+      			// periodical: 5000,
+            periodical: function(dispatch){
+    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+    				},
+      		},
+      	}
+
+    	}
     ],
 
     filters: [
