@@ -74,6 +74,11 @@ let cache = new jscaching({
         },
       ],
       module: RethinkDBStoreOut,
+      buffer:{
+        size: -1,
+        // expire: 0 //ms
+        expire: 999 //ms
+      }
     }
   ],
 })
@@ -144,10 +149,10 @@ let __transform_data = function(type, data, cache_key, cb){
                 convert(d[sub_key], chart_instance, path+'.'+path_key, function(name, stat){
                   transformed = __merge_transformed(name, stat, transformed)
 
-                  instances[__transform_name(path+'.'+path_key)] = chart_instance
-
                   // cache.set(cache_key+'.'+type+'.'+__transform_name(path+'.'+path_key), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
                   chart_instance = JSON.parse(JSON.stringify(chart_instance))
+
+                  instances[__transform_name(path+'.'+path_key)] = chart_instance
                   cache.set(cache_key+'.'+type+'.'+__transform_name(path+'.'+path_key), chart_instance, CHART_INSTANCE_TTL)
 
                   if(
@@ -207,9 +212,10 @@ let __transform_data = function(type, data, cache_key, cb){
               convert(d, chart_instance, path, function(name, stat){
                 transformed = __merge_transformed(name, stat, transformed)
 
-                instances[__transform_name(path)] = chart_instance
                 // cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
                 chart_instance = JSON.parse(JSON.stringify(chart_instance))
+
+                instances[__transform_name(path)] = chart_instance
                 cache.set(cache_key+'.'+type+'.'+__transform_name(path), chart_instance, CHART_INSTANCE_TTL)
 
                 if(
@@ -276,10 +282,10 @@ let __transform_data = function(type, data, cache_key, cb){
               if(stat.length > 0)
                 transformed = __merge_transformed(name, stat, transformed)
 
-              instances[__transform_name(path)] = chart_instance
-
               // cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
               chart_instance = JSON.parse(JSON.stringify(chart_instance))
+              instances[__transform_name(path)] = chart_instance
+
               cache.set(cache_key+'.'+type+'.'+__transform_name(path), chart_instance, CHART_INSTANCE_TTL)
 
               if(

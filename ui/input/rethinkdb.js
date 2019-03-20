@@ -45,8 +45,11 @@ module.exports = new Class({
         {
 					get_changes: function(req, next, app){
 						//debug_internals('_get_last_stat %o', next);
-            let start = Date.now() - 1999
-            let end = Date.now()
+            /**
+            * 1001ms time lapse (previous second from "now")
+            **/
+            let start = Date.now() - 2000
+            let end = Date.now() - 999
 
 						debug_internals('get_changes %s', new Date(), new Date(start));
 
