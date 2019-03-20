@@ -49,8 +49,11 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 }
 
 let jscaching = require('js-caching')
-let RethinkDBStoreIn = require('js-caching/libs/stores/rethinkdb').input
-let RethinkDBStoreOut = require('js-caching/libs/stores/rethinkdb').output
+// let RethinkDBStoreIn = require('js-caching/libs/stores/rethinkdb').input
+// let RethinkDBStoreOut = require('js-caching/libs/stores/rethinkdb').output
+
+let RedisStoreIn = require('js-caching/libs/stores/redis').input
+let RedisStoreOut = require('js-caching/libs/stores/redis').output
 
 let data_to_stat = require('node-tabular-data').data_to_stat
 let data_to_tabular = require('node-tabular-data').data_to_tabular
@@ -61,19 +64,38 @@ let cache = new jscaching({
   suspended: false,
   ttl: 1999,
   stores: [
+    // {
+    //   id: 'rethinkdb',
+    //   conn: [
+    //     {
+    //       host: 'elk',
+    //       port: 28015,
+    //       // port: 28016,
+    //       db: 'servers',
+    //       table: 'cache',
+    //       module: RethinkDBStoreIn,
+    //     },
+    //   ],
+    //   module: RethinkDBStoreOut,
+    //   buffer:{
+    //     size: -1,
+    //     // expire: 0 //ms
+    //     expire: 999 //ms
+    //   }
+    // }
     {
-      id: 'rethinkdb',
+      id: 'redis',
       conn: [
         {
           host: 'elk',
-          port: 28015,
+          // port: 28015,
           // port: 28016,
-          db: 'servers',
-          table: 'cache',
-          module: RethinkDBStoreIn,
+          db: 0,
+          // table: 'cache',
+          module: RedisStoreIn,
         },
       ],
-      module: RethinkDBStoreOut,
+      module: RedisStoreOut,
       buffer:{
         size: -1,
         // expire: 0 //ms
