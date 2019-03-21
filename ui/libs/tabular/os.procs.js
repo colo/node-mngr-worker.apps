@@ -6,7 +6,7 @@ let debug = require('debug')('mngr-ui-admin:apps:hosts:libs:tabular:os.procs'),
 let chart = require('mngr-ui-admin-charts/os/procs_top')
 let percentage_stacked_chart = Object.merge(
   Object.clone(chart),
-  { options: {valueRange: [0, 100], stackedGraph: true,} }
+  { options: {valueRange: [0, 100], stackedGraph: true, fillGraph: true, fillAlpha: 0.5} }
 )
 
 let match = /stats/

@@ -10,7 +10,7 @@ let re_styled_charts = {
   'munin.memory': "width:100%; height:220px;"
 }
 
-let stacked_charts = /munin\.process/ //munin\.memory|
+let stacked_charts = undefined //munin\.process | munin\.memory|
 
 
 let __process_stat = function(chart, name, stat){
@@ -124,8 +124,11 @@ module.exports = function(stat, path){
   if(re_styled_charts[path])
     cloned_chart.style = re_styled_charts[path]
 
-  if(stacked_charts.test(path))
+  if(stacked_charts && stacked_charts.test(path)){
     cloned_chart.options.stackedGraph = true
+    cloned_chart.options.fillGraph = true
+    cloned_chart.options.fillAlpha = 0.5
+  }
 
   return __process_stat(cloned_chart, path, stat)
 
