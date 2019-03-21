@@ -14,7 +14,8 @@
     "js-caching": "git+https://github.com/colo/js-caching.git",
     "mngr-ui-admin-charts": "git+https://github.com/colo/mngr-ui-admin-charts.git",
     "node-mngr-docs": "git+https://github.com/colo/node-mngr-docs.git",
-    "node-tabular-data": "git+https://github.com/colo/node-tabular-data.git"
+    "node-tabular-data": "git+https://github.com/colo/node-tabular-data.git",
+    "redis": "^2.8.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
