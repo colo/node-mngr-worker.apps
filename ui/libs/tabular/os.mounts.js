@@ -90,7 +90,9 @@ let return_charts = function(stats){
 
   if(stats && stats !== null)
     Object.each(stats, function(stat, name){
-      debug_internals('return_charts name stat', name, stat)
+      // if(stat[0] && stat[0].value.type)
+
+        debug_internals('return_charts name stat', name, stat[0])
 
       if(stat[0] && os_mounts_type_filter.test(stat[0].value.type))
         charts[name] = __process_stat(Object.clone(chart), name, stat)
@@ -111,7 +113,7 @@ let return_charts = function(stats){
       // }
     })
 
-  // debug_internals('return_charts', charts)
+  debug_internals('return_charts', charts)
 
   return charts
 }

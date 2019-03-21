@@ -474,7 +474,7 @@ module.exports = function(conn){
                       if(!data[real_doc.metadata.path]) data[real_doc.metadata.path] = []
 
                       data[real_doc.metadata.path].push(Object.merge({metadata: row.metadata}, real_doc))
-                      debug_internals(data[real_doc.metadata.path])
+                      debug_internals('path -> ',real_doc.metadata.path,data[real_doc.metadata.path])
                     })
 
                   }
