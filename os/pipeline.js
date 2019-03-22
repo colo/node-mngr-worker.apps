@@ -53,6 +53,22 @@ module.exports = {
 					module: OSPollHttp,
 					// load: ['apps/info/os/']
           load: ['apps/os/input/os']
+				},
+        {
+					scheme: 'http',
+					host:'elk',
+					port: 8081,
+					module: OSPollHttp,
+					// load: ['apps/info/os/']
+          load: ['apps/os/input/os']
+				},
+        {
+					scheme: 'http',
+					host:'dev',
+					port: 8081,
+					module: OSPollHttp,
+					// load: ['apps/info/os/']
+          load: ['apps/os/input/os']
 				}
 			],
 			requests: {
@@ -64,6 +80,7 @@ module.exports = {
 			},
 		},
 	},
+
   {
 		poll: {
 			id: "input.os.procs.http",
@@ -74,7 +91,21 @@ module.exports = {
 					port: 8081,
 					module: ProcsPollHttp,
           load: ['apps/os/input/procs']
-				}
+				},
+        // {
+				// 	scheme: 'http',
+				// 	host:'elk',
+				// 	port: 8081,
+				// 	module: ProcsPollHttp,
+        //   load: ['apps/os/input/procs']
+				// },
+        // {
+				// 	scheme: 'http',
+				// 	host:'dev',
+				// 	port: 8081,
+				// 	module: ProcsPollHttp,
+        //   load: ['apps/os/input/procs']
+				// }
 			],
 			requests: {
 				periodical: 1000,//ms

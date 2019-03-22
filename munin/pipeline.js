@@ -31,7 +31,21 @@ module.exports = function(conn){
       				port: 4949,
       				module: InputPollerMunin,
       				load: [],
-      			}
+      			},
+            // {
+      			// 	scheme: 'munin',
+      			// 	host:'dev',
+      			// 	port: 4949,
+      			// 	module: InputPollerMunin,
+      			// 	load: [],
+      			// },
+            // {
+      			// 	scheme: 'munin',
+      			// 	host:'elk',
+      			// 	port: 4949,
+      			// 	module: InputPollerMunin,
+      			// 	load: [],
+      			// }
       		],
       		connect_retry_count: -1,
       		connect_retry_periodical: 1000,
