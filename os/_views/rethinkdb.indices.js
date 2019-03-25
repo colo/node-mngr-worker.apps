@@ -3,7 +3,8 @@ const HOST = 'elk'
 // const PORT = 28016
 const PORT = 28015
 const DATABASES = ['servers']
-const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
+// const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
+const TABLES = ['periodical', 'ui']
 
 
 // const DATABASE = 'historical'
@@ -194,6 +195,7 @@ let MyApp = new Class({
     // console.log(this.r.row("metadata")("timestamp"))
 
 
+
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
       args:'timestamp',
@@ -230,6 +232,8 @@ let MyApp = new Class({
         this.r.row("metadata")("timestamp")
       ]
     })
+
+
     // this.tableList({uri: 'test'})
     // this.tableDrop({uri: 'test', args:['test_table']})
   },

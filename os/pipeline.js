@@ -25,19 +25,19 @@ let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
 let modules = {}
 let all_modules = {
   'os': false,
-  'os.procs': false,
-  'os.procs.stats': false,
-  // 'os.procs.uid': false,
-  'os.procs.uid.stats': false,
-  // 'os.procs.cmd': false,
-  'os.procs.cmd.stats': false,
+  // 'os.procs': false,
+  // 'os.procs.stats': false,
+  // // 'os.procs.uid': false,
+  // 'os.procs.uid.stats': false,
+  // // 'os.procs.cmd': false,
+  // 'os.procs.cmd.stats': false,
   'os.mounts': false,
   'os.blockdevices': false,
   'os.networkInterfaces': false,
   'os.networkInterfaces.stats': false
 }
 
-let meta_doc = { data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
+let meta_doc = { id: '', data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
 let meta_docs = {}
 
 module.exports = {
@@ -54,14 +54,14 @@ module.exports = {
 					// load: ['apps/info/os/']
           load: ['apps/os/input/os']
 				},
-        {
-					scheme: 'http',
-					host:'elk',
-					port: 8081,
-					module: OSPollHttp,
-					// load: ['apps/info/os/']
-          load: ['apps/os/input/os']
-				},
+        // {
+				// 	scheme: 'http',
+				// 	host:'elk',
+				// 	port: 8081,
+				// 	module: OSPollHttp,
+				// 	// load: ['apps/info/os/']
+        //   load: ['apps/os/input/os']
+				// },
         {
 					scheme: 'http',
 					host:'dev',
@@ -99,13 +99,13 @@ module.exports = {
 				// 	module: ProcsPollHttp,
         //   load: ['apps/os/input/procs']
 				// },
-        // {
-				// 	scheme: 'http',
-				// 	host:'dev',
-				// 	port: 8081,
-				// 	module: ProcsPollHttp,
-        //   load: ['apps/os/input/procs']
-				// }
+        {
+					scheme: 'http',
+					host:'dev',
+					port: 8081,
+					module: ProcsPollHttp,
+          load: ['apps/os/input/procs']
+				}
 			],
 			requests: {
 				periodical: 1000,//ms
@@ -264,10 +264,12 @@ module.exports = {
       if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
 
       meta_docs[host].data.push(doc)
+      meta_docs[host].id = host+'.os.merged@'+Date.now()
       meta_docs[host].metadata['host'] = host
 
       if(Object.every(modules[host], function(val, mod){ return val })){
         // debug_internals('META %o', meta_docs[host])
+        // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
         sanitize_filter(
           Object.clone(meta_docs[host]),
           opts,

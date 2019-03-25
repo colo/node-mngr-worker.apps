@@ -110,7 +110,8 @@ module.exports = new Class({
               // getAll(req.host, {index: 'host'}).
               between(
                 // Date.now() - ((app.options.table == 'periodical') ? HOUR : DAY),//last hour/day should be enough
-                Date.now() - ((app.options.table == 'historical') ? DAY : HOUR),//last hour/day should be enough
+                // Date.now() - ((app.options.table == 'historical') ? DAY : HOUR),//last hour/day should be enough
+                Date.now() - ((app.options.table == 'historical') ? HOUR : MINUTE),//last hour/day should be enough
                 Date.now(),
                 {index: 'timestamp'}
               ).

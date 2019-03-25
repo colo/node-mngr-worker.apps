@@ -15,7 +15,7 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 const InputPollerMunin = require ( './input/munin.js' )
 
 let modules = {}
-let meta_doc = { data: [], metadata: { path: 'munin', type: 'periodical', merged: true }}
+let meta_doc = { id: '', data: [], metadata: { path: 'munin', type: 'periodical', merged: true }}
 let meta_docs = {}
 
 module.exports = function(conn){
@@ -32,13 +32,13 @@ module.exports = function(conn){
       				module: InputPollerMunin,
       				load: [],
       			},
-            // {
-      			// 	scheme: 'munin',
-      			// 	host:'dev',
-      			// 	port: 4949,
-      			// 	module: InputPollerMunin,
-      			// 	load: [],
-      			// },
+            {
+      				scheme: 'munin',
+      				host:'dev',
+      				port: 4949,
+      				module: InputPollerMunin,
+      				load: [],
+      			},
             // {
       			// 	scheme: 'munin',
       			// 	host:'elk',
@@ -113,6 +113,7 @@ module.exports = function(conn){
            if(!meta_docs[doc.host]) meta_docs[doc.host] = Object.clone(meta_doc)
            // meta_docs[doc.host].data[path] = new_doc
            meta_docs[doc.host].data.push(new_doc)
+           meta_docs[doc.host].id = doc.host+'.munin.merged@'+Date.now()
            meta_docs[doc.host].metadata['host'] = doc.host
            // opts.input_type.options.id = doc.host
            // opts.app.options.id = 'munin.'+doc.id.replace(/\_/, '.', 'g')
@@ -127,6 +128,7 @@ module.exports = function(conn){
 
          if(Object.every(modules[doc.host], function(val, mod){ return val })){
            debug_internals('META %o', meta_docs[doc.host])
+           // meta_docs[doc.host].data = JSON.stringify(meta_docs[doc.host].data)
            sanitize_filter(
              Object.clone(meta_docs[doc.host]),
              opts,

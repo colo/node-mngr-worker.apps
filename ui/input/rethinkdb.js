@@ -224,7 +224,7 @@ module.exports = new Class({
       // between(Date.now() - 1000, '\ufff0', {index: 'timestamp'}).
       // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
       changes({includeTypes: true, squash: 1}).
-      run(this.conn, function(err, cursor) {
+      run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
 
         this.feed = cursor
 

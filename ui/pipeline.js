@@ -467,6 +467,8 @@ module.exports = function(conn){
 
                 let merged = false
                 Array.each(value, function(row){//value are the docs, array, as if can be a range of docs
+                  // row.data = JSON.parse(row.data)
+
                   if(row.metadata && row.metadata.merged == true){//(merged docs: ex-> munin)
                     // debug_internals(row.metadata)
                     merged = true
@@ -499,38 +501,73 @@ module.exports = function(conn){
                 Object.each(stat, function(stat_data, stat_path){
                   // debug_internals(stat_data, stat_path)
 
+                  let counter = 0
+                  let now = Date.now()
+                  let stats_merged_doc = {
+                    id: host+'.stat@'+now,
+                    metadata: {
+                      host: host,
+                      path: stat_path,
+                      timestamp: now,
+                      type: 'periodical',
+                      format: 'stat',
+                      merged: true
+                    },
+                    data: {}
+                  }
+
                   Object.each(stat_data, function(stat_data_value, stat_data_path){
                     let joined_stat_path = stat_path+'.'+stat_data_path
-
+                    let path_clean = joined_stat_path.replace(/\./g, '_')
                     if(
                       __white_black_lists_filter(stat_whitelist, stat_blacklist, joined_stat_path)
-                      || __white_black_lists_filter(stat_whitelist, stat_blacklist, joined_stat_path.replace(/\./g, '_'))
+                      || __white_black_lists_filter(stat_whitelist, stat_blacklist, path_clean)
                     ){
+
                       Array.each(stat_data_value, function(doc_data, index){
                         let new_doc = {
+                          id: host+'.'+path_clean+'@'+doc_data.timestamp,
+                          // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
-                            // path: stat_path+'_'+stat_data_path,
-                            path: joined_stat_path.replace(/\./g, '_'),//mngr-ui transform '_' -> '.' to query
+                            // // path: stat_path+'_'+stat_data_path,
+                            path: path_clean,//mngr-ui transform '_' -> '.' to query
                             timestamp: doc_data.timestamp,
                             type: 'periodical',
                             format: 'stat'
                           }
                         }
 
+                        // sanitize_filter(
+                        //   new_doc,
+                        //   opts,
+                        //   pipeline.output.bind(pipeline),
+                        //   pipeline
+                        // )
+
+                        if(!stats_merged_doc.data[path_clean]) stats_merged_doc.data[path_clean] = []
+                        stats_merged_doc.data[path_clean].push(new_doc)
+
                         // debug_internals(new_doc)
 
-                        sanitize_filter(
-                          new_doc,
-                          opts,
-                          pipeline.output.bind(pipeline),
-                          pipeline
-                        )
+
+
+
+
 
                       })
                     }
 
+                    if(counter == Object.getLength(stat_data) -1 && Object.getLength(stats_merged_doc.data) > 0)
+                      sanitize_filter(
+                        stats_merged_doc,
+                        opts,
+                        pipeline.output.bind(pipeline),
+                        pipeline
+                      )
+
+                    counter++
                   })
 
 
@@ -540,15 +577,35 @@ module.exports = function(conn){
                 __transform_data('tabular', stat, host, function(tabular){
                   // output[host] = tabular
                   // debug_internals('__transform_data -> tabular', tabular)
-                  debug_internals('__transform_data -> tabular', host)
+                  debug_internals('__transform_data -> tabular', host, stat)
                   //
                   // if(output[host].os_uptime)
                   //   debug_internals(output[host].os_uptime)
+
+                  let counter = 0
+                  let now = Date.now()
+                  let tabulars_merged_doc = {
+                    id: host+'.tabular@'+now,
+                    metadata: {
+                      path: Object.keys(stat)[0].substring(0, Object.keys(stat)[0].indexOf('_')),
+                      // path: stat_path, //for each stat_path we do tab data, so this is correct
+                      host: host,
+                      timestamp: now,
+                      type: 'periodical',
+                      format: 'tabular',
+                      merged: true
+                    },
+                    data: {}
+                  }
+
                   Object.each(tabular, function(tabular_data, tabular_path){
 
                     if(__white_black_lists_filter(tabular_whitelist, tabular_blacklist, tabular_path)){
-                      Array.each(tabular_data, function(doc_data){
+
+                      Array.each(tabular_data, function(doc_data, index){
                         let new_doc = {
+                          id: host+'.'+tabular_path+'@'+doc_data[0],
+                          // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
@@ -560,20 +617,35 @@ module.exports = function(conn){
                           }
                         }
 
+
                         // debug_internals(new_doc)
 
-                        sanitize_filter(
-                          new_doc,
-                          opts,
-                          pipeline.output.bind(pipeline),
-                          pipeline
-                        )
+                        // sanitize_filter(
+                        //   new_doc,
+                        //   opts,
+                        //   pipeline.output.bind(pipeline),
+                        //   pipeline
+                        // )
+
+                        if(!tabulars_merged_doc.data[tabular_path]) tabulars_merged_doc.data[tabular_path] = []
+                        tabulars_merged_doc.data[tabular_path].push(new_doc)
+
+
+
+
 
                       })
                     }
 
+                    if(counter == Object.getLength(tabular) - 1 && Object.getLength(tabulars_merged_doc.data) > 0)
+                      sanitize_filter(
+                        tabulars_merged_doc,
+                        opts,
+                        pipeline.output.bind(pipeline),
+                        pipeline
+                      )
 
-
+                    counter++
                   })
                 }) //_transform 'tabular'
               }) //_transform 'stat'
@@ -608,9 +680,36 @@ module.exports = function(conn){
   					// size: -1,
   					expire: 999,
             // periodical: 100 //how often will check if buffer timestamp has expire
-  				}
+  				},
+
+
   			}
   		}
+      // {
+  		// 	redis: {
+  		// 		id: "output.ui.redis",
+  		// 		conn: [
+  		// 			{
+      //         host: 'elk',
+  		// 				// port: 28015,
+      //         // port: 28016,
+  		// 				db: 0,
+      //         // table: 'ui',
+  		// 			},
+  		// 		],
+  		// 		module: RedisStoreOut,
+      //     buffer:{
+      //       size: -1,
+  		// 			// expire: 0,
+      //       // periodical: 100 //how often will check if buffer timestamp has expire
+  		// 			// size: -1,
+  		// 			expire: 999,
+      //       // periodical: 100 //how often will check if buffer timestamp has expire
+  		// 		},
+      //
+      //
+  		// 	}
+  		// }
   	]
   }
 
