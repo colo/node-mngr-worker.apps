@@ -42,56 +42,56 @@ module.exports = new Class({
 		requests : {
 			periodical: [
 
-        {
-					get_changes: function(req, next, app){
-						//debug_internals('_get_last_stat %o', next);
-            /**
-            * 1001ms time lapse (previous second from "now")
-            **/
-            let start = Date.now() - 2000
-            let end = Date.now() - 999
-
-						debug_internals('get_changes %s', new Date(), new Date(start));
-
-						// let views = [];
-						// Object.each(app.hosts, function(value, host){
-							// debug_internals('_get_last_stat %s', host);
-
-              // Array.each(app.paths, function(path){
-                // debug_internals('_get_last_stat %s %s', host, path);
-                // let _func = function(){
-
-                  app.between({
-                    // _extras: {'get_changes': true, host: host, path: path},
-                    uri: app.options.db+'/periodical',
-                    args: [
-                      start,
-                      end,
-                      {
-                        index: 'timestamp',
-                        leftBound: 'open',
-                        rightBound: 'open'
-                      }
-                    ],
-                    // chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
-                    // orderBy: { index: app.r.desc('sort_by_path') }
-                  })
-
-                // }.bind(app)
-
-
-  							// views.push(_func);
-
-              // })
-
-						// });
-
-						// Array.each(views, function(view){
-						// 	view();
-						// });
-						// next(views);
-					}
-				},
+        // {
+				// 	get_changes: function(req, next, app){
+				// 		//debug_internals('_get_last_stat %o', next);
+        //     /**
+        //     * 1001ms time lapse (previous second from "now")
+        //     **/
+        //     let start = Date.now() - 2000
+        //     let end = Date.now() - 999
+        //
+				// 		debug_internals('get_changes %s', new Date(), new Date(start));
+        //
+				// 		// let views = [];
+				// 		// Object.each(app.hosts, function(value, host){
+				// 			// debug_internals('_get_last_stat %s', host);
+        //
+        //       // Array.each(app.paths, function(path){
+        //         // debug_internals('_get_last_stat %s %s', host, path);
+        //         // let _func = function(){
+        //
+        //           app.between({
+        //             // _extras: {'get_changes': true, host: host, path: path},
+        //             uri: app.options.db+'/periodical',
+        //             args: [
+        //               start,
+        //               end,
+        //               {
+        //                 index: 'timestamp',
+        //                 leftBound: 'open',
+        //                 rightBound: 'open'
+        //               }
+        //             ],
+        //             // chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
+        //             // orderBy: { index: app.r.desc('sort_by_path') }
+        //           })
+        //
+        //         // }.bind(app)
+        //
+        //
+  			// 				// views.push(_func);
+        //
+        //       // })
+        //
+				// 		// });
+        //
+				// 		// Array.each(views, function(view){
+				// 		// 	view();
+				// 		// });
+				// 		// next(views);
+				// 	}
+				// },
       //   {
 			// 		fetch_history: function(req, next, app){
 			// 			let now = new Date();
@@ -225,6 +225,7 @@ module.exports = new Class({
       // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
       changes({includeTypes: true, squash: 1}).
       run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
+        // {maxBatchSeconds: 1}
 
         this.feed = cursor
 
@@ -459,7 +460,7 @@ module.exports = new Class({
 
   initialize: function(options){
 
-    // this.addEvent('onConnect', this.__changes.bind(this))
+    this.addEvent('onConnect', this.__changes.bind(this))
 
 		this.parent(options);//override default options
 

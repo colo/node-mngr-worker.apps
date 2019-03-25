@@ -501,20 +501,20 @@ module.exports = function(conn){
                 Object.each(stat, function(stat_data, stat_path){
                   // debug_internals(stat_data, stat_path)
 
-                  let counter = 0
-                  let now = Date.now()
-                  let stats_merged_doc = {
-                    id: host+'.stat@'+now,
-                    metadata: {
-                      host: host,
-                      path: stat_path,
-                      timestamp: now,
-                      type: 'periodical',
-                      format: 'stat',
-                      merged: true
-                    },
-                    data: {}
-                  }
+                  // let counter = 0
+                  // let now = Date.now()
+                  // let stats_merged_doc = {
+                  //   id: host+'.stat@'+now,
+                  //   metadata: {
+                  //     host: host,
+                  //     path: stat_path,
+                  //     timestamp: now,
+                  //     type: 'periodical',
+                  //     format: 'stat',
+                  //     merged: true
+                  //   },
+                  //   data: {}
+                  // }
 
                   Object.each(stat_data, function(stat_data_value, stat_data_path){
                     let joined_stat_path = stat_path+'.'+stat_data_path
@@ -539,15 +539,15 @@ module.exports = function(conn){
                           }
                         }
 
-                        // sanitize_filter(
-                        //   new_doc,
-                        //   opts,
-                        //   pipeline.output.bind(pipeline),
-                        //   pipeline
-                        // )
+                        sanitize_filter(
+                          new_doc,
+                          opts,
+                          pipeline.output.bind(pipeline),
+                          pipeline
+                        )
 
-                        if(!stats_merged_doc.data[path_clean]) stats_merged_doc.data[path_clean] = []
-                        stats_merged_doc.data[path_clean].push(new_doc)
+                        // if(!stats_merged_doc.data[path_clean]) stats_merged_doc.data[path_clean] = []
+                        // stats_merged_doc.data[path_clean].push(new_doc)
 
                         // debug_internals(new_doc)
 
@@ -559,15 +559,15 @@ module.exports = function(conn){
                       })
                     }
 
-                    if(counter == Object.getLength(stat_data) -1 && Object.getLength(stats_merged_doc.data) > 0)
-                      sanitize_filter(
-                        stats_merged_doc,
-                        opts,
-                        pipeline.output.bind(pipeline),
-                        pipeline
-                      )
-
-                    counter++
+                    // if(counter == Object.getLength(stat_data) -1 && Object.getLength(stats_merged_doc.data) > 0)
+                    //   sanitize_filter(
+                    //     stats_merged_doc,
+                    //     opts,
+                    //     pipeline.output.bind(pipeline),
+                    //     pipeline
+                    //   )
+                    //
+                    // counter++
                   })
 
 
@@ -582,21 +582,21 @@ module.exports = function(conn){
                   // if(output[host].os_uptime)
                   //   debug_internals(output[host].os_uptime)
 
-                  let counter = 0
-                  let now = Date.now()
-                  let tabulars_merged_doc = {
-                    id: host+'.tabular@'+now,
-                    metadata: {
-                      path: Object.keys(stat)[0].substring(0, Object.keys(stat)[0].indexOf('_')),
-                      // path: stat_path, //for each stat_path we do tab data, so this is correct
-                      host: host,
-                      timestamp: now,
-                      type: 'periodical',
-                      format: 'tabular',
-                      merged: true
-                    },
-                    data: {}
-                  }
+                  // let counter = 0
+                  // let now = Date.now()
+                  // let tabulars_merged_doc = {
+                  //   id: host+'.tabular@'+now,
+                  //   metadata: {
+                  //     path: Object.keys(stat)[0].substring(0, Object.keys(stat)[0].indexOf('_')),
+                  //     // path: stat_path, //for each stat_path we do tab data, so this is correct
+                  //     host: host,
+                  //     timestamp: now,
+                  //     type: 'periodical',
+                  //     format: 'tabular',
+                  //     merged: true
+                  //   },
+                  //   data: {}
+                  // }
 
                   Object.each(tabular, function(tabular_data, tabular_path){
 
@@ -620,15 +620,15 @@ module.exports = function(conn){
 
                         // debug_internals(new_doc)
 
-                        // sanitize_filter(
-                        //   new_doc,
-                        //   opts,
-                        //   pipeline.output.bind(pipeline),
-                        //   pipeline
-                        // )
+                        sanitize_filter(
+                          new_doc,
+                          opts,
+                          pipeline.output.bind(pipeline),
+                          pipeline
+                        )
 
-                        if(!tabulars_merged_doc.data[tabular_path]) tabulars_merged_doc.data[tabular_path] = []
-                        tabulars_merged_doc.data[tabular_path].push(new_doc)
+                        // if(!tabulars_merged_doc.data[tabular_path]) tabulars_merged_doc.data[tabular_path] = []
+                        // tabulars_merged_doc.data[tabular_path].push(new_doc)
 
 
 
@@ -637,15 +637,15 @@ module.exports = function(conn){
                       })
                     }
 
-                    if(counter == Object.getLength(tabular) - 1 && Object.getLength(tabulars_merged_doc.data) > 0)
-                      sanitize_filter(
-                        tabulars_merged_doc,
-                        opts,
-                        pipeline.output.bind(pipeline),
-                        pipeline
-                      )
-
-                    counter++
+                    // if(counter == Object.getLength(tabular) - 1 && Object.getLength(tabulars_merged_doc.data) > 0)
+                    //   sanitize_filter(
+                    //     tabulars_merged_doc,
+                    //     opts,
+                    //     pipeline.output.bind(pipeline),
+                    //     pipeline
+                    //   )
+                    //
+                    // counter++
                   })
                 }) //_transform 'tabular'
               }) //_transform 'stat'

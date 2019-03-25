@@ -32,13 +32,13 @@ module.exports = function(conn){
       				module: InputPollerMunin,
       				load: [],
       			},
-            {
-      				scheme: 'munin',
-      				host:'dev',
-      				port: 4949,
-      				module: InputPollerMunin,
-      				load: [],
-      			},
+            // {
+      			// 	scheme: 'munin',
+      			// 	host:'dev',
+      			// 	port: 4949,
+      			// 	module: InputPollerMunin,
+      			// 	load: [],
+      			// },
             // {
       			// 	scheme: 'munin',
       			// 	host:'elk',
