@@ -418,7 +418,7 @@ module.exports = function(conn){
     input: [
     	{
     		poll: {
-          // suspended: true,
+          suspended: true,
     			id: "input.periodical",
     			conn: [
             Object.merge(
