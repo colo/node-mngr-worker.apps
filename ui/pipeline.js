@@ -415,6 +415,7 @@ let __traverse_path_require = function(type, path, stat, original_path){
 
 module.exports = function(conn){
   let conf = {
+    id: 'ui',
     input: [
     	{
     		poll: {

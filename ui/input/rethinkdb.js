@@ -138,10 +138,10 @@ module.exports = new Class({
 
   periodicals: {},
 
-  feed: undefined,
-  close_feed: false,
-  changes_buffer: [],
-  changes_buffer_expire: undefined,
+  feeds: {},
+  close_feeds: {},
+  changes_buffer: {},
+  changes_buffer_expire: {},
 
   registered: {},
 
@@ -165,7 +165,7 @@ module.exports = new Class({
                   hosts = JSON.parse(req.query.hosts)
                 }
                 catch(e){
-                  hosts = [req.query.hosts]
+                  hosts = (!Array.isArray(req.query.hosts)) ? [req.query.hosts] : req.query.hosts
                 }
               }
 
@@ -181,6 +181,8 @@ module.exports = new Class({
               Array.each(hosts, function(host){
                 if(!app.registered[id]) app.registered[id] = {}
                 if(!app.registered[id][host]) app.registered[id][host] = []
+
+                app.__changes(host)
 
                 // app.registered[host] = app.registered[id][host].combine([prop])
               })
@@ -248,40 +250,41 @@ module.exports = new Class({
           get_range: get_changes,
         }
       ],
-			periodical: [
-        {
-          get_periodical: get_changes,
-					// get_changes: function(req, next, app){
-					// 	debug_internals('_get_last_stat %o', next);
-          //   /**
-          //   * 1001ms time lapse (previous second from "now")
-          //   **/
-          //   let start = Date.now() - 2000
-          //   let end = Date.now() - 999
-          //
-					// 	debug_internals('get_changes %s', new Date(), new Date(start));
-          //
-          //   app.between({
-          //     // _extras: {'get_changes': true, host: host, path: path},
-          //     uri: app.options.db+'/periodical',
-          //     args: [
-          //       start,
-          //       end,
-          //       {
-          //         index: 'timestamp',
-          //         leftBound: 'open',
-          //         rightBound: 'open'
-          //       }
-          //     ],
-          //     // chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
-          //     // orderBy: { index: app.r.desc('sort_by_path') }
-          //   })
-          //
-          //
-					// }
-				},
-
-			],
+			// periodical: [
+      //   {
+      //     get_periodical: get_changes,
+      //
+			// 		// get_changes: function(req, next, app){
+			// 		// 	debug_internals('_get_last_stat %o', next);
+      //     //   /**
+      //     //   * 1001ms time lapse (previous second from "now")
+      //     //   **/
+      //     //   let start = Date.now() - 2000
+      //     //   let end = Date.now() - 999
+      //     //
+			// 		// 	debug_internals('get_changes %s', new Date(), new Date(start));
+      //     //
+      //     //   app.between({
+      //     //     // _extras: {'get_changes': true, host: host, path: path},
+      //     //     uri: app.options.db+'/periodical',
+      //     //     args: [
+      //     //       start,
+      //     //       end,
+      //     //       {
+      //     //         index: 'timestamp',
+      //     //         leftBound: 'open',
+      //     //         rightBound: 'open'
+      //     //       }
+      //     //     ],
+      //     //     // chain: [{orderBy: { index: app.r.desc('sort_by_path') }}, {limit: 1}]
+      //     //     // orderBy: { index: app.r.desc('sort_by_path') }
+      //     //   })
+      //     //
+      //     //
+			// 		// }
+			// 	},
+      //
+			// ],
 
 
 		},
@@ -336,23 +339,23 @@ module.exports = new Class({
 
     }.bind(this))
   },
-  __changes: function(){
-    debug_internals('__changes')
+  __changes: function(host){
+    debug_internals('__changes', host)
 
-    if(!this.feed){
+    if(!this.feeds[host]){
 
       let _close = function(){
         debug_internals('closing cursor onSuspend')
-        if(this.feed){
-          this.feed.close(function (err) {
-            this.close_feed = true
+        if(this.feeds[host]){
+          this.feeds[host].close(function (err) {
+            this.close_feeds[host] = true
 
             if (err){
               debug_internals('err closing cursor onSuspend', err)
             }
           }.bind(this))
 
-          this.feed = undefined
+          this.feeds[host] = undefined
         }
 
         this.removeEvent('onSuspend', _close)
@@ -360,54 +363,55 @@ module.exports = new Class({
 
       this.addEvent('onSuspend', _close)
 
+      if(!this.changes_buffer[host]) this.changes_buffer[host] = []
 
-      if(!this.changes_buffer_expire)
-        this.changes_buffer_expire = Date.now()
+      if(!this.changes_buffer_expire[host]) this.changes_buffer_expire[host] = Date.now()
 
       this.r.db(this.options.db).
       table('periodical').
       // between(Date.now() - 1000, '\ufff0', {index: 'timestamp'}).
       // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
+      getAll(host, {index: 'host'}).
       changes({includeTypes: true, squash: 1}).
       run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
         // {maxBatchSeconds: 1}
 
-        this.feed = cursor
+        this.feeds[host] = cursor
 
-        this.feed.each(function(err, row){
+        this.feeds[host].each(function(err, row){
 
           /**
           * https://www.rethinkdb.com/api/javascript/each/
           * Iteration can be stopped prematurely by returning false from the callback.
           */
-          if(this.close_feed === true){ this.close_feed = false; return false }
+          if(this.close_feeds[host] === true){ this.close_feeds[host] = false; return false }
 
           // debug_internals('changes %s', new Date())
           if(row && row !== null ){
             if(row.type == 'add'){
               // debug_internals('changes add %s %o', new Date(), row.new_val)
-              debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
-                new Date(roundMilliseconds(Date.now())),
-                new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
-                new Date(roundMilliseconds(this.changes_buffer_expire)),
-                row.new_val.metadata.host,
-                row.new_val.metadata.path
-              )
-              // this.fireEvent('onPeriodicalDoc', [row.new_val, {type: 'periodical', input_type: this, app: null}]);
-              this.changes_buffer.push(row.new_val)
+              // debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
+              //   new Date(roundMilliseconds(Date.now())),
+              //   new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
+              //   new Date(roundMilliseconds(this.changes_buffer_expire[host])),
+              //   row.new_val.metadata.host,
+              //   row.new_val.metadata.path
+              // )
+              
+              this.changes_buffer[host].push(row.new_val)
             }
 
-            if(this.changes_buffer_expire < Date.now() - 900 && this.changes_buffer.length > 0){
+            if(this.changes_buffer_expire[host] < Date.now() - 900 && this.changes_buffer[host].length > 0){
               // console.log('onPeriodicalDoc', this.changes_buffer.length)
               // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
 
-              this.__process_changes(this.changes_buffer)
+              this.__process_changes(this.changes_buffer[host])
 
 
               // debug_internals('changes %s', new Date(), data)
 
-              this.changes_buffer_expire = Date.now()
-              this.changes_buffer = []
+              this.changes_buffer_expire[host] = Date.now()
+              this.changes_buffer[host] = []
             }
 
           }
@@ -419,187 +423,95 @@ module.exports = new Class({
 
     }
     else{
-      throw new Error('feed already exist')
+      // throw new Error('feed already exist')
+      debug_internals('feed already exist')
     }
   },
-  // reduce: function(err, resp, params){
-  //   debug_internals('reduce', params.options)
+  // __changes: function(){
+  //   debug_internals('__changes')
   //
-  //   if(err){
-  //     debug_internals('reduce err', err)
+  //   if(!this.feed){
   //
-	// 		if(params.uri != ''){
-	// 			this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
-	// 		}
-	// 		else{
-	// 			this.fireEvent('onGetError', err);
-	// 		}
+  //     let _close = function(){
+  //       debug_internals('closing cursor onSuspend')
+  //       if(this.feed){
+  //         this.feed.close(function (err) {
+  //           this.close_feed = true
   //
-	// 		this.fireEvent(this.ON_DOC_ERROR, err);
+  //           if (err){
+  //             debug_internals('err closing cursor onSuspend', err)
+  //           }
+  //         }.bind(this))
   //
-	// 		this.fireEvent(
-	// 			this[
-	// 				'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
-	// 			],
-	// 			err
-	// 		);
-  //   }
-  //   else{
+  //         this.feed = undefined
+  //       }
   //
-  //     let arr = (resp) ? Object.keys(resp) : []
+  //       this.removeEvent('onSuspend', _close)
+  //     }.bind(this)
   //
-  //     // resp.toArray(function(err, arr){
-  //       // debug_internals('reduce count', arr)
+  //     this.addEvent('onSuspend', _close)
   //
   //
-  //     if(params.options._extras == 'paths'){
-  //       if(arr.length == 0){
-	// 				debug_internals('No paths yet');
-	// 			}
-	// 			else{
+  //     if(!this.changes_buffer_expire)
+  //       this.changes_buffer_expire = Date.now()
   //
-  //         this.paths = []
+  //     this.r.db(this.options.db).
+  //     table('periodical').
+  //     // between(Date.now() - 1000, '\ufff0', {index: 'timestamp'}).
+  //     // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
+  //     changes({includeTypes: true, squash: 1}).
+  //     run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
+  //       // {maxBatchSeconds: 1}
   //
-	// 				Array.each(arr, function(row, index){
-	// 					// debug_internals('Path %s', row);
+  //       this.feed = cursor
   //
-  //           if(
-  //             (
-  //               !this.blacklist_path
-  //               || (this.blacklist_path && this.blacklist_path.test(row) == false)
+  //       this.feed.each(function(err, row){
+  //
+  //         /**
+  //         * https://www.rethinkdb.com/api/javascript/each/
+  //         * Iteration can be stopped prematurely by returning false from the callback.
+  //         */
+  //         if(this.close_feed === true){ this.close_feed = false; return false }
+  //
+  //         // debug_internals('changes %s', new Date())
+  //         if(row && row !== null ){
+  //           if(row.type == 'add'){
+  //             // debug_internals('changes add %s %o', new Date(), row.new_val)
+  //             debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
+  //               new Date(roundMilliseconds(Date.now())),
+  //               new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
+  //               new Date(roundMilliseconds(this.changes_buffer_expire)),
+  //               row.new_val.metadata.host,
+  //               row.new_val.metadata.path
   //             )
-  //             && !this.paths.contains(row)
-  //           )
-  //             this.paths.push(row)
+  //             // this.fireEvent('onPeriodicalDoc', [row.new_val, {type: 'periodical', input_type: this, app: null}]);
+  //             this.changes_buffer.push(row.new_val)
+  //           }
   //
-	// 				}.bind(this));
+  //           if(this.changes_buffer_expire < Date.now() - 900 && this.changes_buffer.length > 0){
+  //             // console.log('onPeriodicalDoc', this.changes_buffer.length)
+  //             // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
   //
-	// 				debug_internals('PATHs %o', this.paths);
-	// 			}
-	// 		}
-  //     else if(params.options._extras == 'hosts'){
-  //       if(arr.length == 0){
-	// 				debug_internals('No hosts yet');
-	// 			}
-	// 			else{
-  //
-	// 				Array.each(arr, function(row, index){
-	// 					let host = row
-  //           if(this.hosts[host] == undefined) this.hosts[host] = {}
-  //
-	// 				}.bind(this));
-  //
-	// 				debug_internals('HOSTs %o', this.hosts);
-	// 			}
-  //     }
-  //
-  //     // }.bind(this))
+  //             this.__process_changes(this.changes_buffer)
   //
   //
-  //   }
-  // },
-  // between: function(err, resp, params){
-  //   debug_internals('between', params.options)
+  //             // debug_internals('changes %s', new Date(), data)
   //
-  //   if(err){
-  //     debug_internals('between err', err)
-  //
-	// 		if(params.uri != ''){
-	// 			this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
-	// 		}
-	// 		else{
-	// 			this.fireEvent('onGetError', err);
-	// 		}
-  //
-	// 		this.fireEvent(this.ON_DOC_ERROR, err);
-  //
-	// 		this.fireEvent(
-	// 			this[
-	// 				'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
-	// 			],
-	// 			err
-	// 		);
-  //   }
-  //   else{
-  //
-  //     resp.toArray(function(err, arr){
-  //       debug_internals('between count', arr.length)
-  //
-  //
-  //       if(params.options._extras.get_last_stat == true){
-  //         debug_internals('between params.options._extras.get_last_stat %o', arr)
-  //         if(arr.length == 0){//there are no historical for this host yet
-  //           let host = params.options._extras.host
-  //           let path = params.options._extras.path.replace('ui.', '');
-  //
-  //           if(!this.hosts[host]) this.hosts[host] = {}
-  //
-  //           this.hosts[host][path] = 0;
-  //
-  // 					debug_internals('No ui for host %o', host);
-  // 					debug_internals('HOSTs %o', this.hosts);
+  //             this.changes_buffer_expire = Date.now()
+  //             this.changes_buffer = []
+  //           }
   //
   //         }
-  //         else{//if there are historical already, add perdiocal starting from "end"
-  // 					//throw new Error('there are historical already:implement');
-  //           let host = params.options._extras.host
-  //           let path = params.options._extras.path.replace('ui.', '');
-  //
-  //           // let last = resp[0].doc.metadata.range.end + 1;
-  //           let last = arr[0].metadata['timestamp'] + 1
-  //
-  //           if(!this.hosts[host]) this.hosts[host] = {}
-  //
-  // 					this.hosts[host][path] = last;
-  //
-  //           debug_internals('Hosts %o', this.hosts);
-  //
-  // 				}
-  //       }
-  //       else if(params.options._extras.fetch_history == true){
-  //         // if(params.options._extras.path == 'os.procs.cmd.stats')
-  //           debug_internals('between params.options._extras.fetch_history %d %s %d', params.options._extras.from, params.options._extras.path, arr.length)
-  //
-  //         this.hosts = {};
-  //
-  // 				if(params.uri != ''){
-  // 					this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1), JSON.decode(resp));//capitalize first letter
-  // 				}
-  // 				else{
-  // 					this.fireEvent('onGet', [arr, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]);
-  // 				}
   //
   //
-  //
-  //         if(arr.length > 0){
-  //
-  //           debug_internals('this.options.requests.current.type %s', this.options.requests.current.type)
-  //
-  // 					this.fireEvent(
-  // 						this[
-  // 							'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
-  // 						],
-  // 						[arr, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
-  // 					);
-  //
-  //
-  // 				}
-  // 				else{//no docs
-  //
-  // 				}
-  //
-  //       }
-  //
-  //
+  //       }.bind(this))
   //
   //     }.bind(this))
   //
-  //
   //   }
-  //
-  //
-  //
-  //
+  //   else{
+  //     throw new Error('feed already exist')
+  //   }
   // },
 
 
