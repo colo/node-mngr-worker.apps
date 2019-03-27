@@ -24,7 +24,7 @@ let get_changes = function(req, next, app){
 
   let hosts = undefined
   let paths = undefined
-  let range = (req && req.opt && req.opt.range) ? req.opt.range : {start: Date.now() - 2000, end: Date.now() - 999}
+  let range = (req && req.opt && req.opt.range) ? req.opt.range : {start: Date.now() - 1999, end: Date.now()}
 
   if(req && req.query.hosts){
     try{
