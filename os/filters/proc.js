@@ -135,7 +135,10 @@ module.exports = function(doc, opts, next, pipeline){
 				// next(procs_doc, opts, next, pipeline)
 
 				delete procs_doc.data
-				if(!procs_doc.metadata) procs_doc.metadata = { host: host }
+				if(!procs_doc.metadata) procs_doc.metadata = {}
+
+				procs_doc.metadata.host = host
+
 				let stats_doc = Object.clone(procs_doc)
 
 				let uids_doc = Object.clone(procs_doc)

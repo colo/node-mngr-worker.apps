@@ -54,22 +54,22 @@ module.exports = {
 					// load: ['apps/info/os/']
           load: ['apps/os/input/os']
 				},
-        // {
-				// 	scheme: 'http',
-				// 	host:'elk',
-				// 	port: 8081,
-				// 	module: OSPollHttp,
-				// 	// load: ['apps/info/os/']
-        //   load: ['apps/os/input/os']
-				// },
         {
 					scheme: 'http',
-					host:'dev',
+					host:'elk',
 					port: 8081,
 					module: OSPollHttp,
 					// load: ['apps/info/os/']
           load: ['apps/os/input/os']
-				}
+				},
+        // {
+				// 	scheme: 'http',
+				// 	host:'dev',
+				// 	port: 8081,
+				// 	module: OSPollHttp,
+				// 	// load: ['apps/info/os/']
+        //   load: ['apps/os/input/os']
+				// }
 			],
 			requests: {
 				// periodical: 1000,
@@ -92,27 +92,27 @@ module.exports = {
 					module: ProcsPollHttp,
           load: ['apps/os/input/procs']
 				},
-        // {
-				// 	scheme: 'http',
-				// 	host:'elk',
-				// 	port: 8081,
-				// 	module: ProcsPollHttp,
-        //   load: ['apps/os/input/procs']
-				// },
         {
 					scheme: 'http',
-					host:'dev',
+					host:'elk',
 					port: 8081,
 					module: ProcsPollHttp,
           load: ['apps/os/input/procs']
-				}
+				},
+        // {
+				// 	scheme: 'http',
+				// 	host:'dev',
+				// 	port: 8081,
+				// 	module: ProcsPollHttp,
+        //   load: ['apps/os/input/procs']
+				// }
 			],
 			requests: {
-				// periodical: 1000,//ms
-        periodical: function(dispatch){
-          // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-          return cron.schedule('* * * * * *', dispatch);//every 20 secs
-        },
+				periodical: 1000,//ms
+        // periodical: function(dispatch){
+        //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+        //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
+        // },
 			},
 		},
 	}
