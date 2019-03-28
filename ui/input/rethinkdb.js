@@ -208,7 +208,7 @@ module.exports = new Class({
                   hosts = JSON.parse(req.query.hosts)
                 }
                 catch(e){
-                  hosts = [req.query.hosts]
+                  hosts = (!Array.isArray(req.query.hosts)) ? [req.query.hosts] : req.query.hosts
                 }
               }
 
@@ -230,11 +230,15 @@ module.exports = new Class({
                   // if(Object.getLength(app.registered[id]) == 0 || !host)
                   if(Object.getLength(app.registered[id]) == 0)
                     delete app.registered[id]
+
+
+
                 })
 
                 if(app.registered[id] && hosts.length == 0)
                   delete app.registered[id]
               }
+
 
 
               debug_internals('unregister result', app.registered);
@@ -250,7 +254,24 @@ module.exports = new Class({
           get_range: get_changes,
         }
       ],
-			// periodical: [
+			periodical: [
+        {
+          check_feeds: function(req, next, app){
+            Object.each(app.feeds, function(feed, host){
+              let found = false
+              Object.each(app.registered, function(hosts, id){
+                if(app.registered[id][host]) found = true
+
+              })
+              if(found === false){
+                debug_internals('closing feed for host', host)
+                app.__close_changes(host)
+              }
+
+            })
+
+          }
+        }
       //   {
       //     get_periodical: get_changes,
       //
@@ -284,7 +305,7 @@ module.exports = new Class({
 			// 		// }
 			// 	},
       //
-			// ],
+			],
 
 
 		},
@@ -339,29 +360,45 @@ module.exports = new Class({
 
     }.bind(this))
   },
+  __close_changes: function(host){
+    if(this.feeds[host]){
+      this.feeds[host].close(function (err) {
+        this.close_feeds[host] = true
+
+        if (err){
+          debug_internals('err closing cursor onSuspend', err)
+        }
+      }.bind(this))
+
+      this.feeds[host] = undefined
+    }
+
+    // this.removeEvent('onSuspend', this.__close_changes)
+  },
   __changes: function(host){
     debug_internals('__changes', host)
 
     if(!this.feeds[host]){
 
-      let _close = function(){
-        debug_internals('closing cursor onSuspend')
-        if(this.feeds[host]){
-          this.feeds[host].close(function (err) {
-            this.close_feeds[host] = true
+      // let _close = function(){
+      //   debug_internals('closing cursor onSuspend')
+      //   if(this.feeds[host]){
+      //     this.feeds[host].close(function (err) {
+      //       this.close_feeds[host] = true
+      //
+      //       if (err){
+      //         debug_internals('err closing cursor onSuspend', err)
+      //       }
+      //     }.bind(this))
+      //
+      //     this.feeds[host] = undefined
+      //   }
+      //
+      //   this.removeEvent('onSuspend', _close)
+      // }.bind(this)
 
-            if (err){
-              debug_internals('err closing cursor onSuspend', err)
-            }
-          }.bind(this))
-
-          this.feeds[host] = undefined
-        }
-
-        this.removeEvent('onSuspend', _close)
-      }.bind(this)
-
-      this.addEvent('onSuspend', _close)
+      // this.addEvent('onSuspend', _close)
+      this.addEvent('onSuspend', this.__close_changes.pass(host, this))
 
       if(!this.changes_buffer[host]) this.changes_buffer[host] = []
 
@@ -372,6 +409,7 @@ module.exports = new Class({
       // between(Date.now() - 1000, '\ufff0', {index: 'timestamp'}).
       // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
       getAll(host, {index: 'host'}).
+      // between([host, 'periodical', this.r.now().toEpochTime().mul(1000).sub(1100)], [host, 'periodical', ''], {index: 'sort_by_host'}).
       changes({includeTypes: true, squash: 1}).
       run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
         // {maxBatchSeconds: 1}
@@ -384,7 +422,7 @@ module.exports = new Class({
           * https://www.rethinkdb.com/api/javascript/each/
           * Iteration can be stopped prematurely by returning false from the callback.
           */
-          if(this.close_feeds[host] === true){ this.close_feeds[host] = false; return false }
+          if(this.close_feeds[host] === true){ this.close_feeds[host] = false; this.feeds[host] = undefined; return false }
 
           // debug_internals('changes %s', new Date())
           if(row && row !== null ){
@@ -397,7 +435,7 @@ module.exports = new Class({
               //   row.new_val.metadata.host,
               //   row.new_val.metadata.path
               // )
-              
+
               this.changes_buffer[host].push(row.new_val)
             }
 
@@ -407,11 +445,22 @@ module.exports = new Class({
 
               this.__process_changes(this.changes_buffer[host])
 
-
               // debug_internals('changes %s', new Date(), data)
 
               this.changes_buffer_expire[host] = Date.now()
               this.changes_buffer[host] = []
+
+              /**
+              * close feed and restart, to update "between" date
+              **/
+
+              // // this.close_feeds[host] = false
+              // // this.feeds[host] = undefined
+              // _close()
+              // this.__changes(host)
+              // // return false
+
+
             }
 
           }
