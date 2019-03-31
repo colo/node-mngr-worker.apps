@@ -19,8 +19,10 @@ const MINUTE = SECOND * 60
 const HOUR = MINUTE * 60
 const DAY = HOUR * 24
 
+const EXPIRE_ID = 5 * SECOND
+
 let get_changes = function(req, next, app){
-  debug_internals('get_ %s', new Date());
+  debug_internals('get_ %s', new Date(), req.opt);
 
   let hosts = undefined
   let paths = undefined
@@ -41,14 +43,14 @@ let get_changes = function(req, next, app){
     })
   }
 
-  if(req && req.query.paths){
-    try{
-      paths = JSON.parse(req.query.paths)
-    }
-    catch(e){
-      paths = [req.query.paths]
-    }
-  }
+  // if(req && req.query.paths){
+  //   try{
+  //     paths = JSON.parse(req.query.paths)
+  //   }
+  //   catch(e){
+  //     paths = [req.query.paths]
+  //   }
+  // }
 
   let views = []
   // if((!hosts || hosts.length == 0) && (!paths || paths.length == 0)){
@@ -144,6 +146,8 @@ module.exports = new Class({
   changes_buffer_expire: {},
 
   registered: {},
+
+  alive: {},
 
   options: {
 
@@ -247,6 +251,35 @@ module.exports = new Class({
             }
 
 					}
+        },
+        {
+					ping: function(req, next, app){
+
+						if(req && req.query.type == 'ping' && req.query.ids){//req.query.hosts &&
+              debug_internals('ping', req.query)
+
+
+              // let id = req.query.id
+              let ids = []
+              // let paths = undefined
+              //
+              if(req && req.query.ids){
+                try{
+                  ids = JSON.parse(req.query.ids)
+                }
+                catch(e){
+                  ids = (!Array.isArray(req.query.ids)) ? [req.query.ids] : req.query.ids
+                }
+              }
+
+              Array.each(ids, function(id){
+                app.alive[id] = Date.now()
+              })
+
+
+            }
+
+					}
         }
       ],
       range: [
@@ -255,6 +288,16 @@ module.exports = new Class({
         }
       ],
 			periodical: [
+        {
+          check_alive: function(req, next, app){
+            Object.each(app.alive, function(timestamp, id){
+              if(timestamp < Date.now() - EXPIRE_ID){
+                delete app.alive[id]
+                delete app.registered[id]
+              }
+            })
+          }
+        },
         {
           check_feeds: function(req, next, app){
             Object.each(app.feeds, function(feed, host){
@@ -370,7 +413,7 @@ module.exports = new Class({
         }
       }.bind(this))
 
-      this.feeds[host] = undefined
+      delete this.feeds[host]
     }
 
     // this.removeEvent('onSuspend', this.__close_changes)
@@ -422,7 +465,7 @@ module.exports = new Class({
           * https://www.rethinkdb.com/api/javascript/each/
           * Iteration can be stopped prematurely by returning false from the callback.
           */
-          if(this.close_feeds[host] === true){ this.close_feeds[host] = false; this.feeds[host] = undefined; return false }
+          if(this.close_feeds[host] === true){ this.close_feeds[host] = false; delete this.feeds[host]; return false }
 
           // debug_internals('changes %s', new Date())
           if(row && row !== null ){
