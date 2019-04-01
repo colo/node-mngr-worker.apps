@@ -1,0 +1,29 @@
+{
+  "name": "ui",
+  "version": "0.0.1",
+  "description": "ui doc transformation",
+  "author": {
+    "name": "Luciano Bueno",
+    "email": "glamero@gmail.com"
+  },
+  "main": "./",
+  "engines": {
+    "node": ">= 0.10.21"
+  },
+  "dependencies": {
+    "js-caching": "git+https://github.com/colo/js-caching.git",
+    "mngr-ui-admin-charts": "git+https://github.com/colo/mngr-ui-admin-charts.git",
+    "node-mngr-docs": "git+https://github.com/colo/node-mngr-docs.git",
+    "node-tabular-data": "git+https://github.com/colo/node-tabular-data.git",
+    "redis": "^2.8.0"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": []
+}
