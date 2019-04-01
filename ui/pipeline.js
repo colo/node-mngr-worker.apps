@@ -413,6 +413,13 @@ let __traverse_path_require = function(type, path, stat, original_path){
 
 }
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  return d.getTime()
+}
+
 module.exports = function(conn){
   let conf = {
     id: 'ui',
@@ -527,14 +534,14 @@ module.exports = function(conn){
 
                       Array.each(stat_data_value, function(doc_data, index){
                         let new_doc = {
-                          id: host+'.'+path_clean+'@'+doc_data.timestamp,
+                          id: host+'.'+path_clean+'@'+roundMilliseconds(doc_data.timestamp),
                           // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
                             // // path: stat_path+'_'+stat_data_path,
                             path: path_clean,//mngr-ui transform '_' -> '.' to query
-                            timestamp: doc_data.timestamp,
+                            timestamp: roundMilliseconds(doc_data.timestamp),
                             type: 'periodical',
                             format: 'stat'
                           }
@@ -605,14 +612,14 @@ module.exports = function(conn){
 
                       Array.each(tabular_data, function(doc_data, index){
                         let new_doc = {
-                          id: host+'.'+tabular_path+'@'+doc_data[0],
+                          id: host+'.'+tabular_path+'@'+roundMilliseconds(doc_data[0]),
                           // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
                             path: tabular_path,
                             // path: path.replace(/_/g, '.'),//mngr-ui transform '_' -> '.' to query
-                            timestamp: doc_data[0],
+                            timestamp: roundMilliseconds(doc_data[0]),
                             type: 'periodical',
                             format: 'tabular'
                           }
@@ -661,19 +668,44 @@ module.exports = function(conn){
       // function(doc){
       //   debug_internals(doc)
       // }
+      // {
+  		// 	rethinkdb: {
+  		// 		id: "output.ui.rethinkdb",
+  		// 		conn: [
+  		// 			{
+      //         host: 'elk',
+  		// 				port: 28015,
+      //         // port: 28016,
+  		// 				db: 'servers',
+      //         table: 'ui',
+  		// 			},
+  		// 		],
+  		// 		module: require('js-pipeline/output/rethinkdb'),
+      //     buffer:{
+      //       size: -1,
+  		// 			// expire: 0,
+      //       // periodical: 100 //how often will check if buffer timestamp has expire
+  		// 			// size: -1,
+  		// 			expire: 999,
+      //       // periodical: 100 //how often will check if buffer timestamp has expire
+  		// 		},
+      //
+      //
+  		// 	}
+  		// },
       {
-  			rethinkdb: {
-  				id: "output.ui.rethinkdb",
+  			redis: {
+  				id: "output.ui.redis",
   				conn: [
   					{
               host: 'elk',
-  						port: 28015,
+  						// port: 28015,
               // port: 28016,
-  						db: 'servers',
-              table: 'ui',
+  						db: 0,
+              // table: 'ui',
   					},
   				],
-  				module: require('js-pipeline/output/rethinkdb'),
+  				module: RedisStoreOut,
           buffer:{
             size: -1,
   					// expire: 0,
@@ -686,31 +718,6 @@ module.exports = function(conn){
 
   			}
   		}
-      // {
-  		// 	redis: {
-  		// 		id: "output.ui.redis",
-  		// 		conn: [
-  		// 			{
-      //         host: 'elk',
-  		// 				// port: 28015,
-      //         // port: 28016,
-  		// 				db: 0,
-      //         // table: 'ui',
-  		// 			},
-  		// 		],
-  		// 		module: RedisStoreOut,
-      //     buffer:{
-      //       size: -1,
-  		// 			// expire: 0,
-      //       // periodical: 100 //how often will check if buffer timestamp has expire
-  		// 			// size: -1,
-  		// 			expire: 999,
-      //       // periodical: 100 //how often will check if buffer timestamp has expire
-  		// 		},
-      //
-      //
-  		// 	}
-  		// }
   	]
   }
 
