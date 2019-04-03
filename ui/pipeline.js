@@ -60,6 +60,14 @@ let data_to_tabular = require('node-tabular-data').data_to_tabular
 
 const CHART_INSTANCE_TTL = 60000
 
+
+const SECOND = 1000
+const MINUTE = SECOND * 60
+const HOUR = MINUTE * 60
+const DAY = HOUR * 24
+
+
+
 let cache = new jscaching({
   suspended: false,
   ttl: 1999,
@@ -426,8 +434,9 @@ module.exports = function(conn){
     input: [
     	{
     		poll: {
-          suspended: true,
+          // suspended: true,
     			id: "input.periodical",
+          on_demand: false,
     			conn: [
             Object.merge(
               Object.clone(conn),
@@ -534,14 +543,14 @@ module.exports = function(conn){
 
                       Array.each(stat_data_value, function(doc_data, index){
                         let new_doc = {
-                          id: host+'.'+path_clean+'@'+roundMilliseconds(doc_data.timestamp),
+                          id: host+'.'+path_clean+'@'+roundMilliseconds(doc_data.timestamp  + SECOND),
                           // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
                             // // path: stat_path+'_'+stat_data_path,
                             path: path_clean,//mngr-ui transform '_' -> '.' to query
-                            timestamp: roundMilliseconds(doc_data.timestamp),
+                            timestamp: roundMilliseconds(doc_data.timestamp + SECOND),
                             type: 'periodical',
                             format: 'stat'
                           }
@@ -612,14 +621,14 @@ module.exports = function(conn){
 
                       Array.each(tabular_data, function(doc_data, index){
                         let new_doc = {
-                          id: host+'.'+tabular_path+'@'+roundMilliseconds(doc_data[0]),
+                          id: host+'.'+tabular_path+'@'+roundMilliseconds(doc_data[0] + SECOND),
                           // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
                             path: tabular_path,
                             // path: path.replace(/_/g, '.'),//mngr-ui transform '_' -> '.' to query
-                            timestamp: roundMilliseconds(doc_data[0]),
+                            timestamp: roundMilliseconds(doc_data[0] + SECOND),
                             type: 'periodical',
                             format: 'tabular'
                           }

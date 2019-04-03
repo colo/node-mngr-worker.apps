@@ -22,112 +22,115 @@ const DAY = HOUR * 24
 const EXPIRE_ID = 5 * SECOND
 
 let get_changes = function(req, next, app){
-  debug_internals('get_ %s', new Date(), req.opt);
+  if(app.options.on_demand){
 
-  let hosts = undefined
-  let paths = undefined
-  let range = (req && req.opt && req.opt.range) ? req.opt.range : {start: Date.now() - 1999, end: Date.now()}
+    debug_internals('get_ %s', new Date(), req.opt);
 
-  if(req && req.query.hosts){
-    try{
-      hosts = JSON.parse(req.query.hosts)
+    let hosts = undefined
+    let paths = undefined
+    let range = (req && req.opt && req.opt.range) ? req.opt.range : {start: Date.now() - 1999, end: Date.now()}
+
+    if(req && req.query.hosts){
+      try{
+        hosts = JSON.parse(req.query.hosts)
+      }
+      catch(e){
+        hosts = [req.query.hosts]
+      }
     }
-    catch(e){
-      hosts = [req.query.hosts]
+    else if(app.registered){
+      hosts = []
+      Object.each(app.registered, function(_hosts, id){
+        hosts = hosts.combine(_hosts)
+      })
     }
-  }
-  else if(app.registered){
-    hosts = []
-    Object.each(app.registered, function(_hosts, id){
-      hosts = hosts.combine(_hosts)
-    })
-  }
 
-  // if(req && req.query.paths){
-  //   try{
-  //     paths = JSON.parse(req.query.paths)
-  //   }
-  //   catch(e){
-  //     paths = [req.query.paths]
-  //   }
-  // }
+    // if(req && req.query.paths){
+    //   try{
+    //     paths = JSON.parse(req.query.paths)
+    //   }
+    //   catch(e){
+    //     paths = [req.query.paths]
+    //   }
+    // }
 
-  let views = []
-  // if((!hosts || hosts.length == 0) && (!paths || paths.length == 0)){
-  if(!hosts || hosts.length == 0){
-    let cb = app.between({
-      // _extras: {'get_changes': true, host: host, path: path},
-      uri: app.options.db+'/periodical',
-      args: [
-        range.start,
-        range.end,
-        {
-          index: 'timestamp',
-          leftBound: 'open',
-          rightBound: 'open'
+    let views = []
+    // if((!hosts || hosts.length == 0) && (!paths || paths.length == 0)){
+    if(!hosts || hosts.length == 0){
+      let cb = app.between({
+        // _extras: {'get_changes': true, host: host, path: path},
+        uri: app.options.db+'/periodical',
+        args: [
+          range.start,
+          range.end,
+          {
+            index: 'timestamp',
+            leftBound: 'open',
+            rightBound: 'open'
+          }
+        ],
+
+      })
+
+      views.push(cb)
+    }
+    else if(hosts && hosts.length > 0){
+      debug_internals('get_range hosts %o', hosts)
+
+      Array.each(hosts, function(host){
+        let cb = undefined
+
+        if(paths && paths.length > 0){
+          debug_internals('get_range paths %o', paths)
+
+          Array.each(paths, function(path){
+            cb = app.between({
+              // _extras: {'get_changes': true, host: host, path: path},
+              uri: app.options.db+'/periodical',
+              args: [
+                [path, host, 'periodical', range.start],
+                [path, host, 'periodical', range.end],
+                {
+                  index: 'sort_by_path',
+                  leftBound: 'open',
+                  rightBound: 'open'
+                }
+              ],
+
+            })
+
+            views.push(cb)
+          })
         }
-      ],
-
-    })
-
-    views.push(cb)
-  }
-  else if(hosts && hosts.length > 0){
-    debug_internals('get_range hosts %o', hosts)
-
-    Array.each(hosts, function(host){
-      let cb = undefined
-
-      if(paths && paths.length > 0){
-        debug_internals('get_range paths %o', paths)
-
-        Array.each(paths, function(path){
+        else{
           cb = app.between({
             // _extras: {'get_changes': true, host: host, path: path},
             uri: app.options.db+'/periodical',
             args: [
-              [path, host, 'periodical', range.start],
-              [path, host, 'periodical', range.end],
+              [host, 'periodical', range.start],
+              [host, 'periodical', range.end],
               {
-                index: 'sort_by_path',
+                index: 'sort_by_host',
                 leftBound: 'open',
                 rightBound: 'open'
               }
             ],
 
           })
-
           views.push(cb)
-        })
-      }
-      else{
-        cb = app.between({
-          // _extras: {'get_changes': true, host: host, path: path},
-          uri: app.options.db+'/periodical',
-          args: [
-            [host, 'periodical', range.start],
-            [host, 'periodical', range.end],
-            {
-              index: 'sort_by_host',
-              leftBound: 'open',
-              rightBound: 'open'
-            }
-          ],
-
-        })
-        views.push(cb)
-      }
+        }
 
 
 
+      })
+    }
+
+    views = views.clean()
+    Array.each(views, function(view){
+      view()
     })
+
   }
-
-  views = views.clean()
-  Array.each(views, function(view){
-    view()
-  })
-
 }
 
 module.exports = new Class({
@@ -158,7 +161,13 @@ module.exports = new Class({
         {
 					register: function(req, next, app){
 						// if(req.host && req.type == 'register' && req.prop == 'data' && req.id){
-            if(req && req.query.hosts && req.query.type == 'register' && req.query.id){
+
+            if(app.options.on_demand
+              && req
+              && req.query.hosts
+              && req.query.type == 'register'
+              && req.query.id
+            ){
               debug_internals('register', req.query.hosts)
               let id = req.query.id
               let hosts = undefined
@@ -201,7 +210,11 @@ module.exports = new Class({
         {
 					unregister: function(req, next, app){
 
-						if(req && req.query.type == 'unregister' && req.query.id){//req.query.hosts &&
+						if(app.options.on_demand
+              && req
+              && req.query.type == 'unregister'
+              && req.query.id
+            ){//req.query.hosts &&
               debug_internals('unregister', req.query)
               let id = req.query.id
               let hosts = []
@@ -255,7 +268,11 @@ module.exports = new Class({
         {
 					ping: function(req, next, app){
 
-						if(req && req.query.type == 'ping' && req.query.ids){//req.query.hosts &&
+						if(app.options.on_demand
+              && req
+              && req.query.type == 'ping'
+              && req.query.ids
+            ){//req.query.hosts &&
               debug_internals('ping', req.query)
 
 
@@ -290,28 +307,30 @@ module.exports = new Class({
 			periodical: [
         {
           check_alive: function(req, next, app){
-            Object.each(app.alive, function(timestamp, id){
-              if(timestamp < Date.now() - EXPIRE_ID){
-                delete app.alive[id]
-                delete app.registered[id]
-              }
-            })
+            if(app.options.on_demand)
+              Object.each(app.alive, function(timestamp, id){
+                if(timestamp < Date.now() - EXPIRE_ID){
+                  delete app.alive[id]
+                  delete app.registered[id]
+                }
+              })
           }
         },
         {
           check_feeds: function(req, next, app){
-            Object.each(app.feeds, function(feed, host){
-              let found = false
-              Object.each(app.registered, function(hosts, id){
-                if(app.registered[id][host]) found = true
+            if(app.options.on_demand)
+              Object.each(app.feeds, function(feed, host){
+                let found = false
+                Object.each(app.registered, function(hosts, id){
+                  if(app.registered[id][host]) found = true
+
+                })
+                if(found === false){
+                  debug_internals('closing feed for host', host)
+                  app.__close_changes(host)
+                }
 
               })
-              if(found === false){
-                debug_internals('closing feed for host', host)
-                app.__close_changes(host)
-              }
-
-            })
 
           }
         }
@@ -423,23 +442,6 @@ module.exports = new Class({
 
     if(!this.feeds[host]){
 
-      // let _close = function(){
-      //   debug_internals('closing cursor onSuspend')
-      //   if(this.feeds[host]){
-      //     this.feeds[host].close(function (err) {
-      //       this.close_feeds[host] = true
-      //
-      //       if (err){
-      //         debug_internals('err closing cursor onSuspend', err)
-      //       }
-      //     }.bind(this))
-      //
-      //     this.feeds[host] = undefined
-      //   }
-      //
-      //   this.removeEvent('onSuspend', _close)
-      // }.bind(this)
-
       // this.addEvent('onSuspend', _close)
       this.addEvent('onSuspend', this.__close_changes.pass(host, this))
 
@@ -447,14 +449,20 @@ module.exports = new Class({
 
       if(!this.changes_buffer_expire[host]) this.changes_buffer_expire[host] = Date.now()
 
-      this.r.db(this.options.db).
-      table('periodical').
-      // between(Date.now() - 1000, '\ufff0', {index: 'timestamp'}).
-      // changes({includeTypes: true, squash: 1, changefeedQueueSize:100}).
-      getAll(host, {index: 'host'}).
-      // between([host, 'periodical', this.r.now().toEpochTime().mul(1000).sub(1100)], [host, 'periodical', ''], {index: 'sort_by_host'}).
-      changes({includeTypes: true, squash: 1}).
-      run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
+      let _to_run = undefined
+      if(this.options.on_demand){
+        _to_run = this.r.db(this.options.db).
+                  table('periodical').
+                  getAll(host, {index: 'host'}).
+                  changes({includeTypes: true, squash: 1})
+      }
+      else{
+        _to_run = this.r.db(this.options.db).
+                  table('periodical').
+                  changes({includeTypes: true, squash: 1})
+      }
+
+      _to_run.run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
         // {maxBatchSeconds: 1}
 
         this.feeds[host] = cursor
@@ -488,21 +496,9 @@ module.exports = new Class({
 
               this.__process_changes(this.changes_buffer[host])
 
-              // debug_internals('changes %s', new Date(), data)
 
               this.changes_buffer_expire[host] = Date.now()
               this.changes_buffer[host] = []
-
-              /**
-              * close feed and restart, to update "between" date
-              **/
-
-              // // this.close_feeds[host] = false
-              // // this.feeds[host] = undefined
-              // _close()
-              // this.__changes(host)
-              // // return false
-
 
             }
 
@@ -612,14 +608,19 @@ module.exports = new Class({
     // this.addEvent('onConnect', this.__changes.bind(this))
     // this.addEvent('onResume', this.__changes.bind(this))
 
-    this.addEvent('onSuspend', function(){
-      debug_internals('onSuspend')
-      if(Object.getLength(this.registered) > 0){
-        debug_internals('resuming...', this.registered)
-        this.fireEvent('onResume', undefined, 1000)
-      }
+    if(options.on_demand){
+      this.addEvent('onSuspend', function(){
+        debug_internals('onSuspend')
+        if(Object.getLength(this.registered) > 0){
+          debug_internals('resuming...', this.registered)
+          this.fireEvent('onResume', undefined, 1000)
+        }
 
-    }.bind(this))
+      }.bind(this))
+    }
+    else{
+      this.addEvent('onConnect', this.__changes.pass('_', this))
+    }
 
 		this.parent(options);//override default options
 
