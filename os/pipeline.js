@@ -40,6 +40,13 @@ let all_modules = {
 let meta_doc = { id: '', data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
 let meta_docs = {}
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  return d.getTime()
+}
+
 module.exports = {
  input: [
 	{
@@ -54,14 +61,14 @@ module.exports = {
 					// load: ['apps/info/os/']
           load: ['apps/os/input/os']
 				},
-        // {
-				// 	scheme: 'http',
-				// 	host:'elk',
-				// 	port: 8081,
-				// 	module: OSPollHttp,
-				// 	// load: ['apps/info/os/']
-        //   load: ['apps/os/input/os']
-				// },
+        {
+					scheme: 'http',
+					host:'elk',
+					port: 8081,
+					module: OSPollHttp,
+					// load: ['apps/info/os/']
+          load: ['apps/os/input/os']
+				},
         // {
 				// 	scheme: 'http',
 				// 	host:'dev',
@@ -92,13 +99,13 @@ module.exports = {
 					module: ProcsPollHttp,
           load: ['apps/os/input/procs']
 				},
-        // {
-				// 	scheme: 'http',
-				// 	host:'elk',
-				// 	port: 8081,
-				// 	module: ProcsPollHttp,
-        //   load: ['apps/os/input/procs']
-				// },
+        {
+					scheme: 'http',
+					host:'elk',
+					port: 8081,
+					module: ProcsPollHttp,
+          load: ['apps/os/input/procs']
+				},
         // {
 				// 	scheme: 'http',
 				// 	host:'dev',
@@ -248,46 +255,98 @@ module.exports = {
       // debug_internals(input_type.options.id)
 
     },
-    /**
-    * merge
-    **/
 
+    /**
+    * not merge
+    **/
     function(doc, opts, next, pipeline){
       let { type, input, input_type, app } = opts
 
 
-      let host = doc.metadata.host
-      let module = doc.metadata.path
+      // let host = doc.metadata.host
+      // let module = doc.metadata.path
 
-      if(!modules[host]) modules[host] = Object.clone(all_modules)
+      let timestamp = roundMilliseconds(Date.now())
+      doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
+      doc.metadata.timestamp = timestamp
 
-      modules[host][module] = true
+      sanitize_filter(
+        doc,
+        opts,
+        pipeline.output.bind(pipeline),
+        pipeline
+      )
 
-      debug_internals('merge', host, module, modules[host])
-
-      if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
-
-      meta_docs[host].data.push(doc)
-      meta_docs[host].id = host+'.os.merged@'+Date.now()
-      meta_docs[host].metadata['host'] = host
-
-      if(Object.every(modules[host], function(val, mod){ return val })){
-        // debug_internals('META %o', meta_docs[host])
-        // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
-        sanitize_filter(
-          Object.clone(meta_docs[host]),
-          opts,
-          pipeline.output.bind(pipeline),
-          pipeline
-        )
-
-        meta_docs[host].data = []
-        Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
-
-      }
+      // if(!modules[host]) modules[host] = Object.clone(all_modules)
+      //
+      // modules[host][module] = true
+      //
+      // debug_internals('merge', host, module, modules[host])
+      //
+      // if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
+      //
+      // meta_docs[host].data.push(doc)
+      // meta_docs[host].id = host+'.os.merged@'+Date.now()
+      // meta_docs[host].metadata['host'] = host
+      //
+      // if(Object.every(modules[host], function(val, mod){ return val })){
+      //   // debug_internals('META %o', meta_docs[host])
+      //   // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
+      //   sanitize_filter(
+      //     Object.clone(meta_docs[host]),
+      //     opts,
+      //     pipeline.output.bind(pipeline),
+      //     pipeline
+      //   )
+      //
+      //   meta_docs[host].data = []
+      //   Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
+      //
+      // }
 
 
     }
+
+    /**
+    * merge
+    **/
+
+    // function(doc, opts, next, pipeline){
+    //   let { type, input, input_type, app } = opts
+    //
+    //
+    //   let host = doc.metadata.host
+    //   let module = doc.metadata.path
+    //
+    //   if(!modules[host]) modules[host] = Object.clone(all_modules)
+    //
+    //   modules[host][module] = true
+    //
+    //   debug_internals('merge', host, module, modules[host])
+    //
+    //   if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
+    //
+    //   meta_docs[host].data.push(doc)
+    //   meta_docs[host].id = host+'.os.merged@'+Date.now()
+    //   meta_docs[host].metadata['host'] = host
+    //
+    //   if(Object.every(modules[host], function(val, mod){ return val })){
+    //     // debug_internals('META %o', meta_docs[host])
+    //     // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
+    //     sanitize_filter(
+    //       Object.clone(meta_docs[host]),
+    //       opts,
+    //       pipeline.output.bind(pipeline),
+    //       pipeline
+    //     )
+    //
+    //     meta_docs[host].data = []
+    //     Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
+    //
+    //   }
+    //
+    //
+    // }
 
 	],
 	output: [
