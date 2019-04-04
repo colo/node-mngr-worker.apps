@@ -454,12 +454,12 @@ module.exports = new Class({
         _to_run = this.r.db(this.options.db).
                   table('periodical').
                   getAll(host, {index: 'host'}).
-                  changes({includeTypes: true, squash: 1})
+                  changes({includeTypes: true, squash: 1})('new_val')
       }
       else{
         _to_run = this.r.db(this.options.db).
                   table('periodical').
-                  changes({includeTypes: true, squash: 1})
+                  changes({includeTypes: true, squash: 1})('new_val')
       }
 
       _to_run.run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
@@ -475,20 +475,22 @@ module.exports = new Class({
           */
           if(this.close_feeds[host] === true){ this.close_feeds[host] = false; delete this.feeds[host]; return false }
 
-          // debug_internals('changes %s', new Date())
+          // debug_internals('changes %s', new Date(), row)
+          // process.exit(1)
           if(row && row !== null ){
-            if(row.type == 'add'){
-              // debug_internals('changes add %s %o', new Date(), row.new_val)
-              // debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
-              //   new Date(roundMilliseconds(Date.now())),
-              //   new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
-              //   new Date(roundMilliseconds(this.changes_buffer_expire[host])),
-              //   row.new_val.metadata.host,
-              //   row.new_val.metadata.path
-              // )
-
-              this.changes_buffer[host].push(row.new_val)
-            }
+            // if(row.type == 'add'){
+            //   // debug_internals('changes add %s %o', new Date(), row.new_val)
+            //   // debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
+            //   //   new Date(roundMilliseconds(Date.now())),
+            //   //   new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
+            //   //   new Date(roundMilliseconds(this.changes_buffer_expire[host])),
+            //   //   row.new_val.metadata.host,
+            //   //   row.new_val.metadata.path
+            //   // )
+            //
+            //   this.changes_buffer[host].push(row.new_val)
+            // }
+            this.changes_buffer[host].push(row)
 
             if(this.changes_buffer_expire[host] < Date.now() - 900 && this.changes_buffer[host].length > 0){
               // console.log('onPeriodicalDoc', this.changes_buffer.length)
