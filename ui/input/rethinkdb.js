@@ -398,6 +398,8 @@ module.exports = new Class({
 
   },
   __process_changes: function(buffer){
+    debug_internals('__process_changes')
+
     let data = {}
     Array.each(buffer, function(doc){
       let path = doc.metadata.path
@@ -423,6 +425,8 @@ module.exports = new Class({
     }.bind(this))
   },
   __close_changes: function(host){
+    debug_internals('__close_changes', host)
+
     if(this.feeds[host]){
       this.feeds[host].close(function (err) {
         this.close_feeds[host] = true
@@ -454,20 +458,23 @@ module.exports = new Class({
         _to_run = this.r.db(this.options.db).
                   table('periodical').
                   getAll(host, {index: 'host'}).
-                  changes({includeTypes: true, squash: 1})('new_val')
+                  changes({includeTypes: true, squash: 1}).filter(this.r.row('old_val').eq(null))('new_val')
       }
       else{
         _to_run = this.r.db(this.options.db).
                   table('periodical').
-                  changes({includeTypes: true, squash: 1})('new_val')
+                  changes({includeTypes: true, squash: 1}).filter(this.r.row('old_val').eq(null))('new_val')
       }
 
       _to_run.run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
-        // {maxBatchSeconds: 1}
+        debug_internals('__cursor %s', new Date())
 
         this.feeds[host] = cursor
 
+        // let expire = Date.now() - 1000
         this.feeds[host].each(function(err, row){
+
+          debug_internals('each %s', new Date())
 
           /**
           * https://www.rethinkdb.com/api/javascript/each/
@@ -492,7 +499,7 @@ module.exports = new Class({
             // }
             this.changes_buffer[host].push(row)
 
-            if(this.changes_buffer_expire[host] < Date.now() - 900 && this.changes_buffer[host].length > 0){
+            if(this.changes_buffer_expire[host] < Date.now() - 999 && this.changes_buffer[host].length > 0){
               // console.log('onPeriodicalDoc', this.changes_buffer.length)
               // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
 

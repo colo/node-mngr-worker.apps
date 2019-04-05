@@ -594,7 +594,7 @@ module.exports = function(conn){
                 __transform_data('tabular', stat, host, function(tabular){
                   // output[host] = tabular
                   // debug_internals('__transform_data -> tabular', tabular)
-                  debug_internals('__transform_data -> tabular', host, stat)
+                  debug_internals('__transform_data -> tabular', host)
                   //
                   // if(output[host].os_uptime)
                   //   debug_internals(output[host].os_uptime)
