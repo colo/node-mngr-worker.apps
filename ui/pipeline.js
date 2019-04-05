@@ -69,6 +69,7 @@ const DAY = HOUR * 24
 
 
 let cache = new jscaching({
+  NS: 'a22cf722-6ea9-4396-b2b3-9440dd677dd0',
   suspended: false,
   ttl: 1999,
   stores: [
@@ -92,7 +93,7 @@ let cache = new jscaching({
     //   }
     // }
     {
-      id: 'redis',
+      id: 'ui.cache',
       conn: [
         {
           host: 'elk',
@@ -478,6 +479,7 @@ module.exports = function(conn){
          // debug_internals(doc)
 
          if(doc){
+           let current_ts = roundMilliseconds(Date.now() + SECOND)
 
            Object.each(doc, function(data, host){
              Object.each(data, function(value, path){
@@ -543,14 +545,16 @@ module.exports = function(conn){
 
                       Array.each(stat_data_value, function(doc_data, index){
                         let new_doc = {
-                          id: host+'.'+path_clean+'@'+roundMilliseconds(doc_data.timestamp  + SECOND),
+                          // id: host+'.'+path_clean+'@'+roundMilliseconds(doc_data.timestamp  + SECOND),
+                          id: host+'.'+path_clean+'@'+current_ts,
                           // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
                             // // path: stat_path+'_'+stat_data_path,
                             path: path_clean,//mngr-ui transform '_' -> '.' to query
-                            timestamp: roundMilliseconds(doc_data.timestamp + SECOND),
+                            // timestamp: roundMilliseconds(doc_data.timestamp + SECOND),
+                            timestamp: current_ts,
                             type: 'periodical',
                             format: 'stat'
                           }
@@ -621,14 +625,16 @@ module.exports = function(conn){
 
                       Array.each(tabular_data, function(doc_data, index){
                         let new_doc = {
-                          id: host+'.'+tabular_path+'@'+roundMilliseconds(doc_data[0] + SECOND),
+                          // id: host+'.'+tabular_path+'@'+roundMilliseconds(doc_data[0] + SECOND),
+                          id: host+'.'+tabular_path+'@'+current_ts,
                           // data: JSON.stringify(doc_data),
                           data: doc_data,
                           metadata: {
                             host: host,
                             path: tabular_path,
                             // path: path.replace(/_/g, '.'),//mngr-ui transform '_' -> '.' to query
-                            timestamp: roundMilliseconds(doc_data[0] + SECOND),
+                            // timestamp: roundMilliseconds(doc_data[0] + SECOND),
+                            timestamp: current_ts,
                             type: 'periodical',
                             format: 'tabular'
                           }
