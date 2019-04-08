@@ -3,9 +3,9 @@
 
 let App = require('node-app-rethinkdb-client')
 
-var debug = require('debug')('Server:Apps:UI:Input');
-var debug_internals = require('debug')('Server:Apps:UI:Input:Internals');
-var debug_events = require('debug')('Server:Apps:UI:Input:Events');
+var debug = require('debug')('Server:Apps:UI:Input:RethinkDB');
+var debug_internals = require('debug')('Server:Apps:UI:Input:RethinkDB:Internals');
+var debug_events = require('debug')('Server:Apps:UI:Input:RethinkDB:Events');
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)

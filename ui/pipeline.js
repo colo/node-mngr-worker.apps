@@ -17,7 +17,8 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 
 
 const InputPollerRethinkDBPeriodical = require ( './input/rethinkdb.js' )
-//
+const OutputRedisSetPub = require ( './output/redis.js' )
+
 // // let hooks = {}
 //
 // // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
@@ -717,10 +718,12 @@ module.exports = function(conn){
   						// port: 28015,
               // port: 28016,
   						db: 0,
+              channel: 'ui',
               // table: 'ui',
   					},
   				],
-  				module: RedisStoreOut,
+  				// module: RedisStoreOut,
+          module: OutputRedisSetPub,
           buffer:{
             size: -1,
   					// expire: 0,
