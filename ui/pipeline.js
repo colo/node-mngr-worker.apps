@@ -130,7 +130,7 @@ let __transform_data = function(type, data, cache_key, cb){
   /**
   * first count how many "transform" there are for this data set, so we can fire callback on last one
   **/
-  let transform_result_length = 0
+  let transform_result_length = 1
   let transforms = {}
   Object.each(data, function(d, path){
     let transform = __traverse_path_require(type, path, d)
@@ -139,14 +139,16 @@ let __transform_data = function(type, data, cache_key, cb){
       transforms[path] = transform
 
     if(transform && typeof transform == 'function'){
-      transform_result_length += Object.getLength(transform(d))
+      transform_result_length += Object.getLength(transform(d)) - 1
     }
-    else if(transform){
-      transform_result_length++
-    }
+    // else if(transform){
+    //   transform_result_length++
+    // }
   })
 
   let transform_result_counter = 0
+
+  debug('__transform_data', type, data, transforms)
 
   Object.each(data, function(d, path){
     if(d && d !== null){
@@ -288,6 +290,8 @@ let __transform_data = function(type, data, cache_key, cb){
           // let chart = Object.clone(require('./libs/'+type)(d, path))
           let chart = require('./libs/'+type)(d, path)
 
+          // debug_internals('transform default', chart)
+
           cache.get(cache_key+'.'+type+'.'+__transform_name(path), function(err, chart_instance){
             // chart_instance = (chart_instance) ? JSON.parse(chart_instance) : chart
             chart_instance = (chart_instance) ? chart_instance : chart
@@ -297,6 +301,8 @@ let __transform_data = function(type, data, cache_key, cb){
             // debug_internals('transform default', d, path)
 
             convert(d, chart_instance, path, function(name, stat){
+              // debug_internals('transform default', d, path, stat)
+
               /**
               * clean stats that couldn't be converted with "data_to_tabular"
               **/
@@ -311,8 +317,12 @@ let __transform_data = function(type, data, cache_key, cb){
               })
               stat = stat.clean()
 
+              // debug_internals('transform default', d, path, stat)
+
               if(stat.length > 0)
                 transformed = __merge_transformed(name, stat, transformed)
+
+              // debug_internals('transform default', name, transformed)
 
               // cache.set(cache_key+'.'+type+'.'+__transform_name(path), JSON.stringify(chart_instance), CHART_INSTANCE_TTL)
               chart_instance = JSON.parse(JSON.stringify(chart_instance))
@@ -320,10 +330,18 @@ let __transform_data = function(type, data, cache_key, cb){
 
               cache.set(cache_key+'.'+type+'.'+__transform_name(path), chart_instance, CHART_INSTANCE_TTL)
 
+              debug_internals('transform default',
+                transform_result_counter,
+                transform_result_length,
+                (counter >= Object.getLength(data) - 1),
+                (typeof cb == 'function')
+              )
+
               if(
                 transform_result_counter == transform_result_length - 1
                 && (counter >= Object.getLength(data) - 1 && typeof cb == 'function')
               ){
+                debug_internals('transform default', cache_key, instances, transformed)
                 __save_instances(cache_key, instances, cb.pass(transformed))
                 // cb(transformed)
               }
@@ -519,7 +537,7 @@ module.exports = function(conn){
                 debug_internals('__transform_data -> stat', host)
 
                 Object.each(stat, function(stat_data, stat_path){
-                  // debug_internals(stat_data, stat_path)
+                  debug_internals(stat_data, stat_path)
 
                   // let counter = 0
                   // let now = Date.now()
