@@ -1,0 +1,14 @@
+{
+  "name": "bbb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pipeline.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Luciano Bueno",
+  "license": "ISC",
+  "dependencies": {
+    "bbb-promise": "^1.1.0"
+  }
+}
