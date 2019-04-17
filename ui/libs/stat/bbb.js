@@ -23,7 +23,7 @@ let chart = {
           },
           timestamp: val.metadata.timestamp
         }
-        transform.value.meetings = val.data.length
+        transform.value.meetings = (val.data.length === 1 && val.data[0].running === false) ? 0 : val.data.length
 
         Array.each(val.data, function(meeting){
           transform.value.participants += meeting.participantCount

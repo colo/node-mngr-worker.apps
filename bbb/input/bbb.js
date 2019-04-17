@@ -36,6 +36,24 @@ module.exports = new Class({
   ON_CONNECT: 'onConnect',
   ON_CONNECT_ERROR: 'onConnectError',
 
+  MEETING_TEMPLATE: {
+    meetingName: '',
+    meetingID: '',
+    createTime: 0,
+    running: false,
+    duration: 0,
+    hasUserJoined: false,
+    startTime: 0,
+    endTime: 0,
+    participantCount: 0,
+    listenerCount: 0,
+    voiceParticipantCount: 0,
+    videoCount: 0,
+    maxUsers: 0,
+    moderatorCount: 0,
+    attendees: [ ],
+    metadata: 0,
+  },
   // // modules: [],
   //
   // // node: undefined,//bbb host
@@ -189,27 +207,35 @@ module.exports = new Class({
 		else{
       // this.meetings = resp
       let meetings = []
-      Array.each(resp, function(row){
-        debug('periodical meeting', row)
-        if(row.meeting && row.meeting[0]){
-          let _meeting = {}
+      if(resp && Array.isArray(resp) && resp.length > 0 && resp[0] !== ''){
+        Array.each(resp, function(row){
+          debug('periodical meeting', row)
+          if(row.meeting && row.meeting[0]){
+            let _meeting = {}
 
-          Object.each(row.meeting[0], function(val, prop){
-            let _val = (prop !== 'attendees') ? val[0] : val//removes arrays, except for 'attendees'
-            if(!Array.isArray(_val)){
-              _val = (isNaN(_val * 1)) ? _val : _val * 1
-              _val = (_val == 'true') ? true : _val
-              _val = (_val == 'false') ? false : _val
-            }
+            Object.each(row.meeting[0], function(val, prop){
+              let _val = (prop !== 'attendees') ? val[0] : val//removes arrays, except for 'attendees'
+              if(!Array.isArray(_val)){
+                _val = (isNaN(_val * 1)) ? _val : _val * 1
+                _val = (_val == 'true') ? true : _val
+                _val = (_val == 'false') ? false : _val
+              }
 
-            _meeting[prop] = _val
-          }.bind(this))
+              _meeting[prop] = _val
+            }.bind(this))
 
-          // _meeting = JSON.parse(JSON.stringify(_meeting))
+            // _meeting = JSON.parse(JSON.stringify(_meeting))
 
-          meetings.push(_meeting)
-        }
-      }.bind(this))
+            debug('periodical _meeting', _meeting)
+
+            meetings.push(_meeting)
+          }
+        }.bind(this))
+      }
+      else{
+        meetings.push(this.MEETING_TEMPLATE)
+      }
+
 
       if(meetings.length > 0)
         this.fireEvent(
