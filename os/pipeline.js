@@ -78,6 +78,8 @@ module.exports = {
         //   load: ['apps/os/input/os']
 				// }
 			],
+      connect_retry_count: -1,
+      connect_retry_periodical: 1000,
 			requests: {
 				// periodical: 1000,
         periodical: function(dispatch){
@@ -114,6 +116,8 @@ module.exports = {
         //   load: ['apps/os/input/procs']
 				// }
 			],
+      connect_retry_count: -1,
+      connect_retry_periodical: 1000,
 			requests: {
 				periodical: 1000,//ms
         // periodical: function(dispatch){
