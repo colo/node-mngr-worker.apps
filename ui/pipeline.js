@@ -492,6 +492,7 @@ module.exports = function(conn){
     filters: [
    		// require('./snippets/filter.sanitize.template'),
        function(doc, opts, next, pipeline){
+         let new_docs = []
          // let { type, input, input_type, app } = opts
 
          // let output = {}
@@ -579,12 +580,15 @@ module.exports = function(conn){
                           }
                         }
 
-                        sanitize_filter(
-                          new_doc,
-                          opts,
-                          pipeline.output.bind(pipeline),
-                          pipeline
-                        )
+                        new_docs.push(new_doc)
+
+                        // pipeline.output(new_doc)
+                        // sanitize_filter(
+                        //   new_doc,
+                        //   opts,
+                        //   pipeline.output.bind(pipeline),
+                        //   pipeline
+                        // )
 
                         // if(!stats_merged_doc.data[path_clean]) stats_merged_doc.data[path_clean] = []
                         // stats_merged_doc.data[path_clean].push(new_doc)
@@ -659,22 +663,26 @@ module.exports = function(conn){
                           }
                         }
 
+                        new_docs.push(new_doc)
 
                         // debug_internals(new_doc)
-
-                        sanitize_filter(
-                          new_doc,
-                          opts,
-                          pipeline.output.bind(pipeline),
-                          pipeline
-                        )
+                        // pipeline.output(new_doc)
+                        // sanitize_filter(
+                        //   new_doc,
+                        //   opts,
+                        //   pipeline.output.bind(pipeline),
+                        //   pipeline
+                        // )
 
                         // if(!tabulars_merged_doc.data[tabular_path]) tabulars_merged_doc.data[tabular_path] = []
                         // tabulars_merged_doc.data[tabular_path].push(new_doc)
 
 
 
-
+                        if(index === tabular_data.length - 1 && new_docs.length > 0){
+                          pipeline.output(Array.clone(new_docs))
+                          new_docs = []
+                        }
 
                       })
                     }
@@ -694,7 +702,17 @@ module.exports = function(conn){
            })
          }
 
-
+         // if(new_docs.length > 0){
+         //   pipeline.output(new_docs)
+         // //   Array.each(new_docs, function(doc){
+         // //     sanitize_filter(
+         // //       doc,
+         // //       opts,
+         // //       pipeline.output.bind(pipeline),
+         // //       pipeline
+         // //     )
+         // //   })
+         // }
        },
 
    	],
@@ -743,12 +761,13 @@ module.exports = function(conn){
   				// module: RedisStoreOut,
           module: OutputRedisSetPub,
           buffer:{
+            // size: 0,
             size: -1,
-  					// expire: 0,
-            // periodical: 100 //how often will check if buffer timestamp has expire
-  					// size: -1,
+  					// // // expire: 0,
+            // // // periodical: 100 //how often will check if buffer timestamp has expire
+  					// // // size: -1,
   					expire: 999,
-            // periodical: 100 //how often will check if buffer timestamp has expire
+            periodical: 100 //how often will check if buffer timestamp has expire
   				},
 
 

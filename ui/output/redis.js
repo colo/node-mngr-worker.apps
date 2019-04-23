@@ -13,6 +13,8 @@ module.exports = new Class({
   _save_docs: function(doc, index){
 		debug_internals('_save_docs %o %s %o', doc, index, this.options.insert);
 
+    if(!Array.isArray(doc)) doc = [doc]
+
     let db = this.options.conn[index].db
     let channel = this.options.conn[index].channel
     // let table = this.options.conn[index].table
@@ -35,22 +37,25 @@ module.exports = new Class({
         multi.exec(function (err, result) {
           debug_internals('multi.exec', err, result)
           this.fireEvent(this.ON_DOC_SAVED, [err, result])
+          conn.publish(channel, keys.join(','), function (err, result) {
+            debug_internals('publish', err, result)
+          })
         }.bind(this))
     }.bind(this))
 
     /**
     * publish separated from SET, as we don't want to fire event DOC_SAVED on pubish
     **/
-    multi = conn.multi()
-    Array.each(keys, function(key, i){
-      multi.publish(channel, key)
-
-      if(i == keys.length -1)
-        multi.exec(function (err, result) {
-          debug_internals('multi.exec publish', err, result)
-          // this.fireEvent(this.ON_DOC_SAVED, [err, result])
-        }.bind(this))
-    }.bind(this))
+    // multi = conn.multi()
+    // Array.each(keys, function(key, i){
+    //   multi.publish(channel, key)
+    //
+    //   if(i == keys.length -1)
+    //     multi.exec(function (err, result) {
+    //       debug_internals('multi.exec publish', err, result)
+    //       // this.fireEvent(this.ON_DOC_SAVED, [err, result])
+    //     }.bind(this))
+    // }.bind(this))
 
     // this.r.db(db).table(table).insert(doc, this.options.insert).run(conn, function(err, result){
     //   debug_internals('insert result %o', err, result);

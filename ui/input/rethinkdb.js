@@ -458,12 +458,12 @@ module.exports = new Class({
         _to_run = this.r.db(this.options.db).
                   table('periodical').
                   getAll(host, {index: 'host'}).
-                  changes({includeTypes: true, squash: 1}).filter(this.r.row('old_val').eq(null))('new_val')
+                  changes({includeTypes: true, squash: 1.1}).filter(this.r.row('old_val').eq(null))('new_val')
       }
       else{
         _to_run = this.r.db(this.options.db).
                   table('periodical').
-                  changes({includeTypes: true, squash: 1}).filter(this.r.row('old_val').eq(null))('new_val')
+                  changes({includeTypes: true, squash: 1.1}).filter(this.r.row('old_val').eq(null))('new_val')
       }
 
       _to_run.run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {

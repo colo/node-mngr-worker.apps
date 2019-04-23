@@ -61,14 +61,14 @@ module.exports = {
 					// load: ['apps/info/os/']
           load: ['apps/os/input/os']
 				},
-        // {
-				// 	scheme: 'http',
-				// 	host:'elk',
-				// 	port: 8081,
-				// 	module: OSPollHttp,
-				// 	// load: ['apps/info/os/']
-        //   load: ['apps/os/input/os']
-				// },
+        {
+					scheme: 'http',
+					host:'elk',
+					port: 8081,
+					module: OSPollHttp,
+					// load: ['apps/info/os/']
+          load: ['apps/os/input/os']
+				},
         // {
 				// 	scheme: 'http',
 				// 	host:'dev',
@@ -101,13 +101,13 @@ module.exports = {
 					module: ProcsPollHttp,
           load: ['apps/os/input/procs']
 				},
-        // {
-				// 	scheme: 'http',
-				// 	host:'elk',
-				// 	port: 8081,
-				// 	module: ProcsPollHttp,
-        //   load: ['apps/os/input/procs']
-				// },
+        {
+					scheme: 'http',
+					host:'elk',
+					port: 8081,
+					module: ProcsPollHttp,
+          load: ['apps/os/input/procs']
+				},
         // {
 				// 	scheme: 'http',
 				// 	host:'dev',
@@ -391,9 +391,10 @@ module.exports = {
 				],
 				module: require('js-pipeline/output/rethinkdb'),
         buffer:{
-					size: 1, //-1
-					expire:0
-          // expire: 999,
+					// size: 1, //-1
+					// expire:0
+          size: -1,
+          expire: 999,
 				}
 			}
 		}
