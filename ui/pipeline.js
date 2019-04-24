@@ -463,6 +463,15 @@ module.exports = function(conn){
               {
                 // path_key: 'os',
                 module: InputPollerRethinkDBPeriodical,
+                stat_hosts: ['colo']
+              }
+            ),
+            Object.merge(
+              Object.clone(conn),
+              {
+                // path_key: 'os',
+                module: InputPollerRethinkDBPeriodical,
+                stat_hosts: ['elk']
               }
             )
     			],

@@ -153,6 +153,7 @@ module.exports = new Class({
   alive: {},
 
   options: {
+    stat_hosts: ['_all'],
 
 		id: 'ui',
 
@@ -441,88 +442,94 @@ module.exports = new Class({
 
     // this.removeEvent('onSuspend', this.__close_changes)
   },
-  __changes: function(host){
-    debug_internals('__changes', host)
+  __changes: function(hosts){
+    debug_internals('__changes', hosts)
 
-    if(!this.feeds[host]){
+    if(!Array.isArray(hosts)) hosts = [hosts]
+    Array.each(hosts, function(host){
+      if(!this.feeds[host]){
 
-      // this.addEvent('onSuspend', _close)
-      this.addEvent('onSuspend', this.__close_changes.pass(host, this))
+        // this.addEvent('onSuspend', _close)
+        this.addEvent('onSuspend', this.__close_changes.pass(host, this))
 
-      if(!this.changes_buffer[host]) this.changes_buffer[host] = []
+        if(!this.changes_buffer[host]) this.changes_buffer[host] = []
 
-      if(!this.changes_buffer_expire[host]) this.changes_buffer_expire[host] = Date.now()
+        if(!this.changes_buffer_expire[host]) this.changes_buffer_expire[host] = Date.now()
 
-      let _to_run = undefined
-      if(this.options.on_demand){
-        _to_run = this.r.db(this.options.db).
-                  table('periodical').
-                  getAll(host, {index: 'host'}).
-                  changes({includeTypes: true, squash: 1.1}).filter(this.r.row('old_val').eq(null))('new_val')
-      }
-      else{
-        _to_run = this.r.db(this.options.db).
-                  table('periodical').
-                  changes({includeTypes: true, squash: 1.1}).filter(this.r.row('old_val').eq(null))('new_val')
-      }
+        let _to_run = undefined
+        // if(this.options.on_demand){
+        if(host && host !== '_all'){
+          _to_run = this.r.db(this.options.db).
+                    table('periodical').
+                    getAll(host, {index: 'host'}).
+                    changes({includeTypes: true, squash: 1.1}).filter(this.r.row('old_val').eq(null))('new_val')
+        }
+        else{
+          _to_run = this.r.db(this.options.db).
+                    table('periodical').
+                    changes({includeTypes: true, squash: 1.1}).filter(this.r.row('old_val').eq(null))('new_val')
+        }
 
-      _to_run.run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
-        debug_internals('__cursor %s', new Date())
+        _to_run.run(this.conn, {maxBatchSeconds: 1}, function(err, cursor) {
+          debug_internals('__cursor %s', new Date())
 
-        this.feeds[host] = cursor
+          this.feeds[host] = cursor
 
-        // let expire = Date.now() - 1000
-        this.feeds[host].each(function(err, row){
+          // let expire = Date.now() - 1000
+          this.feeds[host].each(function(err, row){
 
-          debug_internals('each %s', new Date())
+            debug_internals('each %s', new Date())
 
-          /**
-          * https://www.rethinkdb.com/api/javascript/each/
-          * Iteration can be stopped prematurely by returning false from the callback.
-          */
-          if(this.close_feeds[host] === true){ this.close_feeds[host] = false; delete this.feeds[host]; return false }
+            /**
+            * https://www.rethinkdb.com/api/javascript/each/
+            * Iteration can be stopped prematurely by returning false from the callback.
+            */
+            if(this.close_feeds[host] === true){ this.close_feeds[host] = false; delete this.feeds[host]; return false }
 
-          // debug_internals('changes %s', new Date(), row)
-          // process.exit(1)
-          if(row && row !== null ){
-            // if(row.type == 'add'){
-            //   // debug_internals('changes add %s %o', new Date(), row.new_val)
-            //   // debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
-            //   //   new Date(roundMilliseconds(Date.now())),
-            //   //   new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
-            //   //   new Date(roundMilliseconds(this.changes_buffer_expire[host])),
-            //   //   row.new_val.metadata.host,
-            //   //   row.new_val.metadata.path
-            //   // )
-            //
-            //   this.changes_buffer[host].push(row.new_val)
-            // }
-            this.changes_buffer[host].push(row)
+            // debug_internals('changes %s', new Date(), row)
+            // process.exit(1)
+            if(row && row !== null ){
+              // if(row.type == 'add'){
+              //   // debug_internals('changes add %s %o', new Date(), row.new_val)
+              //   // debug_internals("changes add now: %s \n timstamp: %s \n expire: %s \n host: %s \n path: %s",
+              //   //   new Date(roundMilliseconds(Date.now())),
+              //   //   new Date(roundMilliseconds(row.new_val.metadata.timestamp)),
+              //   //   new Date(roundMilliseconds(this.changes_buffer_expire[host])),
+              //   //   row.new_val.metadata.host,
+              //   //   row.new_val.metadata.path
+              //   // )
+              //
+              //   this.changes_buffer[host].push(row.new_val)
+              // }
+              this.changes_buffer[host].push(row)
 
-            if(this.changes_buffer_expire[host] < Date.now() - 999 && this.changes_buffer[host].length > 0){
-              // console.log('onPeriodicalDoc', this.changes_buffer.length)
-              // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
+              if(this.changes_buffer_expire[host] < Date.now() - 999 && this.changes_buffer[host].length > 0){
+                // console.log('onPeriodicalDoc', this.changes_buffer.length)
+                // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
 
-              this.__process_changes(this.changes_buffer[host])
+                this.__process_changes(this.changes_buffer[host])
 
 
-              this.changes_buffer_expire[host] = Date.now()
-              this.changes_buffer[host] = []
+                this.changes_buffer_expire[host] = Date.now()
+                this.changes_buffer[host] = []
+
+              }
 
             }
 
-          }
 
+          }.bind(this))
 
         }.bind(this))
 
-      }.bind(this))
+      }
+      else{
+        // throw new Error('feed already exist')
+        debug_internals('feed already exist')
+      }
+    }.bind(this))
 
-    }
-    else{
-      // throw new Error('feed already exist')
-      debug_internals('feed already exist')
-    }
+
   },
   // __changes: function(){
   //   debug_internals('__changes')
@@ -616,7 +623,8 @@ module.exports = new Class({
 
     // this.addEvent('onConnect', this.__changes.bind(this))
     // this.addEvent('onResume', this.__changes.bind(this))
-
+    this.parent(options);//override default options
+    
     if(options.on_demand){
       this.addEvent('onSuspend', function(){
         debug_internals('onSuspend')
@@ -628,10 +636,11 @@ module.exports = new Class({
       }.bind(this))
     }
     else{
-      this.addEvent('onConnect', this.__changes.pass('_', this))
+
+      this.addEvent('onConnect', this.__changes.pass([this.options.stat_hosts], this))
     }
 
-		this.parent(options);//override default options
+
 
 		this.log('ui', 'info', 'ui started');
 

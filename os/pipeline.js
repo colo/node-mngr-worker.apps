@@ -126,7 +126,58 @@ module.exports = {
         // },
 			},
 		},
-	}
+	},
+  // {
+	// 	poll: {
+	// 		id: "input.os.elk.http",
+	// 		conn: [
+  //
+  //       {
+	// 				scheme: 'http',
+	// 				host:'elk',
+	// 				port: 8081,
+	// 				module: OSPollHttp,
+	// 				// load: ['apps/info/os/']
+  //         load: ['apps/os/input/os']
+	// 			},
+  //
+	// 		],
+  //     connect_retry_count: -1,
+  //     connect_retry_periodical: 1000,
+	// 		requests: {
+	// 			// periodical: 1000,
+  //       periodical: function(dispatch){
+  //         // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+  //         return cron.schedule('* * * * * *', dispatch);//every 20 secs
+  //       },
+	// 		},
+	// 	},
+	// },
+  //
+  // {
+	// 	poll: {
+	// 		id: "input.os.procs.elk.http",
+	// 		conn: [
+	// 			{
+	// 				scheme: 'http',
+	// 				host:'elk',
+	// 				port: 8081,
+	// 				module: ProcsPollHttp,
+  //         load: ['apps/os/input/procs']
+	// 			},
+  //
+	// 		],
+  //     connect_retry_count: -1,
+  //     connect_retry_periodical: 1000,
+	// 		requests: {
+	// 			periodical: 1000,//ms
+  //       // periodical: function(dispatch){
+  //       //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+  //       //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
+  //       // },
+	// 		},
+	// 	},
+	// }
  ],
  filters: [
 		// require('./snippets/filter.sanitize.template'),
