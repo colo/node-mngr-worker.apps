@@ -24,11 +24,11 @@ const EXPIRE_ID = 5 * SECOND
 let get_changes = function(req, next, app){
   if(app.options.on_demand){
 
-    debug_internals('get_ %s', new Date(), req.opt);
+    debug_internals('get_ %s', new Date(), req);
 
     let hosts = undefined
     let paths = undefined
-    let range = (req && req.opt && req.opt.range) ? req.opt.range : {start: Date.now() - 1999, end: Date.now()}
+    let range = (req && req.opt && req.opt.range) ? req.opt.range : {start: Date.now() - 2100, end: Date.now()}
 
     if(req && req.query.hosts){
       try{
@@ -334,9 +334,12 @@ module.exports = new Class({
               })
 
           }
-        }
-      //   {
-      //     get_periodical: get_changes,
+        },
+        // {
+        //   get_periodical: function(req, next, app){
+        //     debug('get_periodical')
+        //     get_changes(req, next, app)
+        //   },
       //
 			// 		// get_changes: function(req, next, app){
 			// 		// 	debug_internals('_get_last_stat %o', next);
@@ -366,8 +369,8 @@ module.exports = new Class({
       //     //
       //     //
 			// 		// }
-			// 	},
-      //
+				// },
+
 			],
 
 
@@ -446,11 +449,14 @@ module.exports = new Class({
     debug_internals('__changes', hosts)
 
     if(!Array.isArray(hosts)) hosts = [hosts]
+
     Array.each(hosts, function(host){
       if(!this.feeds[host]){
 
         // this.addEvent('onSuspend', _close)
         this.addEvent('onSuspend', this.__close_changes.pass(host, this))
+        this.addEvent('onExit', this.__close_changes.pass(host, this))
+        this.addEvent('onDisconnect', this.__close_changes.pass(host, this))
 
         if(!this.changes_buffer[host]) this.changes_buffer[host] = []
 
@@ -478,7 +484,7 @@ module.exports = new Class({
           // let expire = Date.now() - 1000
           this.feeds[host].each(function(err, row){
 
-            debug_internals('each %s', new Date())
+            // debug_internals('each %s', new Date(), row, host)
 
             /**
             * https://www.rethinkdb.com/api/javascript/each/
@@ -506,6 +512,8 @@ module.exports = new Class({
               if(this.changes_buffer_expire[host] < Date.now() - 999 && this.changes_buffer[host].length > 0){
                 // console.log('onPeriodicalDoc', this.changes_buffer.length)
                 // this.fireEvent('onPeriodicalDoc', [Array.clone(this.changes_buffer), {type: 'periodical', input_type: this, app: null}])
+
+                debug_internals('each %s %s', new Date(), host)
 
                 this.__process_changes(this.changes_buffer[host])
 
@@ -624,7 +632,7 @@ module.exports = new Class({
     // this.addEvent('onConnect', this.__changes.bind(this))
     // this.addEvent('onResume', this.__changes.bind(this))
     this.parent(options);//override default options
-    
+
     if(options.on_demand){
       this.addEvent('onSuspend', function(){
         debug_internals('onSuspend')
@@ -638,6 +646,12 @@ module.exports = new Class({
     else{
 
       this.addEvent('onConnect', this.__changes.pass([this.options.stat_hosts], this))
+      this.addEvent('onDisconnect', function(){
+        this.removeEvent('onConnect', this.__changes.pass([this.options.stat_hosts], this))
+      }.bind(this))
+      this.addEvent('onExit', function(){
+        this.removeEvent('onConnect', this.__changes.pass([this.options.stat_hosts], this))
+      }.bind(this))
     }
 
 
