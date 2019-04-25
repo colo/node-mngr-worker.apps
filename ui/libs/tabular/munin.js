@@ -75,46 +75,46 @@ let __process_chart = function(chart, name, stat){
 
 }
 
-let return_charts = function(stats, path){
-  debug_internals('return_charts path', stats, path)
-  // let charts = {}
-
-  if(stats && stats !== null){
-    let cloned_chart = Object.clone(chart)
-    cloned_chart.style = "width:100%; height:220px;"
-    return __process_stat(cloned_chart, path, Array.clone(stats))
-  }
-  else{
-    return undefined
-  }
-    // Object.each(stats, function(stat, name){
-    //   debug_internals('return_charts name ', name)
-    //   if(allowed_names.test(name))
-    //     if(percentage_stacked.contains(name))
-    //       charts[name] = __process_stat(Object.clone(percentage_stacked_chart), path+'.'+name, stat)
-    //     else
-    //       charts[name] = __process_stat(Object.clone(chart), path+'.'+name, stat)
-    //
-    //   // switch(name){
-    //   //   case 'cpus':
-    //   //     charts['cpus.times'] = __process_stat(os_charts[name].times, 'os.cpus.times', stat)
-    //   //     charts['cpus.percentage'] = __process_stat(os_charts[name].percentage, 'os.cpus.percentage', stat)
-    //   //
-    //   //     break;
-    //   //
-    //   //   default:
-    //   //     if(os_charts[name])
-    //   //       charts[name] = __process_stat(os_charts[name], 'os.'+name, stat)
-    //   //
-    //   // //   // case 'loadavg':
-    //   // //   // case 'uptime':
-    //   // }
-    // })
-
-  // debug_internals('return_charts', charts)
-
-  // return charts
-}
+// let return_charts = function(stats, path){
+//   debug_internals('return_charts path', stats, path)
+//   // let charts = {}
+//
+//   if(stats && stats !== null){
+//     let cloned_chart = Object.clone(chart)
+//     cloned_chart.style = "width:100%; height:220px;"
+//     return __process_stat(cloned_chart, path, Array.clone(stats))
+//   }
+//   else{
+//     return undefined
+//   }
+//     // Object.each(stats, function(stat, name){
+//     //   debug_internals('return_charts name ', name)
+//     //   if(allowed_names.test(name))
+//     //     if(percentage_stacked.contains(name))
+//     //       charts[name] = __process_stat(Object.clone(percentage_stacked_chart), path+'.'+name, stat)
+//     //     else
+//     //       charts[name] = __process_stat(Object.clone(chart), path+'.'+name, stat)
+//     //
+//     //   // switch(name){
+//     //   //   case 'cpus':
+//     //   //     charts['cpus.times'] = __process_stat(os_charts[name].times, 'os.cpus.times', stat)
+//     //   //     charts['cpus.percentage'] = __process_stat(os_charts[name].percentage, 'os.cpus.percentage', stat)
+//     //   //
+//     //   //     break;
+//     //   //
+//     //   //   default:
+//     //   //     if(os_charts[name])
+//     //   //       charts[name] = __process_stat(os_charts[name], 'os.'+name, stat)
+//     //   //
+//     //   // //   // case 'loadavg':
+//     //   // //   // case 'uptime':
+//     //   // }
+//     // })
+//
+//   // debug_internals('return_charts', charts)
+//
+//   // return charts
+// }
 
 module.exports = function(stat, path){
   debug_internals('munin.memory', path)

@@ -426,6 +426,7 @@ let __traverse_path_require = function(type, path, stat, original_path){
 
   // debug_internals('__traverse_path_require %s', path, original_path)
   try{
+    delete require.cache[require.resolve('./libs/'+type+'/'+path)]
     let chart = require('./libs/'+type+'/'+path)(stat, original_path)
 
     return chart
@@ -454,7 +455,7 @@ module.exports = function(conn){
     input: [
     	{
     		poll: {
-          // suspended: true,
+          suspended: true,
     			id: "input.periodical",
           on_demand: false,
     			conn: [
@@ -463,7 +464,7 @@ module.exports = function(conn){
               {
                 // path_key: 'os',
                 module: InputPollerRethinkDBPeriodical,
-                //stat_hosts: ['colo']
+                stat_hosts: ['colo']
               }
             ),
             // Object.merge(
@@ -776,7 +777,7 @@ module.exports = function(conn){
             // // // periodical: 100 //how often will check if buffer timestamp has expire
   					// // // size: -1,
   					expire: 999,
-            periodical: 100 //how often will check if buffer timestamp has expire
+            periodical: 500 //how often will check if buffer timestamp has expire
   				},
 
 

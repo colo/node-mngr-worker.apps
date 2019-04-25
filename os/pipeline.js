@@ -69,14 +69,14 @@ module.exports = {
 				// 	// load: ['apps/info/os/']
         //   load: ['apps/os/input/os']
 				// },
-        {
-					scheme: 'http',
-					host:'dev',
-					port: 8081,
-					module: OSPollHttp,
-					// load: ['apps/info/os/']
-          load: ['apps/os/input/os']
-				}
+        // {
+				// 	scheme: 'http',
+				// 	host:'dev',
+				// 	port: 8081,
+				// 	module: OSPollHttp,
+				// 	// load: ['apps/info/os/']
+        //   load: ['apps/os/input/os']
+				// }
 			],
       connect_retry_count: -1,
       connect_retry_periodical: 1000,
@@ -108,13 +108,13 @@ module.exports = {
 				// 	module: ProcsPollHttp,
         //   load: ['apps/os/input/procs']
 				// },
-        {
-					scheme: 'http',
-					host:'dev',
-					port: 8081,
-					module: ProcsPollHttp,
-          load: ['apps/os/input/procs']
-				}
+        // {
+				// 	scheme: 'http',
+				// 	host:'dev',
+				// 	port: 8081,
+				// 	module: ProcsPollHttp,
+        //   load: ['apps/os/input/procs']
+				// }
 			],
       connect_retry_count: -1,
       connect_retry_periodical: 1000,

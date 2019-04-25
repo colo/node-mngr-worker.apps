@@ -36,7 +36,7 @@ module.exports = new Class({
       if(i == doc.length -1)
         multi.exec(function (err, result) {
           debug_internals('multi.exec', err, result)
-          this.fireEvent(this.ON_DOC_SAVED, [err, result])
+          // this.fireEvent(this.ON_DOC_SAVED, [err, result])
           conn.publish(channel, keys.join(','), function (err, result) {
             debug_internals('publish', err, result)
           })

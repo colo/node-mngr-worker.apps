@@ -74,7 +74,8 @@ let __process_chart = function(chart, name, stat){
 
 // module.exports = function(stat, name, cb){
 module.exports = function(stat, name){
-  return __process_stat(Object.clone(DefaultDygraphLine), name, stat)
+  // return __process_stat(Object.clone(DefaultDygraphLine), name, stat)
+  return __process_stat(DefaultDygraphLine, name, stat)
   // cb(chart)
 
   // data_to_tabular(doc, {}, name, function(name, tabular){
