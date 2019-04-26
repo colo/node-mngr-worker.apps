@@ -43,7 +43,7 @@ module.exports = function(val, opts, next, pipeline){
             /**
             * properties[0] is "if", we want recived | transmited only
             **/
-            if(index != 0){
+            if(index != 0 && val[iface] && val[iface][property] && val[iface][property][messure]){
               networkInterfaces[iface+'_'+messure][property] = val[iface][property][messure] * 1
 							if(isNaN(networkInterfaces[iface+'_'+messure][property]))
 								delete networkInterfaces[iface+'_'+messure][property]
