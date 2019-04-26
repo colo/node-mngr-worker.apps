@@ -148,7 +148,7 @@ let __transform_data = function(type, data, cache_key, cb){
 
   let transform_result_counter = 0
 
-  debug('__transform_data', type, data, transforms)
+  // debug('__transform_data', type, data, transforms)
 
   Object.each(data, function(d, path){
     if(d && d !== null){
@@ -419,26 +419,47 @@ let __transform_name = function(name){
   return name
 }
 
-let __traverse_path_require = function(type, path, stat, original_path){
-  original_path = original_path || path
-  path = path.replace(/_/g, '.')
-  original_path = original_path.replace(/_/g, '.')
+let __traverse_path_require = function(type, stat_path, stat, original_stat_path){
+  original_stat_path = original_stat_path || stat_path
+  stat_path = stat_path.replace(/_/g, '.')
+  original_stat_path = original_stat_path.replace(/_/g, '.')
 
-  // debug_internals('__traverse_path_require %s', path, original_path)
-  try{
-    delete require.cache[require.resolve('./libs/'+type+'/'+path)]
-    let chart = require('./libs/'+type+'/'+path)(stat, original_path)
 
-    return chart
-  }
-  catch(e){
-    if(path.indexOf('.') > -1){
-      let pre_path = path.substring(0, path.lastIndexOf('.'))
-      return __traverse_path_require(type, pre_path, stat, original_path)
+  // console.log(require.cache)
+  // if(require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)]){
+  //   debug_internals('__traverse_path_require', require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)])
+  //
+  //   return require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)]
+  // }
+  // else{
+    // debug_internals('__traverse_path_require', stat_path, original_stat_path)
+
+    // try{
+    //   console.log(require.resolve(require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)]))
+    // }
+    // catch(e){
+    //
+    // }
+    try{
+      // delete require.cache[require.resolve('./libs/'+type+'/'+stat_path)]
+      // debug_internals('__traverse_path_require %o', require.resolve(path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)))
+      // console.log(require.resolve(require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)]))
+
+      let chart = require('./libs/'+type+'/'+stat_path)(stat, original_stat_path)
+
+      return chart
     }
+    catch(e){
+      if(stat_path.indexOf('.') > -1){
+        let pre_stat_path = stat_path.substring(0, stat_path.lastIndexOf('.'))
+        return __traverse_path_require(type, pre_stat_path, stat, original_stat_path)
+      }
 
-    return undefined
-  }
+      return undefined
+    }
+  // }
+
+
 
 }
 
@@ -548,7 +569,7 @@ module.exports = function(conn){
                 debug_internals('__transform_data -> stat', host)
 
                 Object.each(stat, function(stat_data, stat_path){
-                  debug_internals(stat_data, stat_path)
+                  // debug_internals(stat_data, stat_path)
 
                   // let counter = 0
                   // let now = Date.now()
