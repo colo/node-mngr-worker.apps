@@ -415,18 +415,24 @@ module.exports = new Class({
 
     }.bind(this))
 
-    Object.each(data, function(host_data, host){
-      // debug_internals('changes emiting %o', host, host_data)
-      let doc = {}
-      doc[host] = host_data
-      this.fireEvent('onDoc', [doc, Object.merge(
-        {input_type: this, app: null},
-        // {host: host, type: 'host', prop: prop, id: id}
-        // {type: prop, host: host}
-      )])
+    this.fireEvent('onDoc', [data, Object.merge(
+      {input_type: this, app: null},
+      // {host: host, type: 'host', prop: prop, id: id}
+      // {type: prop, host: host}
+    )])
 
-
-    }.bind(this))
+    // Object.each(data, function(host_data, host){
+    //   // debug_internals('changes emiting %o', host, host_data)
+    //   let doc = {}
+    //   doc[host] = host_data
+    //   this.fireEvent('onDoc', [doc, Object.merge(
+    //     {input_type: this, app: null},
+    //     // {host: host, type: 'host', prop: prop, id: id}
+    //     // {type: prop, host: host}
+    //   )])
+    //
+    //
+    // }.bind(this))
   },
   __close_changes: function(host){
     debug_internals('__close_changes', host)

@@ -464,7 +464,7 @@ module.exports = function(conn){
               {
                 // path_key: 'os',
                 module: InputPollerRethinkDBPeriodical,
-                //stat_hosts: ['colo']
+                // stat_hosts: ['colo']
               }
             ),
             // Object.merge(
