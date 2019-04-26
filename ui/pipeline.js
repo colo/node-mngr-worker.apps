@@ -2,9 +2,18 @@
 
 let debug = require('debug')('Server:Apps:UI:Pipeline');
 let debug_internals = require('debug')('Server:Apps:UI:Pipeline:Internals');
-let ss = require('simple-statistics');
+// let ss = require('simple-statistics');
 
 const path = require('path');
+
+let glob = require( 'glob' )
+glob.sync( __dirname+'/libs/**/*.js' ).forEach( function( file ) {
+  debug_internals('requiring...', file, __dirname)
+  require( path.resolve( file ) );
+});
+// console.log(process.cwd())
+// console.log(require.cache[path.resolve(process.cwd(), './apps/ui/libs/stat/index.js')])
+// throw new Error()
 
 let cron = require('node-cron');
 
@@ -440,16 +449,12 @@ let __traverse_path_require = function(type, stat_path, stat, original_stat_path
     // catch(e){
     //
     // }
-    try{
-      // delete require.cache[require.resolve('./libs/'+type+'/'+stat_path)]
-      // debug_internals('__traverse_path_require %o', require.resolve(path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)))
-      // console.log(require.resolve(require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)]))
-
-      let chart = require('./libs/'+type+'/'+stat_path)(stat, original_stat_path)
-
-      return chart
+    if(require.cache[path.resolve(__dirname, './libs/'+type+'/'+stat_path+'.js')]){
+      debug_internals('__traverse_path_require %s',path.resolve(__dirname, './libs/'+type+'/'+stat_path+'.js'))
+      // console.log(require.cache[path.resolve(process.cwd(), './apps/ui/libs/'+type+'/'+stat_path+'.js')])
+      return require.cache[path.resolve(__dirname, './libs/'+type+'/'+stat_path+'.js')].exports(stat, original_stat_path)
     }
-    catch(e){
+    else {
       if(stat_path.indexOf('.') > -1){
         let pre_stat_path = stat_path.substring(0, stat_path.lastIndexOf('.'))
         return __traverse_path_require(type, pre_stat_path, stat, original_stat_path)
@@ -457,6 +462,24 @@ let __traverse_path_require = function(type, stat_path, stat, original_stat_path
 
       return undefined
     }
+
+    // try{
+    //   // delete require.cache[require.resolve('./libs/'+type+'/'+stat_path)]
+    //   // debug_internals('__traverse_path_require %o', require.resolve(path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)))
+    //   // console.log(require.resolve(require.cache[path.resolve(process.cwd(),'./libs/'+type+'/'+stat_path)]))
+    //
+    //   let chart = require('./libs/'+type+'/'+stat_path)(stat, original_stat_path)
+    //
+    //   return chart
+    // }
+    // catch(e){
+    //   if(stat_path.indexOf('.') > -1){
+    //     let pre_stat_path = stat_path.substring(0, stat_path.lastIndexOf('.'))
+    //     return __traverse_path_require(type, pre_stat_path, stat, original_stat_path)
+    //   }
+    //
+    //   return undefined
+    // }
   // }
 
 
