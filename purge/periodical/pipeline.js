@@ -15,7 +15,7 @@ var cron = require('node-cron');
 //
 // PollCradle = require('node-app-cradle-client/load')(PollCradle)
 // const InputPollerRethinkDBOS = require ( './input/rethinkdb.os.js' )
-const InputPollerRethinkDBPurge = require ( '../index' )
+const InputPollerRethinkDBPurge = require ( '../input/rethinkdb' )
 
 module.exports = function(conn){
   let conf = {

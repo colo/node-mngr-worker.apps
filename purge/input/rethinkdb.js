@@ -3,9 +3,9 @@
 // var App = require('node-app-cradle-client');
 let App = require('node-app-rethinkdb-client')
 
-var debug = require('debug')('Server:Apps:Purge');
-var debug_internals = require('debug')('Server:Apps:Purge:Internals');
-var debug_events = require('debug')('Server:Apps:Purge:Events');
+var debug = require('debug')('Server:Apps:Purge:Input:RethinkDB');
+var debug_internals = require('debug')('Server:Apps:Purge:Input:RethinkDB:Internals');
+var debug_events = require('debug')('Server:Apps:Purge:Input:RethinkDB:Events');
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)
@@ -372,6 +372,11 @@ module.exports = new Class({
 
 					}.bind(this));
 
+          this.fireEvent('onDoc', [{paths: this.paths}, Object.merge(
+            {input_type: this, app: null},
+            // {host: host, type: 'host', prop: prop, id: id}
+            // {type: prop, host: host}
+          )])
 					debug_internals('PATHs %o', this.paths);
 				}
 			}
@@ -390,6 +395,12 @@ module.exports = new Class({
               this.hosts.push(row)
 
           }.bind(this));
+
+          this.fireEvent('onDoc', [{hosts: this.hosts}, Object.merge(
+            {input_type: this, app: null},
+            // {host: host, type: 'host', prop: prop, id: id}
+            // {type: prop, host: host}
+          )])
 
           debug_internals('HOSTs %o', this.hosts);
 				}
