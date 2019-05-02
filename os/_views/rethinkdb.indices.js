@@ -4,7 +4,7 @@ const HOST = 'elk'
 const PORT = 28015
 const DATABASES = ['servers']
 // const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
-const TABLES = ['periodical', 'ui']
+const TABLES = ['periodical', 'historical']
 
 
 // const DATABASE = 'historical'
@@ -210,6 +210,12 @@ let MyApp = new Class({
       uri: params.options.uri+'/'+params.options.args[0],
       args:'path',
       row: this.r.row("metadata")("path")
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'type',
+      row: this.r.row("metadata")("type")
     })
 
     this.indexCreate({

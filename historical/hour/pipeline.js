@@ -1,4 +1,4 @@
-'use stric'
+'use strict'
 
 let debug = require('debug')('Server:Apps:Historical:Hour:Pipeline');
 let debug_internals = require('debug')('Server:Apps:Historical:Hour:Pipeline:Internals');
@@ -257,6 +257,12 @@ module.exports = function(conn){
 
 
                   });
+
+                  new_doc.id = new_doc.metadata.host+
+                    '.historical.hour.'+
+                    new_doc.metadata.path+'.'+
+                    new_doc.metadata.range.start+'-'+
+                    new_doc.metadata.range.end+'@'+Date.now()
 
                   sanitize_filter(
                     new_doc,

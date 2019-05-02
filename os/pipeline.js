@@ -1,4 +1,4 @@
-'use stric'
+'use strict'
 
 var debug = require('debug')('Server:Apps:OS:Pipeline');
 var debug_internals = require('debug')('Server:Apps:OS:Pipeline:Internals');

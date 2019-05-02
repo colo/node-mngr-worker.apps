@@ -1,4 +1,4 @@
-'use stric'
+'use strict'
 
 
 var debug = require('debug')('Server:Apps:Purge:Periodical:Pipeline');

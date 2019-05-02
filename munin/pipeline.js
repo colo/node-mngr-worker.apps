@@ -1,4 +1,4 @@
-'use stric'
+'use strict'
 
 
 let debug = require('debug')('Server:Apps:Munin:Pipeline');

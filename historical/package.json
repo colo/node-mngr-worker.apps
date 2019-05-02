@@ -1,0 +1,28 @@
+{
+  "name": "historical",
+  "version": "0.0.1",
+  "description": "historical App",
+  "author": {
+    "name": "Luciano Bueno",
+    "email": "glamero@gmail.com"
+  },
+  "main": "./",
+  "engines": {
+    "node": ">= 0.10.21"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": [
+    "historical",
+    "authentication"
+  ],
+  "dependencies": {
+    "simple-statistics": "^7.0.2"
+  }
+}
