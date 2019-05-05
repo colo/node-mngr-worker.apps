@@ -1,14 +1,49 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:Frontail:Pipeline');
-var debug_internals = require('debug')('Server:Apps:Frontail:Pipeline:Internals');
 
-const path = require('path');
+var debug = require('debug')('Server:Apps:Nginx:Pipeline')
+var debug_internals = require('debug')('Server:Apps:Nginx:Pipeline:Internals')
+
+const url = require('url')
+
+const path = require('path')
+const os = require('os')
+
+const ETC =  process.env.NODE_ENV === 'production'
+      ? path.resolve(process.cwd(), './etc/')
+      : path.resolve(process.cwd(), './devel/etc/')
 
 let cron = require('node-cron');
 
 const FrontailHttp = require('./input/frontail.http')
 const FrontailIO = require('./input/frontail.io')
+
+// const NginxParser = require('nginxparser')
+//
+// let parser = new NginxParser('$remote_addr - $remote_user [$time_local] '
+// 		+ '"$request" $status $body_bytes_sent "$http_referer" '
+//     + '"$http_user_agent" "$http_x_forwarded_for"')
+
+const Parser =require('@robojones/nginx-log-parser').Parser
+const parser = new Parser('$remote_addr - $remote_user [$time_local] '
+		+ '"$request" $status $body_bytes_sent "$http_referer" '
+    + '"$http_user_agent" "$http_x_forwarded_for"')
+
+const moment = require ('moment')
+
+const fs = require('fs');
+const Reader = require('@maxmind/geoip2-node').Reader;
+
+const cityBuffer = fs.readFileSync(ETC+'/geoip/GeoLite2-City.mmdb');
+const cityReader = Reader.openBuffer(cityBuffer);
+
+// const countryBuffer = fs.readFileSync(ETC+'/geoip/GeoLite2-Country.mmdb');
+// const countryReader = Reader.openBuffer(countryBuffer);
+
+const uaParser = require('ua-parser2')()
+const ip = require('ip')
+
+
 
 // let procs_filter = require('./filters/proc'),
 //     networkInterfaces_filter = require('./filters/networkInterfaces'),
@@ -75,13 +110,14 @@ module.exports = {
 	{
 		poll: {
 			id: "input.frontail.http",
-			conn: [
+      conn: [
 				{
 					scheme: 'http',
 					host:'127.0.0.1',
 					port: 9001,
 					module: FrontailHttp,
-					// load: ['apps/info/os/']
+          domain: 'formacion.cetrogar.com.ar',
+          // load: ['apps/info/os/']
           // load: ['apps/frontail/input/os']
 				},
 
@@ -106,6 +142,7 @@ module.exports = {
       debug_internals('filter doc', doc)
       if(doc['socket.io']){
         socket_io_input.poll.conn[0].path = doc['socket.io'].ns
+        socket_io_input.poll.conn[0].domain = doc['socket.io'].domain
         let _input = pipeline.__process_input(socket_io_input)
 
         debug_internals('input', _input)
@@ -121,14 +158,54 @@ module.exports = {
       }
     },
     function(doc, opts, next, pipeline){
-      debug_internals('filters to apply...', doc )
+      debug_internals('filters to apply...', doc, opts.input.options.id )
       /**
       * https://github.com/chriso/nginx-parser
-      * https://github.com/robojones/nginx-log-parser
+      * -> https://github.com/robojones/nginx-log-parser
       * https://www.npmjs.com/package/log-analyzer
       * https://github.com/nickolanack/node-apache-log
       * https://github.com/blarsen/node-alpine
       **/
+      // parser.parseLine(doc.line, function(line){
+      //   debug('parsed line', line)
+      // })
+
+      let result = parser.parseLine(doc.log)
+      result.log = doc.log
+      result.timestamp = moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf()
+      result.status *=1
+      result.body_bytes_sent *=1
+
+      if(result.remote_addr && !ip.isPrivate(result.remote_addr) )
+        result.geoip = cityReader.city(result.remote_addr)
+
+      // if(result.http_user_agent && result.http_user_agent)
+      // debug('ua', )
+      let ua = JSON.parse(JSON.stringify(uaParser.parse(result.http_user_agent)))
+      delete ua.string
+      result = Object.merge(result, ua)
+
+      // result.country = countryReader.country(result.remote_addr)
+
+      let ts = Date.now()
+
+      let new_doc = {
+        id: os.hostname()+'.'+opts.input.options.id+'.nginx.'+doc.domain+'@'+ts,
+        data: result,
+        metadata: {
+          host: os.hostname(),
+          path: 'frontail',
+          domain: doc.domain,
+          timestamp: ts,
+          tags: ['nginx', 'log'],
+          type: 'periodical'
+        }
+      }
+
+      // debug('parsed line', new_doc.data.geoip.location)
+      next(new_doc)
+
+      // debug('ETC', ETC)
     },
     // function(doc, opts, next, pipeline){
     //   let { type, input, input_type, app } = opts
@@ -350,16 +427,17 @@ module.exports = {
 					{
             host: 'elk',
 						port: 28015,
-						db: 'servers',
+						db: 'logs',
             table: 'periodical',
 					},
 				],
-				module: require('js-pipeline/output/rethinkdb'),
+				// module: require('js-pipeline/output/rethinkdb'),
+        module: require('./output/rethinkdb.geospatial'),
         buffer:{
-					// size: 1, //-1
-					// expire:0
-          size: -1,
-          expire: 999,
+					size: 1, //-1
+					expire:0
+          // size: -1,
+          // expire: 999,
 				}
 			}
 		}

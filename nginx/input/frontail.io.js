@@ -7,9 +7,9 @@ const App = require ( 'node-app-socket.io-client/index' )
 
 const Debug = require('debug')
 
-const debug = Debug("Server:Apps:Frontail:Input:IO")
-const debug_internals = Debug("Server:Apps:Frontail:Input:IO:Internals")
-// debug_events = Debug("Server:Apps:Frontail:Input:IO:Events");
+const debug = Debug("Server:Apps:Nginx:Input:IO")
+const debug_internals = Debug("Server:Apps:Nginx:Input:IO:Internals")
+// debug_events = Debug("Server:Apps:Nginx:Input:IO:Events");
 
 // import store from 'src/store'
 
@@ -122,7 +122,13 @@ module.exports = new Class({
 
     this.fireEvent(
       this.ON_DOC,
-      [{'line' : line}, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+      [
+        {
+          'log' : line,
+          'domain': this.options.domain
+        },
+        {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}
+      ]
     )
 
     // let {type} = doc

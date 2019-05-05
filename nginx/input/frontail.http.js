@@ -1,8 +1,8 @@
 'use strict'
 
 // var App = require('node-app-http-client');
-var debug = require('debug')('Server:Apps:Frontail:Input:Http');
-var debug_internals = require('debug')('Server:Apps:Frontail:Input:Http:Internals');
+var debug = require('debug')('Server:Apps:Nginx:Input:Http');
+var debug_internals = require('debug')('Server:Apps:Nginx:Input:Http:Internals');
 
 
 const App = require('node-app-http-client')
@@ -108,7 +108,8 @@ module.exports = new Class({
       // debug_internals('get tokenize %O', esprima.tokenize(js))
       let socket_io = {
         ns: undefined,
-        path: undefined
+        path: undefined,
+        domain: this.options.domain
       }
 
       Array.each(esprima.tokenize(js), function(token){
