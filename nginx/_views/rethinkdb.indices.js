@@ -278,9 +278,9 @@ let MyApp = new Class({
         this.r.row("metadata")("domain"),
         this.r.row("data")("timestamp"),
         this.r.row("metadata")("type"),
-        this.r.row("metadata")("tags")
+        // this.r.row("metadata")("tags")
       ],
-      opts: {multi:true}
+      // opts: {multi:true}
     })
 
     // this.tableList({uri: 'test'})

@@ -105,6 +105,11 @@ let socket_io_input = {
   }
 }
 
+/**
+* to test different type of tags
+**/
+// let tag_type = 'nginx'
+
 module.exports = {
  input: [
 	{
@@ -158,6 +163,10 @@ module.exports = {
       }
     },
     function(doc, opts, next, pipeline){
+      /**
+      * to test different type of tags
+      **/
+      // tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
       debug_internals('filters to apply...', doc, opts.input.options.id )
       /**
       * https://github.com/chriso/nginx-parser
@@ -197,6 +206,7 @@ module.exports = {
           path: 'frontail',
           domain: doc.domain,
           timestamp: ts,
+          // tags: [tag_type, 'log'],
           tags: ['nginx', 'log'],
           type: 'periodical'
         }
