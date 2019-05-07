@@ -1,5 +1,4 @@
 *~
-logs/*
 devel/*
 *.log
 node_modules
