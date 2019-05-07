@@ -250,38 +250,48 @@ let MyApp = new Class({
     //
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
+      // args:'sort_by_host_timestamp',
+      // row: [
+      //   this.r.row("metadata")("host"),
+      //   this.r.row("metadata")("timestamp"),
+      //   this.r.row("metadata")("type"),
+      //   this.r.row("metadata")("tags")
+      // ],
+      // opts: {multi:true}
+
+
       args:'sort_by_host_timestamp',
-      row: [
-        this.r.row("metadata")("host"),
-        this.r.row("metadata")("timestamp"),
-        this.r.row("metadata")("type"),
-        this.r.row("metadata")("tags")
-      ],
+      row: row => row("metadata")("tags").
+        map(
+          tag => [row('metadata')("host"), row("metadata")("type"), tag, row("metadata")("timestamp")]
+        ),
       opts: {multi:true}
     })
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
       args:'sort_by_domain_timestamp',
-      row: [
-        this.r.row("metadata")("domain"),
-        this.r.row("metadata")("timestamp"),
-        this.r.row("metadata")("type"),
-        this.r.row("metadata")("tags")
-      ],
+      row: row => row("metadata")("tags").
+        map(
+          tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("metadata")("timestamp")]
+        ),
       opts: {multi:true}
     })
 
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args:'sort_by_domain_data.timestamp',
-      row: [
-        this.r.row("metadata")("domain"),
-        this.r.row("data")("timestamp"),
-        this.r.row("metadata")("type"),
-        // this.r.row("metadata")("tags")
-      ],
-      // opts: {multi:true}
-    })
+    // this.indexCreate({
+    //   uri: params.options.uri+'/'+params.options.args[0],
+    //   // args: ['sort_by_domain_data.timestamp',
+    //   //   row => row("metadata")("tags").
+    //   //   map(
+    //   //     tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("data")("timestamp")]
+    //   //   ), {multi: true}
+    //   // ]
+    //   args:'sort_by_domain_data.timestamp',
+    //   row: row => row("metadata")("tags").
+    //     map(
+    //       tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("data")("timestamp")]
+    //     ),
+    //   opts: {multi:true}
+    // })
 
     // this.tableList({uri: 'test'})
     // this.tableDrop({uri: 'test', args:['test_table']})

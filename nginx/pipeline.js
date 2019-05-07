@@ -108,7 +108,7 @@ let socket_io_input = {
 /**
 * to test different type of tags
 **/
-// let tag_type = 'nginx'
+let tag_type = 'nginx'
 
 module.exports = {
  input: [
@@ -166,7 +166,7 @@ module.exports = {
       /**
       * to test different type of tags
       **/
-      // tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
+      tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
       debug_internals('filters to apply...', doc, opts.input.options.id )
       /**
       * https://github.com/chriso/nginx-parser
@@ -181,7 +181,9 @@ module.exports = {
 
       let result = parser.parseLine(doc.log)
       result.log = doc.log
-      result.timestamp = moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf()
+      // if(result.time_local)
+      //   result.timestamp = moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf()
+
       result.status *=1
       result.body_bytes_sent *=1
 
@@ -196,7 +198,9 @@ module.exports = {
 
       // result.country = countryReader.country(result.remote_addr)
 
-      let ts = Date.now()
+      let ts = (result.time_local) ? moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf() : Date.now()
+
+
 
       let new_doc = {
         id: os.hostname()+'.'+opts.input.options.id+'.nginx.'+doc.domain+'@'+ts,
@@ -205,9 +209,9 @@ module.exports = {
           host: os.hostname(),
           path: 'frontail',
           domain: doc.domain,
-          timestamp: ts,
-          // tags: [tag_type, 'log'],
-          tags: ['nginx', 'log'],
+          timestamp: Date.now(),
+          tags: [tag_type, 'log'],
+          // tags: ['nginx', 'log'],
           type: 'periodical'
         }
       }
@@ -444,10 +448,10 @@ module.exports = {
 				// module: require('js-pipeline/output/rethinkdb'),
         module: require('./output/rethinkdb.geospatial'),
         buffer:{
-					size: 1, //-1
-					expire:0
-          // size: -1,
-          // expire: 999,
+					// size: 1, //-1
+					// expire:0
+          size: -1,
+          expire: 999,
 				}
 			}
 		}
