@@ -3,7 +3,7 @@
 var debug = require('debug')('Server:Apps:Logs:Nginx:Pipeline')
 var debug_internals = require('debug')('Server:Apps:Logs:Nginx:Pipeline:Internals')
 
-const url = require('url')
+const URL = require('url').URL
 
 const path = require('path')
 const os = require('os')
@@ -42,6 +42,8 @@ const cityReader = Reader.openBuffer(cityBuffer);
 
 const uaParser = require('ua-parser2')()
 const ip = require('ip')
+const qs = require('qs')
+
 
 
 
@@ -205,6 +207,16 @@ module.exports = function(frontail, domain){
 
           result.status *=1
           result.body_bytes_sent *=1
+
+          result.method = result.request.split(' ')[0]
+          result.location = result.request.split(' ')[1]
+          result.version = result.request.split(' ')[2]
+          delete result.request
+          let url = new URL(result.location, 'http://'+doc.domain)
+          result.pathname = url.pathname
+          result.qs = qs.parse(url.search, { ignoreQueryPrefix: true })
+
+          // result.qs = qs.parse(result.query)
 
           if(result.remote_addr && !ip.isPrivate(result.remote_addr) )
             result.geoip = cityReader.city(result.remote_addr)

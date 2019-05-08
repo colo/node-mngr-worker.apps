@@ -450,6 +450,7 @@ let run = new MyApp({
 run.addEvent('onConnect', function(){
   // console.log(arguments)
   // run.close({args: [{noreplyWait: true}]})
+
   Array.each(DATABASES, function(db){
     // run.dbCreate({uri: db})
     run.dbDrop({uri: db})

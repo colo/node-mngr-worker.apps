@@ -32,6 +32,7 @@
     "node-app": "git+https://github.com/colo/node-app.git",
     "node-app-socket.io-client": "git+https://github.com/colo/node-app-socket.io-client.git",
     "node-html-parser": "^1.1.15",
+    "qs": "^6.7.0",
     "ua-parser2": "^0.4.2"
   }
 }
