@@ -235,6 +235,10 @@ module.exports = function(frontail, domain){
           ts += (doc.counter) ? '-'+doc.counter : ''
 
 
+          Object.each(result, function(value, key){
+            if(value === null || value === undefined)
+              delete result[key]
+          })
 
           let new_doc = {
             id: os.hostname()+'.'+opts.input.options.id+'.nginx.'+doc.domain+'@'+ts,
@@ -245,7 +249,7 @@ module.exports = function(frontail, domain){
               domain: doc.domain,
               timestamp: doc_ts,
               // tags: [tag_type, 'web', 'frontail'],
-              tags: ['nginx', 'web', 'frontail'],
+              tags: ['nginx', 'web', doc.input],
               type: 'periodical'
             }
           }

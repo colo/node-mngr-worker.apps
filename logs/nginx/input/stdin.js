@@ -105,7 +105,8 @@ module.exports = new Class({
         {
           'log' : line,
           'domain': this.options.domain,
-          'counter':this.lines_counter
+          'counter':this.lines_counter,
+          'input': 'stdin'
         },
         {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}
       ]

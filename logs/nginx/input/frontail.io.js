@@ -39,7 +39,7 @@ module.exports = new Class({
   // recived: [],
 
   lines_counter: 0,
-  
+
   options: {
     // path: '/hosts',
 
@@ -130,7 +130,8 @@ module.exports = new Class({
         {
           'log' : line,
           'domain': this.options.domain,
-          'counter': this.lines_counter
+          'counter': this.lines_counter,
+          'input': 'frontail'
         },
         {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}
       ]
