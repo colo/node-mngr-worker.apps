@@ -38,6 +38,8 @@ module.exports = new Class({
   // types: ['count', 'hosts', 'paths'],
   // recived: [],
 
+  lines_counter: 0,
+  
   options: {
     // path: '/hosts',
 
@@ -120,12 +122,15 @@ module.exports = new Class({
   line: function(socket, next, line){
     debug('line %s', line)
 
+    this.lines_counter++
+
     this.fireEvent(
       this.ON_DOC,
       [
         {
           'log' : line,
-          'domain': this.options.domain
+          'domain': this.options.domain,
+          'counter': this.lines_counter
         },
         {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}
       ]

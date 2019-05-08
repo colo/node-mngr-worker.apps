@@ -11,6 +11,9 @@
 // const App = require ( '../../node_modules/node-app-couchdb-client/index' )
 const App = require ( 'node-app/index' )
 
+const fs = require('fs')
+const es = require('event-stream')
+
 const Debug = require('debug')
 
 const debug = Debug("Server:Apps:Logs:Nginx:Input:STDIN")
@@ -25,31 +28,40 @@ const debug_internals = Debug("Server:Apps:Logs:Nginx:Input:STDIN:Internals")
 module.exports = new Class({
   Extends: App,
 
-  // ON_SUSPEND: 'onSuspend',
-	// ON_RESUME: 'onResume',
-	// ON_EXIT: 'onExit',
-  //
-	// ON_ONCE: 'onOnce',
-	// ON_RANGE: 'onRange',
-  //
-	// ON_DOC: 'onDoc',
-	// ON_DOC_ERROR: 'onDocError',
-  //
-	// ON_ONCE_DOC: 'onOnceDoc',
-	// ON_ONCE_DOC_ERROR: 'onOnceDocError',
-  //
-	// ON_PERIODICAL_DOC: 'onPeriodicalDoc',
-	// ON_PERIODICAL_DOC_ERROR: 'onPeriodicalDocError',
+  ON_CONNECT: 'onConnect',
+  ON_CONNECT_ERROR: 'onConnectError',
+
+  ON_SUSPEND: 'onSuspend',
+	ON_RESUME: 'onResume',
+	ON_EXIT: 'onExit',
+
+	ON_ONCE: 'onOnce',
+	ON_RANGE: 'onRange',
+
+	ON_DOC: 'onDoc',
+	ON_DOC_ERROR: 'onDocError',
+
+	ON_ONCE_DOC: 'onOnceDoc',
+	ON_ONCE_DOC_ERROR: 'onOnceDocError',
+
+	ON_PERIODICAL_DOC: 'onPeriodicalDoc',
+	ON_PERIODICAL_DOC_ERROR: 'onPeriodicalDocError',
+
+  ON_DOC_SAVED: 'onDocSaved',
 
   // types: ['count', 'hosts', 'paths'],
   // recived: [],
+  stream: undefined,
+  lines_counter: 0,
+
+  MAX_LINES: 1000,
 
   options: {
     // path: '/hosts',
 
-    scheme: undefined,
-    host: undefined,
-    port: undefined,
+    // scheme: undefined,
+    // host: undefined,
+    // port: undefined,
 
 
   	requests : {
@@ -75,49 +87,25 @@ module.exports = new Class({
 
 		},
 
-    io: {
-			middlewares: [], //namespace.use(fn)
-			// rooms: ['hosts'], //atomatically join connected sockets to this rooms
-			routes: {
-				// 'app.doc': [{
-				// 	// path: ':param',
-				// 	// once: true, //socket.once
-				// 	callbacks: ['app_doc'],
-				// 	// middlewares: [], //socket.use(fn)
-				// }],
-        'line': [{
-					// path: ':param',
-					// once: true, //socket.once
-					callbacks: ['line'],
-					// middlewares: [], //socket.use(fn)
-				}],
-        // 'on': [{
-				// 	// path: ':param',
-				// 	// once: true, //socket.once
-				// 	callbacks: ['register'],
-				// 	// middlewares: [], //socket.use(fn)
-				// }],
-				// '*': [{// catch all
-				// 	path: '',
-				// 	callbacks: ['not_found_message'],
-				// 	middlewares: [], //socket.use(fn)
-				// }]
-			}
-		}
-
 
   },
 
 
-  line: function(socket, next, line){
-    debug('line %s', line)
+  line: function(line){
+    // debug('line %s', line)
+
+    this.lines_counter++
+
+    if(this.lines_counter > 0 && (this.lines_counter % this.MAX_LINES) === 0)
+      this.stream.pause()
 
     this.fireEvent(
       this.ON_DOC,
       [
         {
           'log' : line,
-          'domain': this.options.domain
+          'domain': this.options.domain,
+          'counter':this.lines_counter
         },
         {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}
       ]
@@ -133,13 +121,35 @@ module.exports = new Class({
   initialize: function(options){
     debug('initialize', options)
 
-    // this.addEvent('onDocSaved', function(err, result){
-    //   debug('DOC SAVED', err, result)
-    //
-    //
-    // }.bind(this))
+    this.addEvent('onDocSaved', function(err, result){
+      debug('DOC SAVED', err, result)
+      // this.lines_counter = 0
+      this.stream.resume()
+    }.bind(this))
+
+    this.fireEvent(this.ON_CONNECT)
 
 		this.parent(options);//override default options
+
+    if (process.argv.length > 2) {
+      this.stream = fs.createReadStream(process.argv[2])
+    }
+    else {
+      this.stream = process.stdin
+    }
+
+    this.stream.pipe(es.split())
+    .pipe(
+      es.map((line) => this.line(line))
+      .on('error', function(err){
+        console.log('Error while reading file.', err);
+      })
+      .on('end', function(){
+        // this.fireEvent('onResume')//will propagate resume until frontail.io resumes (started suspended)
+        console.log('Read entire file.')
+      })
+    )
+
     //
     // // let _io = new App(DefaultConn)
     // this.add_io(HostsIO)

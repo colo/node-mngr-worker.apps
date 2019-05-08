@@ -26,8 +26,10 @@
     "@maxmind/geoip2-node": "^0.5.0",
     "@robojones/nginx-log-parser": "0.0.6",
     "esprima": "^4.0.1",
+    "event-stream": "^4.0.1",
     "ip": "^1.1.5",
     "moment": "^2.24.0",
+    "node-app": "git+https://github.com/colo/node-app.git",
     "node-app-socket.io-client": "git+https://github.com/colo/node-app-socket.io-client.git",
     "node-html-parser": "^1.1.15",
     "ua-parser2": "^0.4.2"

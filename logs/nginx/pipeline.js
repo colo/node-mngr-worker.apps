@@ -16,7 +16,7 @@ let cron = require('node-cron');
 
 const FrontailHttp = require('./input/frontail.http')
 const FrontailIO = require('./input/frontail.io')
-const ReadlineSTDIN = require('./input/readline.stdin')
+const STDIN = require('./input/stdin')
 
 // const NginxParser = require('nginxparser')
 //
@@ -86,7 +86,7 @@ const roundMilliseconds = function(timestamp){
 /**
 * to test different type of tags
 **/
-let tag_type = 'nginx'
+// let tag_type = 'nginx'
 
 module.exports = function(frontail, domain){
   let socket_io_input_conf = {
@@ -111,26 +111,26 @@ module.exports = function(frontail, domain){
 
   let conf = {
    input: [
-    //  {
-   	// 	poll: {
-   	// 		id: "input.readline.stdin",
-    //      conn: [
-    //        {
-    //          module: ReadlineSTDIN,
-    //          domain: domain,
-    //        }
-   	// 		],
-    //      connect_retry_count: -1,
-    //      connect_retry_periodical: 1000,
-   	// 		requests: {
-   	// 			// periodical: 1000,
-    //        periodical: function(dispatch){
-    //          // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-    //          return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    //        },
-   	// 		},
-   	// 	},
-   	// },
+     {
+   		poll: {
+   			id: "input.stdin",
+         conn: [
+           {
+             module: STDIN,
+             domain: domain,
+           }
+   			],
+         connect_retry_count: -1,
+         connect_retry_periodical: 1000,
+   			requests: {
+   				// periodical: 1000,
+           periodical: function(dispatch){
+             // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+             return cron.schedule('* * * * * *', dispatch);//every 20 secs
+           },
+   			},
+   		},
+   	},
   	{
   		poll: {
   			id: "input.frontail.http",
@@ -170,8 +170,8 @@ module.exports = function(frontail, domain){
           pipeline.inputs.push(_input)
           // debug_internals('input', _input.options.conn[0].module)
           // process.exit(1)
-          pipeline.start()
-          // pipeline.__start_input(_input)
+          // pipeline.start()
+          pipeline.__start_input(_input)
           //
           // // pipeline.fireEvent('onResume')
         }
@@ -183,7 +183,7 @@ module.exports = function(frontail, domain){
         /**
         * to test different type of tags
         **/
-        tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
+        // tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
         debug_internals('filters to apply...', doc, opts.input.options.id )
         /**
         * https://github.com/chriso/nginx-parser
@@ -197,6 +197,7 @@ module.exports = function(frontail, domain){
         // })
 
         try  {
+          doc.log = doc.log.trim().replace(/(\r\n. |\n. |\r)/g,"")
           let result = parser.parseLine(doc.log)
           result.log = doc.log
           // if(result.time_local)
@@ -212,11 +213,14 @@ module.exports = function(frontail, domain){
           // debug('ua', )
           let ua = JSON.parse(JSON.stringify(uaParser.parse(result.http_user_agent)))
           delete ua.string
-          result = Object.merge(result, ua)
+          // result = Object.merge(result, ua)
+          result.user_agent = ua
 
           // result.country = countryReader.country(result.remote_addr)
 
-          let ts = (result.time_local) ? moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf() : Date.now()
+          let doc_ts = (result.time_local) ? moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf() : Date.now()
+          let ts = doc_ts
+          ts += (doc.counter) ? '-'+doc.counter : ''
 
 
 
@@ -225,11 +229,11 @@ module.exports = function(frontail, domain){
             data: result,
             metadata: {
               host: os.hostname(),
-              path: 'frontail',
+              path: 'log',
               domain: doc.domain,
-              timestamp: Date.now(),
-              tags: [tag_type, 'log'],
-              // tags: ['nginx', 'log'],
+              timestamp: doc_ts,
+              // tags: [tag_type, 'web', 'frontail'],
+              tags: ['nginx', 'web', 'frontail'],
               type: 'periodical'
             }
           }
@@ -469,9 +473,9 @@ module.exports = function(frontail, domain){
   				// module: require('js-pipeline/output/rethinkdb'),
           module: require('./output/rethinkdb.geospatial'),
           buffer:{
-  					// size: 1, //-1
+  					// size: -1, //-1
   					// expire:0
-            size: 200,
+            size: 1000,
             expire: 999,
             periodical: 1000,
   				}
