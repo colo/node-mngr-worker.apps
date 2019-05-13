@@ -277,6 +277,17 @@ let MyApp = new Class({
       opts: {multi:true}
     })
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'sort_by_domain',
+      row: [
+        this.r.row("metadata")("domain"),
+        this.r.row("metadata")("type"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+
     // this.indexCreate({
     //   uri: params.options.uri+'/'+params.options.args[0],
     //   // args: ['sort_by_domain_data.timestamp',
