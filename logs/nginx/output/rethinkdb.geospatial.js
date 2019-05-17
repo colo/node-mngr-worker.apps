@@ -18,7 +18,7 @@ module.exports = new Class({
     Array.each(doc, function(d, d_index){
       // debug_internals('point %o %d %d', d.data.geoip.location, d.data.geoip.location.latitude, d.data.geoip.location.longitude)
       if(d.data.geoip.location && d.data.geoip.location.latitude && d.data.geoip.location.longitude)
-        d.metadata.location = this.r.point(d.data.geoip.location.longitude, d.data.geoip.location.latitude)
+        d.data.location = this.r.point(d.data.geoip.location.longitude, d.data.geoip.location.latitude)
 
       debug_internals('_save_docs %o ', d.metadata.location)
       if(d_index === doc.length -1 ){

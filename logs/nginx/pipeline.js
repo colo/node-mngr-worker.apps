@@ -209,10 +209,10 @@ module.exports = function(frontail, domain){
           result.body_bytes_sent *=1
 
           result.method = result.request.split(' ')[0]
-          result.location = result.request.split(' ')[1]
+          result.path = result.request.split(' ')[1]
           result.version = result.request.split(' ')[2]
           delete result.request
-          let url = new URL(result.location, 'http://'+doc.domain)
+          let url = new URL(result.path, 'http://'+doc.domain)
           result.pathname = url.pathname
           result.qs = qs.parse(url.search, { ignoreQueryPrefix: true })
 
@@ -245,11 +245,11 @@ module.exports = function(frontail, domain){
             data: result,
             metadata: {
               host: os.hostname(),
-              path: 'log',
+              path: 'logs',
               domain: doc.domain,
               timestamp: doc_ts,
               // tags: [tag_type, 'web', 'frontail'],
-              tags: ['nginx', 'web', doc.input],
+              tag: ['nginx', 'web', doc.input],
               type: 'periodical'
             }
           }

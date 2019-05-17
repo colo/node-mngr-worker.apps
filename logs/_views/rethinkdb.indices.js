@@ -194,6 +194,17 @@ let MyApp = new Class({
     debug('tableCreate %o',this.r.row("metadata")("timestamp"))
     // console.log(this.r.row("metadata")("timestamp"))
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'type',
+      row: this.r.row("metadata")("type")
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'path',
+      row: this.r.row("metadata")("path")
+    })
 
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
@@ -225,16 +236,9 @@ let MyApp = new Class({
 
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
-      args:'tags',
-      row: this.r.row("metadata")("tags"),
+      args:'tag',
+      row: this.r.row("metadata")("tag"),
       opts: {multi:true}
-    })
-
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args: 'location',
-      row: this.r.row("metadata")("location"),
-      opts: {geo: true}
     })
 
     // this.indexCreate({
@@ -250,26 +254,17 @@ let MyApp = new Class({
     //
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
-      // args:'sort_by_host_timestamp',
-      // row: [
-      //   this.r.row("metadata")("host"),
-      //   this.r.row("metadata")("timestamp"),
-      //   this.r.row("metadata")("type"),
-      //   this.r.row("metadata")("tags")
-      // ],
-      // opts: {multi:true}
-
-
-      args:'sort_by_host_timestamp',
+      args:'logs_by_host_type_timestamp',
       row: row => row("metadata")("tags").
         map(
           tag => [row('metadata')("host"), row("metadata")("type"), tag, row("metadata")("timestamp")]
         ),
       opts: {multi:true}
     })
+
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
-      args:'sort_by_domain_timestamp',
+      args:'logs_by_domain_type_tag_timestamp',
       row: row => row("metadata")("tags").
         map(
           tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("metadata")("timestamp")]
@@ -279,7 +274,7 @@ let MyApp = new Class({
 
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
-      args:'sort_by_domain',
+      args:'logs_by_domain_type_data.timestamp',
       row: [
         this.r.row("metadata")("domain"),
         this.r.row("metadata")("type"),
@@ -287,6 +282,12 @@ let MyApp = new Class({
       ]
     })
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args: 'logs_by_data.location',
+      row: this.r.row("data")("location"),
+      opts: {geo: true}
+    })
 
     // this.indexCreate({
     //   uri: params.options.uri+'/'+params.options.args[0],
