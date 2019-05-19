@@ -289,6 +289,12 @@ let MyApp = new Class({
       opts: {geo: true}
     })
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args: 'logs_by_data.timestamp',
+      row: this.r.row("data")("timestamp"),
+    })
+
     // this.indexCreate({
     //   uri: params.options.uri+'/'+params.options.args[0],
     //   // args: ['sort_by_domain_data.timestamp',

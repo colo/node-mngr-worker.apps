@@ -233,7 +233,7 @@ module.exports = function(frontail, domain){
           let doc_ts = (result.time_local) ? moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf() : Date.now()
           let ts = doc_ts
           ts += (doc.counter) ? '-'+doc.counter : ''
-
+          result.timestamp = doc_ts
 
           Object.each(result, function(value, key){
             if(value === null || value === undefined)
@@ -247,7 +247,8 @@ module.exports = function(frontail, domain){
               host: os.hostname(),
               path: 'logs',
               domain: doc.domain,
-              timestamp: doc_ts,
+              // timestamp: doc_ts,
+              timestamp: Date.now(),
               // tags: [tag_type, 'web', 'frontail'],
               tag: ['nginx', 'web', doc.input],
               type: 'periodical'
