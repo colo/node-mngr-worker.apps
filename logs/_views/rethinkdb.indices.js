@@ -196,12 +196,6 @@ let MyApp = new Class({
 
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
-      args:'type',
-      row: this.r.row("metadata")("type")
-    })
-
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
       args:'path',
       row: this.r.row("metadata")("path")
     })
@@ -241,6 +235,53 @@ let MyApp = new Class({
       opts: {multi:true}
     })
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'path.timestamp',
+      row: [
+        this.r.row("metadata")("path"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'domain.timestamp',
+      row: [
+        this.r.row("metadata")("domain"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'host.timestamp',
+      row: [
+        this.r.row("metadata")("host"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'type.timestamp',
+      row: [
+        this.r.row("metadata")("type"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'tag.timestamp',
+      row: row => row("metadata")("tags").
+        map(
+          tag => [tag, row("metadata")("timestamp")]
+        ),
+      opts: {multi:true}
+    })
+
     // this.indexCreate({
     //   uri: params.options.uri+'/'+params.options.args[0],
     //   args:'sort_by_path',
@@ -252,64 +293,64 @@ let MyApp = new Class({
     //   ]
     // })
     //
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args:'logs_by_host_type_timestamp',
-      row: row => row("metadata")("tags").
-        map(
-          tag => [row('metadata')("host"), row("metadata")("type"), tag, row("metadata")("timestamp")]
-        ),
-      opts: {multi:true}
-    })
-
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args:'logs_by_domain_type_tag_timestamp',
-      row: row => row("metadata")("tags").
-        map(
-          tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("metadata")("timestamp")]
-        ),
-      opts: {multi:true}
-    })
-
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args:'logs_by_domain_type_data.timestamp',
-      row: [
-        this.r.row("metadata")("domain"),
-        this.r.row("metadata")("type"),
-        this.r.row("metadata")("timestamp")
-      ]
-    })
-
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args: 'logs_by_data.location',
-      row: this.r.row("data")("location"),
-      opts: {geo: true}
-    })
-
-    this.indexCreate({
-      uri: params.options.uri+'/'+params.options.args[0],
-      args: 'logs_by_data.timestamp',
-      row: this.r.row("data")("timestamp"),
-    })
-
     // this.indexCreate({
     //   uri: params.options.uri+'/'+params.options.args[0],
-    //   // args: ['sort_by_domain_data.timestamp',
-    //   //   row => row("metadata")("tags").
-    //   //   map(
-    //   //     tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("data")("timestamp")]
-    //   //   ), {multi: true}
-    //   // ]
-    //   args:'sort_by_domain_data.timestamp',
+    //   args:'logs_by_host_type_timestamp',
     //   row: row => row("metadata")("tags").
     //     map(
-    //       tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("data")("timestamp")]
+    //       tag => [row('metadata')("host"), row("metadata")("type"), tag, row("metadata")("timestamp")]
     //     ),
     //   opts: {multi:true}
     // })
+    //
+    // this.indexCreate({
+    //   uri: params.options.uri+'/'+params.options.args[0],
+    //   args:'logs_by_domain_type_tag_timestamp',
+    //   row: row => row("metadata")("tags").
+    //     map(
+    //       tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("metadata")("timestamp")]
+    //     ),
+    //   opts: {multi:true}
+    // })
+    //
+    // this.indexCreate({
+    //   uri: params.options.uri+'/'+params.options.args[0],
+    //   args:'logs_by_domain_type_data.timestamp',
+    //   row: [
+    //     this.r.row("metadata")("domain"),
+    //     this.r.row("metadata")("type"),
+    //     this.r.row("metadata")("timestamp")
+    //   ]
+    // })
+    //
+    // this.indexCreate({
+    //   uri: params.options.uri+'/'+params.options.args[0],
+    //   args: 'logs_by_data.location',
+    //   row: this.r.row("data")("location"),
+    //   opts: {geo: true}
+    // })
+    //
+    // this.indexCreate({
+    //   uri: params.options.uri+'/'+params.options.args[0],
+    //   args: 'logs_by_data.timestamp',
+    //   row: this.r.row("data")("timestamp"),
+    // })
+    //
+    // // this.indexCreate({
+    // //   uri: params.options.uri+'/'+params.options.args[0],
+    // //   // args: ['sort_by_domain_data.timestamp',
+    // //   //   row => row("metadata")("tags").
+    // //   //   map(
+    // //   //     tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("data")("timestamp")]
+    // //   //   ), {multi: true}
+    // //   // ]
+    // //   args:'sort_by_domain_data.timestamp',
+    // //   row: row => row("metadata")("tags").
+    // //     map(
+    // //       tag => [row('metadata')("domain"), row("metadata")("type"), tag, row("data")("timestamp")]
+    // //     ),
+    // //   opts: {multi:true}
+    // // })
 
     // this.tableList({uri: 'test'})
     // this.tableDrop({uri: 'test', args:['test_table']})
