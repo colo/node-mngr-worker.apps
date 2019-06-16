@@ -275,7 +275,7 @@ let MyApp = new Class({
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
       args:'tag.timestamp',
-      row: row => row("metadata")("tags").
+      row: row => row("metadata")("tag").
         map(
           tag => [tag, row("metadata")("timestamp")]
         ),
