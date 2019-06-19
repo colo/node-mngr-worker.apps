@@ -231,9 +231,11 @@ module.exports = function(frontail, domain){
           // result.country = countryReader.country(result.remote_addr)
 
           let doc_ts = (result.time_local) ? moment(result.time_local, 'DD/MMM/YYYY:HH:mm:ss Z').valueOf() : Date.now()
-          let ts = doc_ts
+          // let ts = doc_ts
+          let ts = Date.now()
           ts += (doc.counter) ? '-'+doc.counter : ''
-          result.timestamp = doc_ts
+          // result.timestamp = doc_ts
+          delete result.timestamp
 
           Object.each(result, function(value, key){
             if(value === null || value === undefined)
@@ -247,8 +249,8 @@ module.exports = function(frontail, domain){
               host: os.hostname(),
               path: 'logs',
               domain: doc.domain,
-              // timestamp: doc_ts,
-              timestamp: Date.now(),
+              timestamp: doc_ts,
+              // timestamp: Date.now(),
               // tags: [tag_type, 'web', 'frontail'],
               tag: ['nginx', 'web', doc.input],
               type: 'periodical'
@@ -260,6 +262,7 @@ module.exports = function(frontail, domain){
         }
         catch(e){
           debug_internals('error parsing line', e)
+          // process.exit(1)
         }
         // debug('PREFIX', PREFIX)
       },
@@ -490,7 +493,7 @@ module.exports = function(frontail, domain){
   				// module: require('js-pipeline/output/rethinkdb'),
           module: require('./output/rethinkdb.geospatial'),
           buffer:{
-  					// size: -1, //-1
+  					size: -1, //-1
   					// expire:0
             size: 1000,
             expire: 999,
