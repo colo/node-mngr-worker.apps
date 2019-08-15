@@ -2,9 +2,9 @@
 const HOST = 'elk'
 // const PORT = 28016
 const PORT = 28015
-const DATABASES = ['servers']
-// const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
-const TABLES = ['periodical', 'historical']
+const DATABASES = ['devel', 'production']
+// const TABLES = ['periodical', 'historical']
+const TABLES = ['os']
 
 
 // const DATABASE = 'historical'
@@ -194,8 +194,97 @@ let MyApp = new Class({
     debug('tableCreate %o',this.r.row("metadata")("timestamp"))
     // console.log(this.r.row("metadata")("timestamp"))
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'path',
+      row: this.r.row("metadata")("path")
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'domain',
+      row: this.r.row("metadata")("domain")
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'timestamp',
+      row: this.r.row("metadata")("timestamp")
+    })
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'host',
+      row: this.r.row("metadata")("host")
+    })
+    // this.indexCreate({
+    //   uri: params.options.uri+'/'+params.options.args[0],
+    //   args:'path',
+    //   row: this.r.row("metadata")("path")
+    // })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'type',
+      row: this.r.row("metadata")("type"),
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'tag',
+      row: this.r.row("metadata")("tag"),
+      opts: {multi:true}
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'path.timestamp',
+      row: [
+        this.r.row("metadata")("path"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'domain.timestamp',
+      row: [
+        this.r.row("metadata")("domain"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'host.timestamp',
+      row: [
+        this.r.row("metadata")("host"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
 
 
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'type.timestamp',
+      row: [
+        this.r.row("metadata")("type"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'tag.timestamp',
+      row: row => row("metadata")("tag").
+        map(
+          tag => [tag, row("metadata")("timestamp")]
+        ),
+      opts: {multi:true}
+    })
+    
+    /**
+    * old indexes
+    *
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
       args:'timestamp',
@@ -238,6 +327,9 @@ let MyApp = new Class({
         this.r.row("metadata")("timestamp")
       ]
     })
+    *
+    * old indexes
+    **/
 
 
     // this.tableList({uri: 'test'})
@@ -398,8 +490,8 @@ run.addEvent('onConnect', function(){
   // console.log(arguments)
   // run.close({args: [{noreplyWait: true}]})
   Array.each(DATABASES, function(db){
-    // run.dbCreate({uri: db})
-    run.dbDrop({uri: db})
+    run.dbCreate({uri: db})
+    // run.dbDrop({uri: db})
   })
 
 

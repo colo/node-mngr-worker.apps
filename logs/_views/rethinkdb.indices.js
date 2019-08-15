@@ -2,9 +2,9 @@
 const HOST = 'elk'
 // const PORT = 28016
 const PORT = 28015
-const DATABASES = ['logs']
-// const TABLES = ['once', 'periodical', 'historical', 'ui', 'cache']
-const TABLES = ['periodical', 'historical']
+const DATABASES = ['devel', 'production']
+// const TABLES = ['periodical', 'historical']
+const TABLES = ['logs']
 
 
 // const DATABASE = 'historical'
@@ -511,8 +511,8 @@ run.addEvent('onConnect', function(){
   // run.close({args: [{noreplyWait: true}]})
 
   Array.each(DATABASES, function(db){
-    // run.dbCreate({uri: db})
-    run.dbDrop({uri: db})
+    run.dbCreate({uri: db})
+    // run.dbDrop({uri: db})
   })
 
 

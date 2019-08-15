@@ -88,7 +88,7 @@ const roundMilliseconds = function(timestamp){
 /**
 * to test different type of tags
 **/
-// let tag_type = 'nginx'
+let tag_type = 'nginx'
 
 module.exports = function(frontail, domain){
   let socket_io_input_conf = {
@@ -185,7 +185,7 @@ module.exports = function(frontail, domain){
         /**
         * to test different type of tags
         **/
-        // tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
+        tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
         debug_internals('filters to apply...', doc, opts.input.options.id )
         /**
         * https://github.com/chriso/nginx-parser
@@ -251,8 +251,8 @@ module.exports = function(frontail, domain){
               domain: doc.domain,
               timestamp: doc_ts,
               // timestamp: Date.now(),
-              // tags: [tag_type, 'web', 'frontail'],
-              tag: ['nginx', 'web', doc.input],
+              tag: [tag_type, 'web', doc.input],
+              // tag: ['nginx', 'web', doc.input],
               type: 'periodical'
             }
           }
@@ -486,8 +486,8 @@ module.exports = function(frontail, domain){
   					{
               host: 'elk',
   						port: 28015,
-  						db: 'logs',
-              table: 'periodical',
+  						db: 'devel',
+              table: 'logs',
   					},
   				],
   				// module: require('js-pipeline/output/rethinkdb'),

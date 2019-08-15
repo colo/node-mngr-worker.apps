@@ -436,8 +436,8 @@ module.exports = {
 					{
             host: 'elk',
 						port: 28015,
-						db: 'servers',
-            table: 'periodical',
+						db: 'devel',
+            table: 'os',
 					},
 				],
 				module: require('js-pipeline/output/rethinkdb'),
