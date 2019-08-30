@@ -90,7 +90,7 @@ const roundMilliseconds = function(timestamp){
 **/
 let tag_type = 'nginx'
 
-module.exports = function(frontail, domain){
+module.exports = function(frontail, domain, out){
   let socket_io_input_conf = {
     poll: {
       // suspended: true,
@@ -251,8 +251,8 @@ module.exports = function(frontail, domain){
               domain: doc.domain,
               timestamp: doc_ts,
               // timestamp: Date.now(),
-              tag: [tag_type, 'web', doc.input],
-              // tag: ['nginx', 'web', doc.input],
+              // tag: [tag_type, 'web', doc.input],
+              tag: ['nginx', 'web', doc.input],
               type: 'periodical'
             }
           }
@@ -483,12 +483,10 @@ module.exports = function(frontail, domain){
   			rethinkdb: {
   				id: "output.os.rethinkdb",
   				conn: [
-  					{
-              host: 'elk',
-  						port: 28015,
-  						db: 'devel',
-              table: 'logs',
-  					},
+  					Object.merge(
+              Object.clone(out),
+              {table: 'logs'}
+            ),
   				],
   				// module: require('js-pipeline/output/rethinkdb'),
           module: require('./output/rethinkdb.geospatial'),

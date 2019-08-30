@@ -62,14 +62,16 @@ module.exports = function(val, opts, next, pipeline){
         data: networkInterfaces,
         metadata:{
 					host: host,
-          path: 'os.networkInterfaces.stats'
+          path: 'os.networkInterfaces.stats',
+					tag: ['os', 'networkInterfaces', 'stats'].combine(Object.keys(networkInterfaces))
         }
       }
 			let networkInterfaces_doc = {
         data: val,
         metadata:{
 					host: host,
-          path: 'os.networkInterfaces'
+          path: 'os.networkInterfaces',
+					tag: ['os', 'networkInterfaces'].combine(Object.keys(val))
         }
       }
 

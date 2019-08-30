@@ -26,21 +26,18 @@ const roundMilliseconds = function(timestamp){
 }
 
 
-module.exports = function(conn){
+module.exports = function(munin, out){
   let conf = {
     input: [
     	{
         poll: {
       		id: "input.munin",
       		conn: [
-      			{
-      				scheme: 'munin',
-      				host:'127.0.0.1',
-      				port: 4949,
-      				module: InputPollerMunin,
-      				load: [],
-      			},
-            // {
+            Object.merge(
+              munin,
+              {module: InputPollerMunin, load: []},
+            )
+      			// {
       			// 	scheme: 'munin',
       			// 	host:'dev',
       			// 	port: 4949,
@@ -103,6 +100,7 @@ module.exports = function(conn){
        let { type, input, input_type } = opts
        let app = opts.app = pipeline
 
+       debug('filter %o', doc)
 
         if(!doc.modules && Object.getLength(doc.data) > 0){//discard modules doc
           let new_doc = {data: {}, metadata: {}}
@@ -114,7 +112,8 @@ module.exports = function(conn){
             path: path,
             type: 'periodical',
             host: doc.host,
-            timestamp: timestamp
+            timestamp: timestamp,
+            tag: ['munin', doc.id.replace(/\_/, '.', 'g')]
           }
 
 
@@ -200,12 +199,10 @@ module.exports = function(conn){
   			rethinkdb: {
   				id: "output.munin.rethinkdb",
   				conn: [
-  					{
-              host: 'elk',
-  						port: 28015,
-  						db: 'servers',
-              table: 'periodical',
-  					},
+            Object.merge(
+              Object.clone(out),
+              {table: 'munin'}
+            )
   				],
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{

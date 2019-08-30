@@ -154,14 +154,22 @@ module.exports = function(doc, opts, next, pipeline){
 
 
 				procs_doc.metadata.path = 'os.procs'
+				procs_doc.metadata.tag = ['os', 'procs', 'pid']
+
 				stats_doc.metadata.path = 'os.procs.stats'
+				stats_doc.metadata.tag = ['os', 'procs', 'stats']
 
 				uids_doc.metadata.path = 'os.procs.uid'
+				uids_doc.metadata.tag = ['os', 'procs', 'ui']
+
 				uids_stats_doc.metadata.path = 'os.procs.uid.stats'
+				uids_stats_doc.metadata.tag = ['os', 'procs', 'ui', 'stats']
 
 				cmds_doc.metadata.path = 'os.procs.cmd'
-				cmds_stats_doc.metadata.path = 'os.procs.cmd.stats'
+				cmds_doc.metadata.tag = ['os', 'procs', 'cmd']
 
+				cmds_stats_doc.metadata.path = 'os.procs.cmd.stats'
+				cmds_stats_doc.metadata.tag = ['os', 'procs', 'cmd', 'stats']
 
 				let by_cpu = []
 				let by_mem = []
@@ -211,6 +219,7 @@ module.exports = function(doc, opts, next, pipeline){
 					kernel: kernel_space,
 					user: user_space
 				}
+				stats_doc.metadata.tag.combine(Object.keys(stats_doc.data))
 
 				next(procs_doc, opts, next, pipeline)
 				next(stats_doc, opts, next, pipeline)
@@ -228,6 +237,7 @@ module.exports = function(doc, opts, next, pipeline){
 					by_time.push({uid: uid, 'time': proc.time })
 					by_count.push({uid: uid, 'count': proc.count })
 				})
+				uids_doc.metadata.tag.combine(Object.keys(uids_doc.data))
 
 				by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				.reverse()
@@ -252,6 +262,7 @@ module.exports = function(doc, opts, next, pipeline){
 					time: by_time,
 					count: by_count,
 				}
+				uids_stats_doc.metadata.tag.combine(Object.keys(uids_stats_doc.data))
 
 				// next(uids_doc, opts, next, pipeline)
 				next(uids_stats_doc, opts, next, pipeline)
@@ -269,6 +280,7 @@ module.exports = function(doc, opts, next, pipeline){
 					by_time.push({cmd: cmd, 'time': proc.time })
 					by_count.push({cmd: cmd, 'count': proc.count })
 				})
+				cmds_doc.metadata.tag.combine(Object.keys(cmds_doc.data))
 
 				by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
 				.reverse()
@@ -293,6 +305,8 @@ module.exports = function(doc, opts, next, pipeline){
 					time: by_time,
 					count: by_count,
 				}
+				cmds_stats_doc.metadata.tag.combine(Object.keys(cmds_stats_doc.data))
+
 				// next(cmds_doc, opts, next, pipeline)
 				next(cmds_stats_doc, opts, next, pipeline)
 
