@@ -427,160 +427,286 @@ module.exports = new Class({
 
       range: [
         {
-					default: function(_req, next, app){
-            // debug_internals('default range %o', _req);
-            // if(Array.isArray(req))
-            //   process.exit(1)
+					default: function(req, next, app){
+            req = (req) ? Object.clone(req) : {}
 
-            if(!Array.isArray(_req))
-              _req = [_req]
+						debug_internals('default range', req);
+            if(!req.query || (!req.query.register && !req.query.unregister)){
 
-            // Array.each(_req, function(req, i){
-            async.eachOf(_req, function (req, i, callback) {
+              let start, end
+              end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
+              start  = (req.opt && req.opt.range) ? req.opt.range.start : end - 10000 //10 secs
 
-              req = (req) ? Object.clone(req) : { id: 'range', params: {}, query: {} }
-
-
-              // debug_internals('default range %o', req, _req.opt.range[i]);
-              let opt_range = _req.opt.range[i]
-              // process.exit(1)
-              // if(!req.query || (!req.query.register && !req.query.unregister)){
-
-                let start, end
-                end = (req.opt && opt_range) ? opt_range.end : Date.now()
-                start  = (req.opt && opt_range) ? opt_range.start : end - 10000 //10 secs
-
-                let range = 'posix '+start+'-'+end+'/*'
+              let range = 'posix '+start+'-'+end+'/*'
 
 
-                let from = req.from || app.options.table
-                // from = (from === 'minute' || from === 'hour') ? 'historical' : from
+              let from = req.from || app.options.table
+              // from = (from === 'minute' || from === 'hour') ? 'historical' : from
 
-                let index = "timestamp"
+              let index = "timestamp"
 
-                let query = app.r
-                  .db(app.options.db)
-                  .table(from)
+              let query = app.r
+                .db(app.options.db)
+                .table(from)
 
-                index = (req.params.prop && req.params.value)
-                ? pluralize(req.params.prop, 1)+'.timestamp'
-                : index
+              index = (req.params.prop && req.params.value)
+              ? pluralize(req.params.prop, 1)+'.timestamp'
+              : index
 
-                start = (req.params.prop && req.params.value)
-                ? [req.params.value, start]
-                : start
+              start = (req.params.prop && req.params.value)
+              ? [req.params.value, start]
+              : start
 
-                end = (req.params.prop && req.params.value)
-                ? [req.params.value, end]
-                : end
+              end = (req.params.prop && req.params.value)
+              ? [req.params.value, end]
+              : end
 
-                query = (req.params.path)
-                ? query
-                  .between(
-                    start,
-                    end,
-                    {index: index}
-                  )
-                  .filter( app.r.row('metadata')('path').eq(req.params.path) )
-                : query
-                  .between(
-                    start,
-                    end,
-                    {index: index}
-                  )
+              query = (req.params.path)
+              ? query
+                .between(
+                  start,
+                  end,
+                  {index: index}
+                )
+                .filter( app.r.row('metadata')('path').eq(req.params.path) )
+              : query
+                .between(
+                  start,
+                  end,
+                  {index: index}
+                )
 
 
-                /**
-                * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
-                **/
-                let transformation = (req.query && req.query.transformation) ? Object.clone(req.query.transformation) : undefined
-                if(
-                  transformation
-                  && (transformation.orderBy
-                    || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
-                  )
-                ){
-                  let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
-                  query = app.query_with_transformation(query, orderBy)
 
-                  if(Array.isArray(transformation)){
-                    transformation.each(function(trasnform, index){
-                      if(Object.keys(trasnform)[0] === 'orderBy')
-                        transformation[index] = undefined
-                    })
+              /**
+              * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+              **/
+              let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
+              if(
+                transformation
+                && (transformation.orderBy
+                  || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
+                )
+              ){
+                let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
+                query = app.query_with_transformation(query, orderBy)
 
-                    transformation = transformation.clean()
+                if(Array.isArray(transformation)){
+                  transformation.each(function(trasnform, index){
+                    if(Object.keys(trasnform)[0] === 'orderBy')
+                      transformation[index] = undefined
+                  })
+
+                  transformation = transformation.clean()
+                }
+
+
+              }
+
+              if(req.query && req.query.filter)
+                query = app.query_with_filter(query, req.query.filter)
+
+              if(transformation)
+                query = app.query_with_transformation(query, transformation)
+              /**
+              * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+              **/
+
+              if (req.query && req.query.aggregation && !req.query.q) {
+                query =  this.result_with_aggregation(query, req.query.aggregation)
+              }
+              else{
+                query = query
+                  .group(app.r.row('metadata')('path'))
+                  .ungroup()
+                  .map(
+                    function (doc) {
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                    }
+                )
+              }
+
+              query.run(app.conn, function(err, resp){
+                debug_internals('run', err) //resp
+                app.process_default(
+                  err,
+                  resp,
+                  {
+                    _extras: {
+                      from: from,
+                      type: (req.params && req.params.path) ? req.params.path : app.options.type,
+                      id: req.id,
+                      Range: range,
+                      range: req.opt.range,
+                      transformation: (req.query.transformation) ? req.query.transformation : undefined,
+                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined
+                      // prop: pluralize(index)
+                    }
                   }
-
-
-                }
-
-                if(req.query && req.query.filter)
-                  query = app.query_with_filter(query, req.query.filter)
-
-
-                if(transformation)
-                  query = app.query_with_transformation(query, transformation)
-                /**
-                * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
-                **/
-
-
-                if (req.query && req.query.aggregation && !req.query.q) {
-                  query =  this.result_with_aggregation(query, req.query.aggregation)
-                }
-                else{
-                  query = query
-                    .group(app.r.row('metadata')('path'))
-                    .ungroup()
-                    .map(
-                      function (doc) {
-                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
-                      }
-                  )
-                }
-
-                debug_internals('default range %o %o %o', req, query, app);
-
-                // sleep(100).then(() => {
-                  setTimeout(query.run(app.conn, function(err, resp){
-                    debug_internals('RUN', req, err) //resp
-                    // process.exit(1)
-                    app.process_default(
-                      err,
-                      resp,
-                      {
-                        _extras: {
-                          from: from,
-                          type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                          id: req.id,
-                          Range: range,
-                          range: range,
-                          transformation: (req.query.transformation) ? req.query.transformation : undefined,
-                          aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-                          filter: (req.query.filter) ? req.query.filter : undefined,
-                          // prop: pluralize(index)
-                        }
-                      }
-                    )
-                    callback()
-                  }), 100)
-
-                // })
-
-
-              }, function (err) {
-
-                debug('callback', err)
-                // process.exit(1)
+                )
               })
-            // })
 
-
-
+            }
 
 					}
 				},
+        // {
+				// 	default: function(_req, next, app){
+        //     debug_internals('default range %o', _req);
+        //     // if(Array.isArray(req))
+        //     //   process.exit(1)
+        //
+        //     if(!Array.isArray(_req))
+        //       _req = [_req]
+        //
+        //     // Array.each(_req, function(req, i){
+        //     async.eachOf(_req, function (req, i, callback) {
+        //
+        //       req = (req) ? Object.clone(req) : { id: 'range', params: {}, query: {} }
+        //
+        //
+        //       // debug_internals('default range %o', req, _req.opt.range[i]);
+        //       let opt_range = (_req.opt && _req.opt.range && Array.isArray(_req.opt.range)) ? _req.opt.range[i] : (_req.opt && _req.opt.range) ? _req.opt.range : undefined
+        //       // process.exit(1)
+        //       // if(!req.query || (!req.query.register && !req.query.unregister)){
+        //
+        //         let start, end
+        //         end = (opt_range && opt_range) ? opt_range.end : Date.now()
+        //         start  = (opt_range && opt_range) ? opt_range.start : end - 10000 //10 secs
+        //
+        //         let range = 'posix '+start+'-'+end+'/*'
+        //
+        //
+        //         let from = req.from || app.options.table
+        //         // from = (from === 'minute' || from === 'hour') ? 'historical' : from
+        //
+        //         let index = "timestamp"
+        //
+        //         let query = app.r
+        //           .db(app.options.db)
+        //           .table(from)
+        //
+        //         index = (req.params.prop && req.params.value)
+        //         ? pluralize(req.params.prop, 1)+'.timestamp'
+        //         : index
+        //
+        //         start = (req.params.prop && req.params.value)
+        //         ? [req.params.value, start]
+        //         : start
+        //
+        //         end = (req.params.prop && req.params.value)
+        //         ? [req.params.value, end]
+        //         : end
+        //
+        //         query = (req.params.path)
+        //         ? query
+        //           .between(
+        //             start,
+        //             end,
+        //             {index: index}
+        //           )
+        //           .filter( app.r.row('metadata')('path').eq(req.params.path) )
+        //         : query
+        //           .between(
+        //             start,
+        //             end,
+        //             {index: index}
+        //           )
+        //
+        //
+        //         /**
+        //         * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+        //         **/
+        //         let transformation = (req.query && req.query.transformation) ? Object.clone(req.query.transformation) : undefined
+        //         if(
+        //           transformation
+        //           && (transformation.orderBy
+        //             || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
+        //           )
+        //         ){
+        //           let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
+        //           query = app.query_with_transformation(query, orderBy)
+        //
+        //           if(Array.isArray(transformation)){
+        //             transformation.each(function(trasnform, index){
+        //               if(Object.keys(trasnform)[0] === 'orderBy')
+        //                 transformation[index] = undefined
+        //             })
+        //
+        //             transformation = transformation.clean()
+        //           }
+        //
+        //
+        //         }
+        //
+        //         if(req.query && req.query.filter)
+        //           query = app.query_with_filter(query, req.query.filter)
+        //
+        //
+        //         if(transformation)
+        //           query = app.query_with_transformation(query, transformation)
+        //         /**
+        //         * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+        //         **/
+        //
+        //
+        //         if (req.query && req.query.aggregation && !req.query.q) {
+        //           query =  this.result_with_aggregation(query, req.query.aggregation)
+        //         }
+        //         else{
+        //           query = query
+        //             .group(app.r.row('metadata')('path'))
+        //             .ungroup()
+        //             .map(
+        //               function (doc) {
+        //                   return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+        //               }
+        //           )
+        //         }
+        //
+        //         // debug_internals('default range %o %o %o', req, query, app);
+        //
+        //         // sleep(100).then(() => {
+        //           // setTimeout(
+        //             query.run(app.conn, function(err, resp){
+        //             debug_internals('RUN', req, err) //resp
+        //             // process.exit(1)
+        //             app.process_default(
+        //               err,
+        //               resp,
+        //               {
+        //                 _extras: {
+        //                   from: from,
+        //                   type: (req.params && req.params.path) ? req.params.path : app.options.type,
+        //                   id: req.id,
+        //                   Range: range,
+        //                   range: range,
+        //                   transformation: (req.query.transformation) ? req.query.transformation : undefined,
+        //                   aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
+        //                   filter: (req.query.filter) ? req.query.filter : undefined,
+        //                   // prop: pluralize(index)
+        //                 }
+        //               }
+        //             )
+        //             callback()
+        //           })
+        //           // , 100)
+        //
+        //         // })
+        //
+        //
+        //       }, function (err) {
+        //
+        //         debug('callback', err)
+        //         // process.exit(1)
+        //       })
+        //     // })
+        //
+        //
+        //
+        //
+				// 	}
+				// },
         //
         // {
         //   register: function(req, next, app){

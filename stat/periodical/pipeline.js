@@ -18,7 +18,7 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 
 const InputPollerRethinkDBPeriodical = require ( './input/rethinkdb.js' )
 
-// let async = require('async')
+let async = require('async')
 // const { setIntervalAsync } = require('set-interval-async/dynamic')
 
 let hooks = {}
@@ -172,21 +172,21 @@ module.exports = function(conn){
               pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
                 id: "default",
                 query: {
-                  // "q": [
-                	// 	"data",
-                	// 	{"metadata": ["host", "tag", "timestamp"]}
-                	// ],
-                	// "transformation": [
-                	// 	{
-                	// 	"orderBy": {"index": "r.desc(timestamp)"}
-                	// 	},
-                	// 	{
-                	// 		"slice": [0, 1]
-                	// 	}
-                  //
-                  //
-                	// ],
-                	// "filter": "[r.row('metadata')('path').eq("+group.path+"), r.row('metadata')('host').eq("+host+")]"
+                  "q": [
+                		"data",
+                		{"metadata": ["host", "tag", "timestamp"]}
+                	],
+                	"transformation": [
+                		{
+                		"orderBy": {"index": "r.desc(timestamp)"}
+                		},
+                		{
+                			"slice": [0, 1]
+                		}
+
+
+                	],
+                	"filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
                 },
                 params: {},
               })
@@ -233,38 +233,7 @@ module.exports = function(conn){
         //   query: {register: true}
         // })
       },
-      // function(doc, opts, next, pipeline){
-      //   debug('2nd filter %o', doc)
-      //
-      //   if(doc && doc.id == 'munin.default'){
-      //     let { type, input, input_type, app } = opts
-      //
-      //     // debug('filter munin.default %o %o %o', doc)
-      //     pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
-      //       id: "default",
-      //       query: {},
-      //       params: {},
-      //       "q": [
-      //     		"data",
-      //     		{"metadata": ["host", "tag", "timestamp"]}
-      //     	],
-      //     	"transformation": [
-      //     		{
-      //     		"orderBy": {"index": "r.desc(timestamp)"}
-      //     		},
-      //     		{
-      //     			"slice": [0, 1]
-      //     		}
-      //
-      //
-      //     	],
-      //     	"filter": "r.row('metadata')('path').eq('munin.entropy')"
-      //     })
-      //   }
-      //   else{
-      //     next(doc, opts, next, pipeline)
-      //   }
-      // },
+
       function(doc, opts, next, pipeline){
         debug('2nd filter %o', doc)
 
@@ -272,7 +241,7 @@ module.exports = function(conn){
           let { type, input, input_type, app } = opts
 
           if(doc.err && pipeline.current['munin'] && pipeline.current['munin'].data){
-            let now = Date.now()
+            // let now = Date.now()
 
             let ranges = []
             // let ranges = new Chain()
@@ -284,7 +253,7 @@ module.exports = function(conn){
               range[1] = roundSeconds(range[0] + 61000)//limit on next minute
               // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
 
-                debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
+              debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), group.range, group.path)
 
 
 
@@ -357,7 +326,8 @@ module.exports = function(conn){
                 range[1] += 60000//limit on next minute
 
               }
-              while(range[1] < now)
+              // while(range[1] < now && range[0] < group.range[1])
+              while(range[0] < group.range[1])
 
 
               // async function processQueue (queue) {
@@ -379,39 +349,42 @@ module.exports = function(conn){
             })
 
             // while (ranges.callChain() !== false) {}
-            // debug('RANGES %O', ranges)
-
-            pipeline.get_input_by_id('input.periodical').fireEvent('onRange', [ranges])
+            debug('RANGES %O', ranges)
+            // process.exit(1)
+            // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', [ranges])
 
             // async.tryEach(ranges)
-            // async.eachLimit(
-            //   ranges,
-            //   10,
-            //   function(range, callback){
-            //     let wrapped = async.timeout(function(range){
-            //       sleep(1001).then( () => {
-            //         // process.exit(1)
-            //         debug('RANGE', range)
-            //       })
-            //
-            //
-            //       // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-            //       // process.exit(1)
-            //     }, 1000)
-            //
-            //     // try{
-            //     wrapped(range, function(err, data) {
-            //       if(err){
-            //         pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-            //         callback()
-            //       }
-            //     })
-            //     // }
-            //     // catch(e){
-            //     //   callback()
-            //     // }
-            //   }
-            // )
+            async.eachLimit(
+              ranges,
+              10,
+              function(range, callback){
+                // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                // callback()
+                let wrapped = async.timeout(function(range){
+                  // sleep(1001).then( () => {
+                  //   // process.exit(1)
+                  //   debug('RANGE', range)
+                  // })
+
+
+                  pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                  // process.exit(1)
+                  // callback()
+                }, 100)
+
+                // try{
+                wrapped(range, function(err, data) {
+                  if(err){
+                    // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                    callback()
+                  }
+                })
+                // }
+                // catch(e){
+                //   callback()
+                // }
+              }
+            )
 
           }
           else{
@@ -429,7 +402,7 @@ module.exports = function(conn){
 
         if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'munin' && doc.data){
           debug('3rd filter %o', doc)
-          process.exit(1)
+          // process.exit(1)
         }
       }
    		// require('./snippets/filter.sanitize.template'),
