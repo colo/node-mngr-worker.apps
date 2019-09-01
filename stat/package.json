@@ -23,7 +23,10 @@
     "authentication"
   ],
   "dependencies": {
+    "async": "^3.1.0",
+    "pauseable": "^0.3.1",
     "pluralize": "^8.0.0",
+    "set-interval-async": "^1.0.29",
     "simple-statistics": "^7.0.2",
     "uuid": "^3.3.3"
   }
