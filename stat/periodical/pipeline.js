@@ -18,7 +18,7 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 
 const InputPollerRethinkDBPeriodical = require ( './input/rethinkdb.js' )
 
-let async = require('async')
+// let async = require('async')
 // const { setIntervalAsync } = require('set-interval-async/dynamic')
 
 let hooks = {}
@@ -66,11 +66,11 @@ const roundMinutes = function(timestamp){
   return d.getTime()
 }
 
-const sleep = (milliseconds) => {
-  return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
-
-const pauseable = require('pauseable')
+// const sleep = (milliseconds) => {
+//   return new Promise(resolve => setTimeout(resolve, milliseconds))
+// }
+//
+// const pauseable = require('pauseable')
 
 module.exports = function(conn){
   let conf = {
@@ -280,7 +280,8 @@ module.exports = function(conn){
 
             Array.each(pipeline.current['munin'].data, function(group){
               let range = Array.clone(group.range)
-              range[1] = roundSeconds(range[0] + 6000)//limit on next minute
+
+              range[1] = roundSeconds(range[0] + 61000)//limit on next minute
               // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
 
                 debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
@@ -288,13 +289,12 @@ module.exports = function(conn){
 
 
               do{
-                range[0] = range[1]
-                range[1] += 60000//limit on next minute
+
                 for(let i = 0; i < group.hosts.length; i++){
                   let host = group.hosts[i]
                   // let ranges = []
                   ranges.push({
-                    // id: "default",
+                    id: "range",
                     Range: "posix "+range[0]+"-"+range[1]+"/*",
                     query: {
                       "q": [
@@ -311,7 +311,7 @@ module.exports = function(conn){
 
 
                       ],
-                      "filter": "[r.row('metadata')('path').eq("+group.path+"), r.row('metadata')('host').eq("+host+")]"
+                      "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
                     },
                     params: {},
 
@@ -351,7 +351,10 @@ module.exports = function(conn){
 
                   // if(i === group.hosts.length -1)
                   //   callback()
+
                 }
+                range[0] = range[1]
+                range[1] += 60000//limit on next minute
 
               }
               while(range[1] < now)
@@ -376,7 +379,7 @@ module.exports = function(conn){
             })
 
             // while (ranges.callChain() !== false) {}
-            debug('RANGES %O', ranges)
+            // debug('RANGES %O', ranges)
 
             pipeline.get_input_by_id('input.periodical').fireEvent('onRange', [ranges])
 
@@ -422,11 +425,11 @@ module.exports = function(conn){
         }
       },
       function(doc, opts, next, pipeline){
-        debug('3rd filter %o', doc)
-        process.exit(1)
-        if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'munin'){
-          debug('3rd filter %o', doc)
+        // debug('3rd filter %o', doc)
 
+        if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'munin' && doc.data){
+          debug('3rd filter %o', doc)
+          process.exit(1)
         }
       }
    		// require('./snippets/filter.sanitize.template'),

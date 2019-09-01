@@ -18,6 +18,12 @@ const pluralize = require('pluralize')
 
 const uuidv5 = require('uuid/v5')
 
+const async = require('async')
+
+const sleep = (milliseconds) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 module.exports = new Class({
   Extends: App,
 
@@ -425,10 +431,13 @@ module.exports = new Class({
             // debug_internals('default range %o', _req);
             // if(Array.isArray(req))
             //   process.exit(1)
+
             if(!Array.isArray(_req))
               _req = [_req]
 
-            Array.each(_req, function(req, i){
+            // Array.each(_req, function(req, i){
+            async.eachOf(_req, function (req, i, callback) {
+
               req = (req) ? Object.clone(req) : { id: 'range', params: {}, query: {} }
 
 
@@ -480,10 +489,11 @@ module.exports = new Class({
                     {index: index}
                   )
 
+
                 /**
                 * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
                 **/
-                let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
+                let transformation = (req.query && req.query.transformation) ? Object.clone(req.query.transformation) : undefined
                 if(
                   transformation
                   && (transformation.orderBy
@@ -508,11 +518,13 @@ module.exports = new Class({
                 if(req.query && req.query.filter)
                   query = app.query_with_filter(query, req.query.filter)
 
+
                 if(transformation)
                   query = app.query_with_transformation(query, transformation)
                 /**
                 * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
                 **/
+
 
                 if (req.query && req.query.aggregation && !req.query.q) {
                   query =  this.result_with_aggregation(query, req.query.aggregation)
@@ -528,30 +540,42 @@ module.exports = new Class({
                   )
                 }
 
-                query.run(app.conn, function(err, resp){
-                  debug_internals('run', err) //resp
-                  // process.exit(1)
+                debug_internals('default range %o %o %o', req, query, app);
 
-                  app.process_default(
-                    err,
-                    resp,
-                    {
-                      _extras: {
-                        from: from,
-                        type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                        id: req.id,
-                        Range: range,
-                        range: range,
-                        transformation: (req.query.transformation) ? req.query.transformation : undefined,
-                        aggregation: (req.query.aggregation) ? req.query.aggregation : undefined
-                        // prop: pluralize(index)
+                // sleep(100).then(() => {
+                  setTimeout(query.run(app.conn, function(err, resp){
+                    debug_internals('RUN', req, err) //resp
+                    // process.exit(1)
+                    app.process_default(
+                      err,
+                      resp,
+                      {
+                        _extras: {
+                          from: from,
+                          type: (req.params && req.params.path) ? req.params.path : app.options.type,
+                          id: req.id,
+                          Range: range,
+                          range: range,
+                          transformation: (req.query.transformation) ? req.query.transformation : undefined,
+                          aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
+                          filter: (req.query.filter) ? req.query.filter : undefined,
+                          // prop: pluralize(index)
+                        }
                       }
-                    }
-                  )
-                })
+                    )
+                    callback()
+                  }), 100)
 
-              // }
-            })
+                // })
+
+
+              }, function (err) {
+
+                debug('callback', err)
+                // process.exit(1)
+              })
+            // })
+
 
 
 
@@ -755,9 +779,9 @@ module.exports = new Class({
       if(typeof filter === 'string'){
         // _query_filter = filter.split(':')[0]
         // _query_filter_value = filter.split(':').slice(1)
-        debug('query_with_filter STRING', filter, eval("this."+filter))
+        // debug('query_with_filter STRING', filter, eval("this."+filter))
         query = query.filter(eval("this."+filter))
-        debug('query_with_filter STRING', filter, query)
+        // debug('query_with_filter STRING', filter, query)
       }
       else if(Array.isArray(filter)){//allow chaining filters
         Array.each(Array.clone(filter), function(_filter, index){
@@ -769,7 +793,7 @@ module.exports = new Class({
         // _query_filter_value = filter[_query_filter]
         query = query.filter(filter)
 
-        debug('query_with_filter OBJECT', filter, query)
+        // debug('query_with_filter OBJECT', filter, query)
       }
 
       // debug_internals('query_with_filter %o', filter, _query_filter, _query_filter_value)
@@ -871,10 +895,10 @@ module.exports = new Class({
           if(value && value.indexOf('(') > -1){
             value = value.replace('r.', '')
             value = value.replace(')', '')
-            debug('orderBy ', value)
+            // debug('orderBy ', value)
             let order = value.substring(0, value.indexOf('('))
             let index = value.substring(value.indexOf('(') + 1)
-            debug('orderBy ',order, index)
+            // debug('orderBy ',order, index)
 
             if(_query_transform_value.index)
               _query_transform_value.index = this.r[order](index)
