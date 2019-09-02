@@ -95,7 +95,7 @@ module.exports = new Class({
               /**
               * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
               **/
-              let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
+              let transformation = (req.query && req.query.transformation) ? Object.clone(req.query.transformation) : undefined
               if(
                 transformation
                 && (transformation.orderBy
@@ -156,7 +156,8 @@ module.exports = new Class({
                       type: (req.params && req.params.path) ? req.params.path : app.options.type,
                       id: req.id,
                       transformation: (req.query.transformation) ? req.query.transformation : undefined,
-                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined
+                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
+                      filter: (req.query.filter) ? req.query.filter : undefined
                       // prop: pluralize(index)
                     }
                   }

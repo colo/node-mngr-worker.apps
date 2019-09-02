@@ -174,7 +174,7 @@ module.exports = function(conn){
                 query: {
                   "q": [
                 		"data",
-                		{"metadata": ["host", "tag", "timestamp", "path"]}
+                		{"metadata": ["host", "tag", "timestamp", "path", "range"]}
                 	],
                 	"transformation": [
                 		{
@@ -235,74 +235,90 @@ module.exports = function(conn){
       },
 
       function(doc, opts, next, pipeline){
-        debug('2nd filter %o', doc)
+        // debug('2nd filter %o', doc)
 
         if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === 'munin_historical'){
           let { type, input, input_type, app } = opts
 
           let ranges = []
           let data
+
+          let path = doc.metadata.filter[0].replace("r.row('metadata')('path').eq('", '')
+          path = path.substring(0, path.indexOf("'"))
+
           /**
           * if no data (404)
           **/
           if(doc.err && pipeline.current['munin'] && pipeline.current['munin'].data){
             data = pipeline.current['munin'].data
+
+            Array.each(data, function(group){
+
+              if(group.path === path){
+                let range = Array.clone(group.range)
+
+                range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+                // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
+
+                debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), group.range, group.path)
+
+
+
+                do{
+
+                  for(let i = 0; i < group.hosts.length; i++){
+                    let host = group.hosts[i]
+                    // let ranges = []
+                    ranges.push({
+                      id: "range",
+                      Range: "posix "+range[0]+"-"+range[1]+"/*",
+                      query: {
+                        "q": [
+                          "data",
+                          {"metadata": ["host", "tag", "timestamp", "path"]}
+                        ],
+                        "transformation": [
+                          {
+                          "orderBy": {"index": "r.desc(timestamp)"}
+                          },
+                          // {
+                          // 	"slice": [0, 1]
+                          // }
+
+
+                        ],
+                        "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
+                      },
+                      params: {},
+
+
+                    })
+
+                  }
+                  range[0] = range[1]
+                  range[1] += 60000//limit on next minute
+
+                }
+                // while(range[1] < now && range[0] < group.range[1])
+                while(range[0] < group.range[1])
+
+              }
+
+
+
+            })
+
           }
           else if(doc.data){
             data = doc.data
+            debug('2nd filter %o', data)
+            process.exit(1)
           }
 
-          Array.each(data, function(group){
-            let range = Array.clone(group.range)
-
-            range[1] = roundSeconds(range[0] + 61000)//limit on next minute
-            // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
-
-            debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), group.range, group.path)
 
 
 
-            do{
 
-              for(let i = 0; i < group.hosts.length; i++){
-                let host = group.hosts[i]
-                // let ranges = []
-                ranges.push({
-                  id: "range",
-                  Range: "posix "+range[0]+"-"+range[1]+"/*",
-                  query: {
-                    "q": [
-                      "data",
-                      {"metadata": ["host", "tag", "timestamp", "path"]}
-                    ],
-                    "transformation": [
-                      {
-                      "orderBy": {"index": "r.desc(timestamp)"}
-                      },
-                      // {
-                      // 	"slice": [0, 1]
-                      // }
-
-
-                    ],
-                    "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
-                  },
-                  params: {},
-
-
-                })
-
-              }
-              range[0] = range[1]
-              range[1] += 60000//limit on next minute
-
-            }
-            // while(range[1] < now && range[0] < group.range[1])
-            while(range[0] < group.range[1])
-
-
-
-          })
 
           debug('RANGES %O', ranges)
           // process.exit(1)
