@@ -174,7 +174,7 @@ module.exports = function(conn){
                 query: {
                   "q": [
                 		"data",
-                		{"metadata": ["host", "tag", "timestamp"]}
+                		{"metadata": ["host", "tag", "timestamp", "path"]}
                 	],
                 	"transformation": [
                 		{
@@ -240,385 +240,349 @@ module.exports = function(conn){
         if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === 'munin_historical'){
           let { type, input, input_type, app } = opts
 
+          let ranges = []
+          let data
+          /**
+          * if no data (404)
+          **/
           if(doc.err && pipeline.current['munin'] && pipeline.current['munin'].data){
-            // let now = Date.now()
+            data = pipeline.current['munin'].data
+          }
+          else if(doc.data){
+            data = doc.data
+          }
 
-            let ranges = []
-            // let ranges = new Chain()
-            // let eventsG = pauseable.createGroup()
+          Array.each(data, function(group){
+            let range = Array.clone(group.range)
 
-            Array.each(pipeline.current['munin'].data, function(group){
-              let range = Array.clone(group.range)
+            range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+            // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
 
-              range[1] = roundSeconds(range[0] + 61000)//limit on next minute
-              // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
-
-              debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), group.range, group.path)
-
-
-
-              do{
-
-                for(let i = 0; i < group.hosts.length; i++){
-                  let host = group.hosts[i]
-                  // let ranges = []
-                  ranges.push({
-                    id: "range",
-                    Range: "posix "+range[0]+"-"+range[1]+"/*",
-                    query: {
-                      "q": [
-                        "data",
-                        {"metadata": ["host", "tag", "timestamp"]}
-                      ],
-                      "transformation": [
-                        {
-                        "orderBy": {"index": "r.desc(timestamp)"}
-                        },
-                        // {
-                        // 	"slice": [0, 1]
-                        // }
+            debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), group.range, group.path)
 
 
-                      ],
-                      "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
-                    },
-                    params: {},
+
+            do{
+
+              for(let i = 0; i < group.hosts.length; i++){
+                let host = group.hosts[i]
+                // let ranges = []
+                ranges.push({
+                  id: "range",
+                  Range: "posix "+range[0]+"-"+range[1]+"/*",
+                  query: {
+                    "q": [
+                      "data",
+                      {"metadata": ["host", "tag", "timestamp", "path"]}
+                    ],
+                    "transformation": [
+                      {
+                      "orderBy": {"index": "r.desc(timestamp)"}
+                      },
+                      // {
+                      // 	"slice": [0, 1]
+                      // }
 
 
-                  })
-                  // ranges.chain(function() {
-                  //   setTimeout(function(){
-                  //   pipeline.get_input_by_id('input.periodical').fireEvent('onRange', )}, 1000)
-                  // })
-                  // sleep(1000).then(() => {
-                  //   // process.exit(1)
-                  //
-                  // }))
-                  // ranges.push(async.timeout(function(callback){
-                  //   pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
-                  //     // id: "default",
-                  //     Range: "posix "+range[0]+"-"+range[1]+"/*",
-                  //     query: {},
-                  //     params: {},
-                  //     "q": [
-                  //       "data",
-                  //       {"metadata": ["host", "tag", "timestamp"]}
-                  //     ],
-                  //     "transformation": [
-                  //       {
-                  //       "orderBy": {"index": "r.desc(timestamp)"}
-                  //       },
-                  //       // {
-                  //       // 	"slice": [0, 1]
-                  //       // }
-                  //
-                  //
-                  //     ],
-                  //     "filter": "[r.row('metadata')('path').eq("+group.path+"), r.row('metadata')('host').eq("+host+")]"
-                  //   })
-                  // }, 1000))
-
-                  // if(i === group.hosts.length -1)
-                  //   callback()
-
-                }
-                range[0] = range[1]
-                range[1] += 60000//limit on next minute
-
-              }
-              // while(range[1] < now && range[0] < group.range[1])
-              while(range[0] < group.range[1])
+                    ],
+                    "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
+                  },
+                  params: {},
 
 
-              // async function processQueue (queue) {
-              //   if (queue.length === 0) {
-              //     return
-              //   }
-              //   let head = queue[0]
-              //   // await head()
-              //   await setTimeout(head, 1000)
-              //   queue.shift() // Removes the first element.
-              // }
-              // setIntervalAsync(processQueue, 1000, ranges)
-
-              //
-              //
-              //
-              // }))
-
-            })
-
-            // while (ranges.callChain() !== false) {}
-            debug('RANGES %O', ranges)
-            // process.exit(1)
-            // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', [ranges])
-
-            // async.tryEach(ranges)
-            async.eachLimit(
-              ranges,
-              10,
-              function(range, callback){
-                // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                // callback()
-                let wrapped = async.timeout(function(range){
-                  // sleep(1001).then( () => {
-                  //   // process.exit(1)
-                  //   debug('RANGE', range)
-                  // })
-
-
-                  pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                  // process.exit(1)
-                  // callback()
-                }, 100)
-
-                // try{
-                wrapped(range, function(err, data) {
-                  if(err){
-                    // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                    callback()
-                  }
                 })
-                // }
-                // catch(e){
-                //   callback()
-                // }
+
               }
-            )
+              range[0] = range[1]
+              range[1] += 60000//limit on next minute
 
-          }
-          else{
+            }
+            // while(range[1] < now && range[0] < group.range[1])
+            while(range[0] < group.range[1])
 
-          }
-          debug('filter munin_historical %o', pipeline.current)
+
+
+          })
+
+          debug('RANGES %O', ranges)
+          // process.exit(1)
+          // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', [ranges])
+
+          // async.tryEach(ranges)
+          async.eachLimit(
+            ranges,
+            10,
+            function(range, callback){
+              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+              // callback()
+              let wrapped = async.timeout(function(range){
+                // sleep(1001).then( () => {
+                //   // process.exit(1)
+                //   debug('RANGE', range)
+                // })
+
+
+                pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                // process.exit(1)
+                // callback()
+              }, 100)
+
+              // try{
+              wrapped(range, function(err, data) {
+                if(err){
+                  // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                  callback()
+                }
+              })
+              // }
+              // catch(e){
+              //   callback()
+              // }
+            }
+          )
+
+          // debug('filter munin_historical %o', pipeline.current)
           // next(doc, opts, next, pipeline)
         }
         else{
           next(doc, opts, next, pipeline)
         }
       },
+      /**
+      * process filter
+      **/
       function(doc, opts, next, pipeline){
         // debug('3rd filter %o', doc)
 
         if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'munin' && doc.data){
-          debug('3rd filter %o', doc)
+          debug('process filter %o', doc)
+
+          let values = {};
+          let first, last
+          let tag = []
+
+          // if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+
+
+
+          Array.each(doc.data, function(doc_data, d_index){
+
+            debug('DOC DATA', doc_data)
+            first = doc_data[0].metadata.timestamp;
+
+            last = doc_data[doc_data.length - 1].metadata.timestamp;
+
+            Array.each(doc_data, function(group, group_index){
+              debug('GROUP', group)
+
+              let path = group.metadata.path
+
+
+              debug_internals('PATH', path)
+
+              if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+
+                // let data = doc.data
+                let timestamp = group.metadata.timestamp;
+                let host = group.metadata.host
+                tag.combine(group.metadata.tag)
+
+                if(!values[host]) values[host] = {};
+                if(!values[host][path]) values[host][path] = {};
+
+                try{
+                  //debug_internals('HOOK path %s', path)
+                  let _require = require('./hooks/'+path)
+                  if(_require)
+                    hooks[path] = _require
+                }
+                catch(e){
+                  // //debug_internals('no hook file for %s', path)
+                }
+
+                debug_internals('HOOKs', hooks)
+
+                Object.each(group.data, function(value, key){//item real data
+
+                  let _key = key
+                  debug('KEY', key)
+                  // process.exit(1)
+
+                  if(hooks[path]){
+                    Object.each(hooks[path], function(hook_data, hook_key){
+                      // if(path == 'os.blockdevices')
+                      //   //debug_internals('KEY %s %s', key, hook_key)
+
+                      if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
+                        // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
+
+                        if(hook_data[hook_key].test(_key))//if regexp match
+                          _key = hook_key
+                      }
+                      // else{
+                      //
+                      // }
+                    })
+
+                  }
+
+                  // if(path == 'os.procs')
+                  //   debug_internals('KEY %s %s', key, _key)
+
+                  if(!values[host][path][key]){
+
+                    if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+                      values[host][path] = hooks[path][_key].key(values[host][path], timestamp, value, key)
+
+                      if(values[host][path][key] == undefined)
+                        delete values[host][path][key]
+                    }
+                    else{
+                      values[host][path][key] = {};
+                    }
+                  }
+
+
+                  if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+                    values[host][path] = hooks[path][_key].value(values[host][path], timestamp, value, key)
+
+                  }
+                  else{
+                    values[host][path][key][timestamp] = value;
+
+                  }
+
+
+                });
+
+                if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+                  values[host][path] = hooks[path].post_values(values[host][path])
+                }
+
+              }//__white_black_lists_filter
+
+
+
+
+            })
+
+          })
+
+
+
+
+
+//
+//
+          // if(values.colo && values.colo)
+          // debug_internals('values %o', values)
           // process.exit(1)
+
+          if(Object.getLength(values) > 0){
+            Object.each(values, function(host_data, host){
+
+              let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
+
+              Object.each(host_data, function(data, path){
+
+                Object.each(data, function(value, key){
+                  let _key = key
+                  if(hooks[path]){
+                    Object.each(hooks[path], function(data, hook_key){
+                      if(data[hook_key] && data[hook_key] instanceof RegExp){
+                        if(data[hook_key].test(key))//if regexp match
+
+                          _key = hook_key
+                      }
+                      // else{
+                      //
+                      // }
+                    })
+
+                  }
+
+                  // debug_internals('HOOK DOC KEY %s %s', key, _key)
+
+                  if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
+                    new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
+
+                    if(path == 'os.mounts')
+                      debug_internals('value %s %o', key, new_doc.data)
+                  }
+                  else{
+                    let data_values = Object.values(value);
+                    let min = ss.min(data_values);
+                    let max = ss.max(data_values);
+
+                    new_doc['data'][key] = {
+                      // samples : value,
+                      min : min,
+                      max : max,
+                      mean : ss.mean(data_values),
+                      median : ss.median(data_values),
+                      mode : ss.mode(data_values),
+                      range: max - min
+                    };
+                  }
+
+                  new_doc['metadata'] = {
+                    tag: tag,
+                    type: 'minute',
+                    host: host,
+                    // path: 'historical.'+path,
+                    path: path,
+                    range: {
+                      start: first,
+                      end: last
+                    }
+                  };
+
+
+
+                });
+
+                new_doc.id = new_doc.metadata.host+
+                  // '.historical.minute.'+
+                  '.minute.'+
+                  new_doc.metadata.path+'.'+
+                  new_doc.metadata.range.start+'-'+
+                  new_doc.metadata.range.end+'@'+Date.now()
+
+                debug('NEW DOC %o', new_doc)
+                // process.exit(1)
+                sanitize_filter(
+                  new_doc,
+                  opts,
+                  pipeline.output.bind(pipeline),
+                  pipeline
+                )
+
+              })
+            });
+
+          }//if(Object.getLength(values) > 0)
         }
       }
-   		// require('./snippets/filter.sanitize.template'),
-       // function(doc, opts, next, pipeline){
-       //   let { type, input, input_type, app } = opts
-       //
-       //   if(
-     		// 		typeof(doc) == 'array'
-     		// 		|| doc instanceof Array
-     		// 		|| Array.isArray(doc)
-     		// 		&& doc.length > 0 && doc[0].data && doc[0].data !== null
-     		// 		&& doc[doc.length - 1] && doc[doc.length - 1].data && doc[doc.length - 1].data !== null
-     		// 	){
-       //
-       //      let first = doc[0].metadata.timestamp;
-       //
-       //      // //debug_internals('doc %s %s', path, host)
-       //
-       //      let last = doc[doc.length - 1].metadata.timestamp;
-       //
-       //      let values = {};
-       //
-       //
-       //      Array.each(doc, function(d, d_index){
-       //        let path = d.metadata.path
-       //        if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
-       //
-       //          let data = d.data
-       //          let timestamp = d.metadata.timestamp;
-       //
-       //
-       //  				let host = d.metadata.host
-       //
-       //  				if(!values[host]) values[host] = {};
-       //
-       //  				if(!values[host][path]) values[host][path] = {};
-       //
-       //          try{
-       //            //debug_internals('HOOK path %s', path)
-       //
-       //            let _require = require('./hooks/'+path)
-       //            if(_require)
-       //              hooks[path] = _require
-       //          }
-       //          catch(e){
-       //            // //debug_internals('no hook file for %s', path)
-       //          }
-       //
-       //          debug_internals('HOOKs', hooks)
-       //
-       //          Object.each(data, function(value, key){
-       //            let _key = key
-       //            if(hooks[path]){
-       //              Object.each(hooks[path], function(hook_data, hook_key){
-       //                // if(path == 'os.blockdevices')
-       //                //   //debug_internals('KEY %s %s', key, hook_key)
-       //
-       //                if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
-       //                  // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
-       //
-       //                  if(hook_data[hook_key].test(_key))//if regexp match
-       //                    _key = hook_key
-       //                }
-       //                // else{
-       //                //
-       //                // }
-       //              })
-       //
-       //            }
-       //
-       //            // if(path == 'os.procs')
-       //            //   debug_internals('KEY %s %s', key, _key)
-       //
-       //            if(!values[host][path][key]){
-       //
-       //              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
-       //                values[host][path] = hooks[path][_key].key(values[host][path], timestamp, value, key)
-       //
-       //                if(values[host][path][key] == undefined)
-       //                  delete values[host][path][key]
-       //              }
-       //              else{
-       //                values[host][path][key] = {};
-       //              }
-       //            }
-       //
-       //
-       //            if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
-       //              values[host][path] = hooks[path][_key].value(values[host][path], timestamp, value, key)
-       //
-       //            }
-       //            else{
-       //              values[host][path][key][timestamp] = value;
-       //
-       //            }
-       //
-       //
-       //          });
-       //
-       //          if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-       //            values[host][path] = hooks[path].post_values(values[host][path])
-       //          }
-       //
-       //        }//__white_black_lists_filter
-       //
-       //
-       //      });
-       //
-       //      // if(values.colo && values.colo)
-       //      //   debug_internals('values %o', values.colo)
-       //
-       //      if(Object.getLength(values) > 0){
-       //        Object.each(values, function(host_data, host){
-       //
-       //          let new_doc = {data: {}, metadata: {range: {start: null, end: null}}};
-       //
-       //          Object.each(host_data, function(data, path){
-       //
-       //            Object.each(data, function(value, key){
-       //              let _key = key
-       //              if(hooks[path]){
-       //                Object.each(hooks[path], function(data, hook_key){
-       //                  if(data[hook_key] && data[hook_key] instanceof RegExp){
-       //                    if(data[hook_key].test(key))//if regexp match
-       //                      _key = hook_key
-       //                  }
-       //                  // else{
-       //                  //
-       //                  // }
-       //                })
-       //
-       //              }
-       //
-       //              // debug_internals('HOOK DOC KEY %s %s', key, _key)
-       //
-       //              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
-       //                new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
-       //
-       //                if(path == 'os.mounts')
-       //                  debug_internals('value %s %o', key, new_doc.data)
-       //              }
-       //              else{
-       //                let data_values = Object.values(value);
-       //                let min = ss.min(data_values);
-       //                let max = ss.max(data_values);
-       //
-       //                new_doc['data'][key] = {
-       //                  // samples : value,
-       //                  min : min,
-       //                  max : max,
-       //                  mean : ss.mean(data_values),
-       //                  median : ss.median(data_values),
-       //                  mode : ss.mode(data_values),
-       //                  range: max - min
-       //                };
-       //              }
-       //
-       //              new_doc['metadata'] = {
-       //                type: 'minute',
-       //                host: host,
-       //                // path: 'historical.'+path,
-       //                path: path,
-       //                range: {
-       //                  start: first,
-       //                  end: last
-       //                }
-       //              };
-       //
-       //
-       //
-       //            });
-       //
-       //            new_doc.id = new_doc.metadata.host+
-       //              '.historical.minute.'+
-       //              new_doc.metadata.path+'.'+
-       //              new_doc.metadata.range.start+'-'+
-       //              new_doc.metadata.range.end+'@'+Date.now()
-       //
-       //            sanitize_filter(
-       //              new_doc,
-       //              opts,
-       //              pipeline.output.bind(pipeline),
-       //              pipeline
-       //            )
-       //
-       //          })
-       //        });
-       //
-       //      }//if(Object.getLength(values) > 0)
-       //
-       //
-       //    }
-       //
-       //
-       // },
+
 
    	],
   	output: [
-      // {
-  		// 	rethinkdb: {
-  		// 		id: "output.historical.minute.rethinkdb",
-  		// 		conn: [
-  		// 			{
-      //         host: 'elk',
-  		// 				port: 28015,
-  		// 				db: 'servers',
-      //         table: 'historical',
-  		// 			},
-  		// 		],
-  		// 		module: require('js-pipeline/output/rethinkdb'),
-      //     buffer:{
-  		// 			size: 0,
-  		// 			expire:0
-  		// 		}
-  		// 	}
-  		// }
+      {
+  			rethinkdb: {
+  				id: "output.historical.minute.rethinkdb",
+  				conn: [
+            Object.merge(
+              Object.clone(conn),
+              {table: 'munin_historical'}
+            )
+  				],
+  				module: require('js-pipeline/output/rethinkdb'),
+          buffer:{
+  					size: 0,
+  					expire:0
+  				}
+  			}
+  		}
   	]
   }
 
