@@ -103,7 +103,7 @@ module.exports = function(conn){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+              return cron.schedule('* * * * *', dispatch);//every minute
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test
@@ -246,6 +246,13 @@ module.exports = function(conn){
           let path = doc.metadata.filter[0].replace("r.row('metadata')('path').eq('", '')
           path = path.substring(0, path.indexOf("'"))
 
+          let host = doc.metadata.filter[1].replace("r.row('metadata')('host').eq('", '')
+          host = host.substring(0, host.indexOf("'"))
+
+          let range = []
+          let end_range
+          // debug('HOST %s', host)
+          // process.exit(1)
           /**
           * if no data (404)
           **/
@@ -253,58 +260,11 @@ module.exports = function(conn){
             data = pipeline.current['munin'].data
 
             Array.each(data, function(group){
-
               if(group.path === path){
-                let range = Array.clone(group.range)
-
+                range[0] = group.range[0]
                 range[1] = roundSeconds(range[0] + 61000)//limit on next minute
-                // debug('range %s %s %s', new Date(range[0]), new Date(range[1]), group.path)
-
-                debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), group.range, group.path)
-
-
-
-                do{
-
-                  for(let i = 0; i < group.hosts.length; i++){
-                    let host = group.hosts[i]
-                    // let ranges = []
-                    ranges.push({
-                      id: "range",
-                      Range: "posix "+range[0]+"-"+range[1]+"/*",
-                      query: {
-                        "q": [
-                          "data",
-                          {"metadata": ["host", "tag", "timestamp", "path"]}
-                        ],
-                        "transformation": [
-                          {
-                          "orderBy": {"index": "r.desc(timestamp)"}
-                          },
-                          // {
-                          // 	"slice": [0, 1]
-                          // }
-
-
-                        ],
-                        "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
-                      },
-                      params: {},
-
-
-                    })
-
-                  }
-                  range[0] = range[1]
-                  range[1] += 60000//limit on next minute
-
-                }
-                // while(range[1] < now && range[0] < group.range[1])
-                while(range[0] < group.range[1])
-
+                end_range = group.range[1]
               }
-
-
 
             })
 
@@ -312,9 +272,55 @@ module.exports = function(conn){
           else if(doc.data){
             data = doc.data
             debug('2nd filter %o', data)
-            process.exit(1)
+            Array.each(data, function(group){
+              Array.each(group, function(group_item){
+                range[0] = group_item.metadata.range.end + 60000
+                range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+                end_range = Date.now()
+              })
+            })
+            // process.exit(1)
           }
 
+          debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path)
+          // process.exit(1)
+
+          do{
+
+            // for(let i = 0; i < group.hosts.length; i++){
+            //   let host = group.hosts[i]
+              // let ranges = []
+              ranges.push({
+                id: "range",
+                Range: "posix "+range[0]+"-"+range[1]+"/*",
+                query: {
+                  "q": [
+                    "data",
+                    {"metadata": ["host", "tag", "timestamp", "path"]}
+                  ],
+                  "transformation": [
+                    {
+                    "orderBy": {"index": "r.desc(timestamp)"}
+                    },
+                    // {
+                    // 	"slice": [0, 1]
+                    // }
+
+
+                  ],
+                  "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')"]
+                },
+                params: {},
+
+
+              })
+
+            // }
+            range[0] = range[1]
+            range[1] += 60000//limit on next minute
+
+          }
+          while(range[0] < end_range)
 
 
 
