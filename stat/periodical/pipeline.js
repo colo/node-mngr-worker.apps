@@ -25,7 +25,8 @@ let hooks = {}
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin/
+// let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin/
+let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
   let filtered = false
@@ -85,7 +86,7 @@ module.exports = function(conn){
               {
                 // path_key: 'os',
                 module: InputPollerRethinkDBPeriodical,
-                table: 'munin'
+                table: 'os'
               }
             )
     			],
@@ -103,7 +104,7 @@ module.exports = function(conn){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('* * * * *', dispatch);//every minute
+              return cron.schedule('*/5 * * * * *', dispatch);//every minute
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test
@@ -121,7 +122,7 @@ module.exports = function(conn){
               {
                 // path_key: 'os',
                 module: InputPollerRethinkDBPeriodical,
-                table: 'munin_historical'
+                table: 'os_historical'
               }
             )
     			],
@@ -151,7 +152,7 @@ module.exports = function(conn){
     filters: [
       function(doc, opts, next, pipeline){
         debug('1st filter %o', doc)
-        if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === 'munin'){
+        if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === 'os'){
           let { type, input, input_type, app } = opts
 
           // let hosts = []
@@ -159,7 +160,7 @@ module.exports = function(conn){
           // let range = [0,0]
           // let historical_range = [0,0]
 
-          // if(doc && doc.data && doc.metadata && doc.metadata.from === 'munin'){
+          // if(doc && doc.data && doc.metadata && doc.metadata.from === 'os'){
           if(!pipeline.current) pipeline.current = {}
           pipeline.current[doc.metadata.from] = doc
 
@@ -194,7 +195,7 @@ module.exports = function(conn){
 
           })
           // }
-          // else if(doc && doc.metadata && doc.metadata.from === 'munin_historical'){
+          // else if(doc && doc.metadata && doc.metadata.from === 'os_historical'){
           //
           // }
 
@@ -237,7 +238,7 @@ module.exports = function(conn){
       function(doc, opts, next, pipeline){
         // debug('2nd filter %o', doc)
 
-        if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === 'munin_historical'){
+        if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === 'os_historical'){
           let { type, input, input_type, app } = opts
 
           let ranges = []
@@ -256,8 +257,8 @@ module.exports = function(conn){
           /**
           * if no data (404)
           **/
-          if(doc.err && pipeline.current['munin'] && pipeline.current['munin'].data){
-            data = pipeline.current['munin'].data
+          if(doc.err && pipeline.current['os'] && pipeline.current['os'].data){
+            data = pipeline.current['os'].data
 
             Array.each(data, function(group){
               if(group.path === path){
@@ -309,7 +310,11 @@ module.exports = function(conn){
 
 
                   ],
-                  "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')"]
+                  "filter": [
+                    "r.row('metadata')('path').eq('"+path+"')",
+                    "r.row('metadata')('host').eq('"+host+"')",
+                    "r.row('metadata')('type').eq('periodical')"
+                  ]
                 },
                 params: {},
 
@@ -364,7 +369,7 @@ module.exports = function(conn){
             }
           )
 
-          // debug('filter munin_historical %o', pipeline.current)
+          // debug('filter os_historical %o', pipeline.current)
           // next(doc, opts, next, pipeline)
         }
         else{
@@ -377,12 +382,13 @@ module.exports = function(conn){
       function(doc, opts, next, pipeline){
         // debug('3rd filter %o', doc)
 
-        if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'munin' && doc.data){
+        if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'os' && doc.data){
           debug('process filter %o', doc)
           // process.exit(1)
           let values = {};
           let first, last
           let tag = []
+          let hooks = {}
 
           // if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
@@ -390,7 +396,7 @@ module.exports = function(conn){
 
           Array.each(doc.data, function(doc_data, d_index){
 
-            debug('DOC DATA', doc_data)
+            // debug('DOC DATA', doc_data)
             first = doc_data[0].metadata.timestamp;
 
             last = doc_data[doc_data.length - 1].metadata.timestamp;
@@ -415,7 +421,7 @@ module.exports = function(conn){
 
                 try{
                   //debug_internals('HOOK path %s', path)
-                  let _require = require('./hooks/'+path)
+                  let _require = require('../hooks/'+path)
                   if(_require)
                     hooks[path] = _require
                 }
@@ -424,6 +430,7 @@ module.exports = function(conn){
                 }
 
                 debug_internals('HOOKs', hooks)
+                // process.exit(1)
 
                 Object.each(group.data, function(value, key){//item real data
 
@@ -571,8 +578,11 @@ module.exports = function(conn){
                   new_doc.metadata.range.start+'-'+
                   new_doc.metadata.range.end+'@'+Date.now()
 
-                debug('NEW DOC %o', new_doc)
+                if(path !== 'os.procs'){
+                // debug('NEW DOC %o', new_doc.metadata)
                 // process.exit(1)
+                }
+
                 sanitize_filter(
                   new_doc,
                   opts,
@@ -596,7 +606,7 @@ module.exports = function(conn){
   				conn: [
             Object.merge(
               Object.clone(conn),
-              {table: 'munin_historical'}
+              {table: 'os_historical'}
             )
   				],
   				module: require('js-pipeline/output/rethinkdb'),
