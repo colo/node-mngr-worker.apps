@@ -295,6 +295,7 @@ module.exports = function(conn){
                 Range: "posix "+range[0]+"-"+range[1]+"/*",
                 query: {
                   "q": [
+                    "id",
                     "data",
                     {"metadata": ["host", "tag", "timestamp", "path"]}
                   ],
@@ -378,7 +379,7 @@ module.exports = function(conn){
 
         if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'munin' && doc.data){
           debug('process filter %o', doc)
-
+          // process.exit(1)
           let values = {};
           let first, last
           let tag = []
