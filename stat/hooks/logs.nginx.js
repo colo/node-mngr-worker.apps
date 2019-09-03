@@ -10,7 +10,7 @@ let ss = require('simple-statistics')
 module.exports = {
   delete: {
     // all: new RegExp('^.+$'),
-    delete: new RegExp('^((?!^user\_agent|body\_bytes\_sent|method|status|remote_addr).)*$'),
+    delete: new RegExp('^((?!^user\_agent|body\_bytes\_sent|method|status|remote_addr|remote_user|pathname|qs|geoip|^referer).)*$'),
     doc: function(entry_point, value, key){
       // debug('doc - ALL', entry_point, value, key)
       if(entry_point && entry_point[key])
@@ -20,13 +20,15 @@ module.exports = {
     }
   },
   generic: {
-    generic: new RegExp('^(status|method|remote_addr)$'),
+    generic: new RegExp('^(status|method|remote_addr|remote_user|pathname|qs)$'),
     doc: function(entry_point, value, key){
       debug('method - doc', entry_point, value, key)
       delete entry_point[key]
       entry_point[key] = {}
       let data_values = Object.values(value);
       Array.each(data_values, function(method){
+        if(typeof method !== 'string')
+          method = JSON.stringify(method)
         if(!entry_point[key][method]) entry_point[key][method] = 0
 
         entry_point[key][method] +=1
@@ -34,6 +36,83 @@ module.exports = {
       // process.exit(1)
       return entry_point
     }
+  },
+  referer: {
+    doc: function(entry_point, value, key){
+      debug_internals('doc %s %o', key, value)
+      delete entry_point[key]
+
+      let stat = {}
+      let data_values = Object.values(value);
+
+      Array.each(data_values, function(data){
+        // if(!stat[key]) stat[key] = {}
+        Object.each(data, function(item, name){
+          if(name !== 'uri'){
+            if(!stat[name]) stat[name] = {}
+            if(!stat[name][item]) stat[name][item] = 0
+            stat[name][item] +=1
+          }
+        })
+
+      })
+
+      entry_point[key] = stat
+
+      debug_internals('doc %s %o', key, stat)
+
+      // process.exit(1)
+      return entry_point
+    },
+  },
+  geoip: {
+    doc: function(entry_point, value, key){
+      debug_internals('doc %s %o', key, value)
+      delete entry_point[key]
+
+      let stat = {}
+      let data_values = Object.values(value);
+
+      Array.each(data_values, function(data){
+        // if(!stat[key]) stat[key] = {}
+        Object.each(data, function(item, name){
+          // if(name !== 'major' && name !== 'minor'){
+
+            if((item.geonameId || (item.names && item.geonameId.en)) && !stat[name]) stat[name] = {}
+
+            if(item.geonameId){
+              if(!stat[name].geonameId) stat[name].geonameId = {}
+              if(!stat[name].geonameId[item.geonameId]) stat[name].geonameId[item.geonameId] = 0
+              stat[name].geonameId[item.geonameId] +=1
+            }
+
+            if(item.names && item.names.en ){
+              if(!stat[name].names) stat[name].names = {}
+              if(!stat[name].names[item.names.en]) stat[name].names[item.names.en] = 0
+              stat[name].names[item.names.en] +=1
+            }
+            // Object.each(item, function(val, key){
+            //   if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor ' && val !== null){
+            //     if(!stat[name][key]) stat[name][key] = {}
+            //     if(!stat[name][key][val]) stat[name][key][val] = 0
+            //     stat[name][key][val] += 1
+            //   }
+            // })
+          // }
+
+
+
+        })
+
+      })
+
+      debug_internals('doc %o', stat)
+
+      entry_point[key] = stat
+      // process.exit(1)
+      return entry_point
+
+    },
   },
   user_agent: {
     // key: function(entry_point, timestamp, value, key){
@@ -57,7 +136,7 @@ module.exports = {
           // if(name !== 'major' && name !== 'minor'){
             if(!stat[name]) stat[name] = {}
             Object.each(item, function(val, key){
-              if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor ' && val !== null){
+              if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor' && val !== null){
                 if(!stat[name][key]) stat[name][key] = {}
                 if(!stat[name][key][val]) stat[name][key][val] = 0
                 stat[name][key][val] += 1

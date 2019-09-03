@@ -175,7 +175,8 @@ module.exports = function(conn){
                 query: {
                   "q": [
                 		"data",
-                		{"metadata": ["host", "tag", "timestamp", "path", "range"]}
+                		// {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+                    "metadata"
                 	],
                 	"transformation": [
                 		{
@@ -298,7 +299,8 @@ module.exports = function(conn){
                   "q": [
                     "id",
                     "data",
-                    {"metadata": ["host", "tag", "timestamp", "path"]}
+                    // {"metadata": ["host", "tag", "timestamp", "path"]}
+                    "metadata"
                   ],
                   "transformation": [
                     {
@@ -388,6 +390,7 @@ module.exports = function(conn){
           let values = {};
           let first, last
           let tag = []
+          let metadata = {}
           let hooks = {}
 
           // if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
@@ -415,6 +418,7 @@ module.exports = function(conn){
                 let timestamp = group.metadata.timestamp;
                 let host = group.metadata.host
                 tag.combine(group.metadata.tag)
+                metadata = Object.merge(metadata, group.metadata)
 
                 if(!values[host]) values[host] = {};
                 if(!values[host][path]) values[host][path] = {};
@@ -556,7 +560,10 @@ module.exports = function(conn){
                     };
                   }
 
-                  new_doc['metadata'] = {
+                  /**
+                  * add other metadata fields like "domain" for logs
+                  */
+                  new_doc['metadata'] = Object.merge(metadata, {
                     tag: tag,
                     type: 'minute',
                     host: host,
@@ -566,7 +573,7 @@ module.exports = function(conn){
                       start: first,
                       end: last
                     }
-                  };
+                  })
 
 
 

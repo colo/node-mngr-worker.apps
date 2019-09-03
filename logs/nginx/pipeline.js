@@ -43,6 +43,7 @@ const cityReader = Reader.openBuffer(cityBuffer);
 const uaParser = require('ua-parser2')()
 const ip = require('ip')
 const qs = require('qs')
+const referer = require('referer-parser')
 
 
 
@@ -212,6 +213,39 @@ module.exports = function(frontail, domain, out){
           result.path = result.request.split(' ')[1]
           result.version = result.request.split(' ')[2]
           delete result.request
+
+
+          if(result.http_referer){
+            let r = new referer(result.http_referer, 'http://'+doc.domain)
+            // Object.each(r, function(data, key){
+            //   debug('referer %s %s', key, data )
+            // })
+            let uri = r.uri
+            result.referer = {
+              known: r.known,
+              referer: r.referer,
+              medium: r.medium,
+              search_parameter: r.search_parameter,
+              search_term: r.search_term,
+              uri: {
+                protocol: uri.protocol,
+                slashes: uri.slashes,
+                auth: uri.auth,
+                host: uri.host,
+                port: uri.port,
+                hostname: uri.hostname,
+                hash: uri.hash,
+                search: uri.search,
+                query: uri.query,
+                pathname: uri.pathname,
+                path: uri.path,
+                href: uri.href
+              },
+            }
+            debug('referer %o', result.referer )
+          }
+          // process.exit(1)
+
           let url = new URL(result.path, 'http://'+doc.domain)
           result.pathname = url.pathname
           result.qs = qs.parse(url.search, { ignoreQueryPrefix: true })

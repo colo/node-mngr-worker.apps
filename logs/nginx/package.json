@@ -33,6 +33,7 @@
     "node-app-socket.io-client": "git+https://github.com/colo/node-app-socket.io-client.git",
     "node-html-parser": "^1.1.15",
     "qs": "^6.7.0",
+    "referer-parser": "0.0.3",
     "ua-parser2": "^0.4.2"
   }
 }
