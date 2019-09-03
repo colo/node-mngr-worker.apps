@@ -5,7 +5,7 @@ var debug_internals = require('debug')('Server:Apps:Historical:Minute:Hook:OS:Pr
 
 let ss = require('simple-statistics')
 
-let value_to_data = require('../../libs/value.data')
+let value_to_data = require('../libs/value.data')
 
 module.exports = Object.merge(
   Object.clone(require('./os.procs.uid')),

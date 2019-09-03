@@ -247,7 +247,7 @@ module.exports = function(frontail, domain, out){
             data: result,
             metadata: {
               host: os.hostname(),
-              path: 'logs',
+              path: 'logs.nginx',
               domain: doc.domain,
               timestamp: doc_ts,
               // timestamp: Date.now(),

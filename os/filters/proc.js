@@ -264,7 +264,7 @@ module.exports = function(doc, opts, next, pipeline){
 				}
 				uids_stats_doc.metadata.tag.combine(Object.keys(uids_stats_doc.data))
 
-				// next(uids_doc, opts, next, pipeline)
+				next(uids_doc, opts, next, pipeline)//was commented
 				next(uids_stats_doc, opts, next, pipeline)
 
 				/**
@@ -307,7 +307,7 @@ module.exports = function(doc, opts, next, pipeline){
 				}
 				cmds_stats_doc.metadata.tag.combine(Object.keys(cmds_stats_doc.data))
 
-				// next(cmds_doc, opts, next, pipeline)
+				next(cmds_doc, opts, next, pipeline)//was commented
 				next(cmds_stats_doc, opts, next, pipeline)
 
 			}

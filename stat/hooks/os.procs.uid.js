@@ -5,7 +5,7 @@ var debug_internals = require('debug')('Server:Apps:Historical:Minute:Hook:OS:Pr
 
 let ss = require('simple-statistics')
 
-let value_to_data = require('../../libs/value.data')
+let value_to_data = require('../libs/value.data')
 
 module.exports = {
   proc: {
@@ -51,6 +51,7 @@ module.exports = {
 
       // })
       // debug_internals('os.procs.uid value %s %o', key, entry_point[key])
+      // process.exit(1)
 
       return entry_point
     },
