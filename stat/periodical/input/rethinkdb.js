@@ -54,11 +54,9 @@ module.exports = new Class({
           * default query from mngr-ui-admin/libs/pipelines/input/rethinkdb
           **/
 					default: function(req, next, app){
-            debug_internals('default ONCE %o %o', req, app.options.table)
-
             req = (req) ? Object.clone(req) : { params: {}, query: {} }
-            if(req.id === 'default'){
-
+            if(req.id === 'once'){
+              debug_internals('default ONCE %o %o', req, app.options.table)
 
               // let distinct_indexes = (req.params && req.params.prop ) ? pluralize(req.params.prop, 1) : app.distinct_indexes
               // if(!Array.isArray(distinct_indexes))
@@ -146,7 +144,7 @@ module.exports = new Class({
                 )
               }
 
-              query.run(app.conn, function(err, resp){
+              query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
                 debug_internals('run', err)//resp
                 app.process_default(
                   err,
@@ -376,7 +374,7 @@ module.exports = new Class({
                 )
               }
 
-              query.run(app.conn, function(err, resp){
+              query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
                 debug_internals('run', err)//resp
                 app.process_default(
                   err,
@@ -411,7 +409,7 @@ module.exports = new Class({
         //           let {query, params} = periodical
         //           debug_internals('periodical default %s %O', id, periodical);
         //           // periodical_req.id = id
-        //           query.run(app.conn, function(err, resp){
+        //           query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
         //             debug_internals('periodical default run', err, resp)//resp
         //             app.process_default(
         //               err,
@@ -530,7 +528,7 @@ module.exports = new Class({
                 )
               }
 
-              query.run(app.conn, function(err, resp){
+              query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
                 debug_internals('run', err) //resp
                 app.process_default(
                   err,
@@ -673,7 +671,7 @@ module.exports = new Class({
         //
         //         // sleep(100).then(() => {
         //           // setTimeout(
-        //             query.run(app.conn, function(err, resp){
+        //             query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
         //             debug_internals('RUN', req, err) //resp
         //             // process.exit(1)
         //             app.process_default(

@@ -173,7 +173,7 @@ module.exports = function(payload){
             // paths.push(group.path)
             Array.each(group.hosts, function(host){
               pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
-                id: "default",
+                id: "once",
                 query: {
                   "q": [
                 		"data",
@@ -241,7 +241,7 @@ module.exports = function(payload){
       function(doc, opts, next, pipeline){
         // debug('2nd filter %o', doc)
 
-        if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === table+'_historical'){
+        if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table+'_historical'){
           let { type, input, input_type, app } = opts
 
           let ranges = []
@@ -256,7 +256,17 @@ module.exports = function(payload){
           let range = []
           let end_range
           // debug('HOST %s', host)
-          // process.exit(1)
+
+          if(pipeline.current[table] && pipeline.current[table].data){
+            data = pipeline.current[table].data
+
+            Array.each(data, function(group){
+              if(group.path === path){
+                end_range = group.range[1]
+              }
+
+            })
+          }
           /**
           * if no data (404)
           **/
@@ -267,7 +277,7 @@ module.exports = function(payload){
               if(group.path === path){
                 range[0] = group.range[0]
                 range[1] = roundSeconds(range[0] + 61000)//limit on next minute
-                end_range = group.range[1]
+                // end_range = group.range[1]
               }
 
             })
@@ -280,13 +290,15 @@ module.exports = function(payload){
               Array.each(group, function(group_item){
                 range[0] = group_item.metadata.range.end + 60000
                 range[1] = roundSeconds(range[0] + 61000)//limit on next minute
-                end_range = Date.now()
+                // end_range = Date.now()
+                // end_range =  pipeline.current[table].data
+                end_range = (end_range) ? end_range : Date.now()
               })
             })
             // process.exit(1)
           }
 
-          debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path)
+          debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path, end_range)
           // process.exit(1)
 
           do{
@@ -343,7 +355,7 @@ module.exports = function(payload){
           // async.tryEach(ranges)
           async.eachLimit(
             ranges,
-            10,
+            100,
             function(range, callback){
               // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
               // callback()
@@ -357,7 +369,7 @@ module.exports = function(payload){
                 pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
                 // process.exit(1)
                 // callback()
-              }, 100)
+              }, 10)
 
               // try{
               wrapped(range, function(err, data) {
