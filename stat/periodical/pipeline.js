@@ -73,7 +73,9 @@ const roundMinutes = function(timestamp){
 //
 // const pauseable = require('pauseable')
 
-module.exports = function(conn){
+module.exports = function(payload){
+  let {input, output, table} = payload
+
   let conf = {
     input: [
     	{
@@ -82,11 +84,11 @@ module.exports = function(conn){
     			id: "input.periodical",
     			conn: [
             Object.merge(
-              Object.clone(conn),
+              Object.clone(input),
               {
                 // path_key: 'os',
                 module: InputPollerRethinkDBPeriodical,
-                table: 'logs'
+                table: table
               }
             )
     			],
@@ -104,7 +106,7 @@ module.exports = function(conn){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/5 * * * * *', dispatch);//every minute
+              return cron.schedule('* * * * *', dispatch);//every minute
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test
@@ -118,11 +120,11 @@ module.exports = function(conn){
           suspended: true,
     			conn: [
             Object.merge(
-              Object.clone(conn),
+              Object.clone(input),
               {
                 // path_key: 'logs',
                 module: InputPollerRethinkDBPeriodical,
-                table: 'logs_historical'
+                table: table+'_historical'
               }
             )
     			],
@@ -140,7 +142,7 @@ module.exports = function(conn){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+              return cron.schedule('* * * * *', dispatch);//every 20 secs
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test
@@ -152,7 +154,7 @@ module.exports = function(conn){
     filters: [
       function(doc, opts, next, pipeline){
         debug('1st filter %o', doc)
-        if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === 'logs'){
+        if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === table){
           let { type, input, input_type, app } = opts
 
           // let hosts = []
@@ -239,7 +241,7 @@ module.exports = function(conn){
       function(doc, opts, next, pipeline){
         // debug('2nd filter %o', doc)
 
-        if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === 'logs_historical'){
+        if(doc && doc.id === 'default' && doc.metadata && doc.metadata.from === table+'_historical'){
           let { type, input, input_type, app } = opts
 
           let ranges = []
@@ -258,8 +260,8 @@ module.exports = function(conn){
           /**
           * if no data (404)
           **/
-          if(doc.err && pipeline.current['logs'] && pipeline.current['logs'].data){
-            data = pipeline.current['logs'].data
+          if(doc.err && pipeline.current[table] && pipeline.current[table].data){
+            data = pipeline.current[table].data
 
             Array.each(data, function(group){
               if(group.path === path){
@@ -384,7 +386,7 @@ module.exports = function(conn){
       function(doc, opts, next, pipeline){
         // debug('3rd filter %o', doc)
 
-        if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === 'logs' && doc.data){
+        if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === table && doc.data){
           debug('process filter %o', doc)
           // process.exit(1)
           let values = {};
@@ -613,8 +615,8 @@ module.exports = function(conn){
   				id: "output.historical.minute.rethinkdb",
   				conn: [
             Object.merge(
-              Object.clone(conn),
-              {table: 'logs_historical'}
+              Object.clone(output),
+              {table: table+'_historical'}
             )
   				],
   				module: require('js-pipeline/output/rethinkdb'),
