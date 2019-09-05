@@ -29,12 +29,15 @@ const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 
 module.exports = function(payload){
-  let {input, output} = payload
+  let {input, output, filters} = payload
 
+  Array.each(filters, function(filter, i){
+    filters[i] = filter(input.table)
+  })
 
-  let filter_from_default_query_get_lasts = require('../filters/00_from_default_query_get_lasts')(input.table)
-  let filter_from_lasts_get_historical_ranges = require('../filters/01_from_lasts_get_historical_ranges')(input.table)
-  let filter_from_ranges_create_stats = require('../filters/02_from_ranges_create_stats')(input.table)
+  // let filter_from_default_query_get_lasts = require('../filters/00_from_default_query_get_lasts')(input.table)
+  // let filter_from_lasts_get_historical_ranges = require('../filters/01_from_lasts_get_historical_ranges')(input.table)
+  // let filter_from_ranges_create_stats = require('../filters/02_from_ranges_create_stats')(input.table)
 
   let conf = {
     input: [
@@ -110,11 +113,12 @@ module.exports = function(payload){
     	}
     ],
 
-    filters: [
-      filter_from_default_query_get_lasts,
-      filter_from_lasts_get_historical_ranges,
-      filter_from_ranges_create_stats
-   	],
+    filters: filters,
+    // filters: [
+    //   filter_from_default_query_get_lasts,
+    //   filter_from_lasts_get_historical_ranges,
+    //   filter_from_ranges_create_stats
+   	// ],
   	output: [
       {
   			rethinkdb: {

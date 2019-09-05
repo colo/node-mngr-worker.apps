@@ -61,6 +61,7 @@ module.exports = {
               mean : ss.mean(data_values),
               median : ss.median(data_values),
               mode : ss.mode(data_values),
+              // sum: ss.sumSimple(data_values),
               range: max - min,
             };
 

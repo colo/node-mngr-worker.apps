@@ -313,6 +313,11 @@ module.exports = function(http, out){
             doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
           }
           else{
+
+            // if(module === 'os'){
+            //   debug('OS %o', doc, module)
+            //   process.exit(1)
+            // }
             doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
           }
           next(doc)

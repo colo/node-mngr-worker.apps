@@ -76,7 +76,7 @@ module.exports = function(val, opts, next, pipeline){
       }
 
 			next(networkInterfaces_doc, opts, next, pipeline)
-			next(networkInterfaces_stats_doc, opts, next, pipeline)
+			// next(networkInterfaces_stats_doc, opts, next, pipeline)
 
 			// }
 

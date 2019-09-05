@@ -5,7 +5,7 @@ let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from
 let ss = require('simple-statistics');
 
 const path = require('path')
-// const value_to_data = require('../libs/value.data')
+// const value_to_data = require('../../libs/value.data')
 const stat = require('../libs/stat')
 
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
@@ -80,15 +80,17 @@ module.exports = function(table){
 
             try{
               //debug_internals('HOOK path %s', path)
-              let _require = require('../hooks/'+path)
+              let _require = require('../hooks/periodicals/'+path)
               if(_require)
                 hooks[path] = _require
             }
             catch(e){
-              // //debug_internals('no hook file for %s', path)
+              debug_internals('no hook file for %s %o', path, e)
             }
-
-            debug_internals('HOOKs', hooks)
+            // if(path === 'os.procs'){
+            //   debug_internals('HOOKs', hooks)
+            //   process.exit(1)
+            // }
 
 
             Object.each(group.data, function(value, key){//item real data
