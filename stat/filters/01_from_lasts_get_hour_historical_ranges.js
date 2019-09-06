@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_lasts_get_hitorical_ranges');
-let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_lasts_get_hitorical_ranges:Internals');
+let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_lasts_get_hour_historical_ranges');
+let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_lasts_get_hour_historical_ranges:Internals');
 let async = require('async')
 
 const roundMilliseconds = function(timestamp){
@@ -12,6 +12,7 @@ const roundMilliseconds = function(timestamp){
 }
 
 const roundSeconds = function(timestamp){
+  timestamp = roundMilliseconds(timestamp)
   let d = new Date(timestamp)
   d.setSeconds(0)
 
@@ -19,17 +20,22 @@ const roundSeconds = function(timestamp){
 }
 
 const roundMinutes = function(timestamp){
+  timestamp = roundSeconds(timestamp)
   let d = new Date(timestamp)
   d.setMinutes(0)
 
   return d.getTime()
 }
 
-module.exports = function(table){
-  let filter = function(doc, opts, next, pipeline){
+module.exports = function(payload){
+  let {input, output, type } = payload
+  let table = output.table
 
-    if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table+'_historical'){
-      let { type, input, input_type, app } = opts
+  let filter = function(doc, opts, next, pipeline){
+    debug('2nd filter %o', doc, doc.id, table, doc.metadata.from)
+    if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
+      // let { type, input, input_type, app } = opts
+
 
       let ranges = []
       let data
@@ -63,7 +69,7 @@ module.exports = function(table){
         Array.each(data, function(group){
           if(group.path === path){
             range[0] = group.range[0]
-            range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+            range[1] = roundMinutes(range[0] + 3660000)//limit on next minute
             // end_range = group.range[1]
           }
 
@@ -75,8 +81,8 @@ module.exports = function(table){
         debug('2nd filter %o', data)
         Array.each(data, function(group){
           Array.each(group, function(group_item){
-            range[0] = group_item.metadata.range.end + 60000
-            range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+            range[0] = group_item.metadata.range.end + 1000
+            range[1] = roundMinutes(range[0] + 3660000)//limit on next minute
             // end_range = Date.now()
             // end_range =  pipeline.current[table].data
             end_range = (end_range) ? end_range : Date.now()
@@ -85,7 +91,7 @@ module.exports = function(table){
         // process.exit(1)
       }
 
-      debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path, end_range)
+      debug('range %s %s %s %s', new Date(range[0]), new Date(range[1]), new Date(end_range), host, path)
       // process.exit(1)
 
       do{
@@ -116,7 +122,7 @@ module.exports = function(table){
               "filter": [
                 "r.row('metadata')('path').eq('"+path+"')",
                 "r.row('metadata')('host').eq('"+host+"')",
-                "r.row('metadata')('type').eq('periodical')"
+                "r.row('metadata')('type').eq('minute')"
               ]
             },
             params: {},

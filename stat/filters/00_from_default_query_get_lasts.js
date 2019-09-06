@@ -3,11 +3,14 @@
 let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts');
 let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts:Internals');
 
-module.exports = function(table){
+module.exports = function(payload){
+  let {input, output, type } = payload
+  let table = input.table
+
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
     if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === table){
-      let { type, input, input_type, app } = opts
+      // let { type, input, input_type, app } = opts
 
       // let hosts = []
       // let paths = []
@@ -44,7 +47,7 @@ module.exports = function(table){
 
 
               ],
-              "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')"]
+              "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
             },
             params: {},
           })

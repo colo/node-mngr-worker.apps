@@ -29,10 +29,10 @@ const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 
 module.exports = function(payload){
-  let {input, output, filters} = payload
+  let {input, output, filters, type} = payload
 
   Array.each(filters, function(filter, i){
-    filters[i] = filter(input.table)
+    filters[i] = filter(payload)
   })
 
   // let filter_from_default_query_get_lasts = require('../filters/00_from_default_query_get_lasts')(input.table)
@@ -68,7 +68,7 @@ module.exports = function(payload){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('* * * * *', dispatch);//every minute
+              return cron.schedule('*/10 * * * * *', dispatch);//every minute
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test

@@ -6,7 +6,7 @@ let ss = require('simple-statistics');
 
 const path = require('path')
 // const value_to_data = require('../../libs/value.data')
-const stat = require('../libs/stat')
+
 
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
 
@@ -35,7 +35,12 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 
 
 
-module.exports = function(table){
+module.exports = function(payload){
+  let {input, output, type } = payload
+  let table = input.table
+
+  const stat = require('../libs/stat')[type]
+
   let filter = function(doc, opts, next, pipeline){
     // debug('3rd filter %o', doc)
 
@@ -80,7 +85,7 @@ module.exports = function(table){
 
             try{
               //debug_internals('HOOK path %s', path)
-              let _require = require('../hooks/periodicals/'+path)
+              let _require = require('../hooks/'+type+'/'+path)
               if(_require)
                 hooks[path] = _require
             }
@@ -141,6 +146,12 @@ module.exports = function(table){
               else{
                 values[host][path][key][timestamp] = value;
 
+                /**
+                * from historical
+                *
+                * values[host][path][key][timestamp] = value['mean']
+                **/
+
               }
 
 
@@ -166,7 +177,7 @@ module.exports = function(table){
 //
 //
       // if(values.colo && values.colo)
-      // debug_internals('values %o', values)
+      debug_internals('values %o', values)
       // process.exit(1)
 
       if(Object.getLength(values) > 0){
@@ -223,7 +234,7 @@ module.exports = function(table){
               */
               new_doc['metadata'] = Object.merge(metadata, {
                 tag: tag,
-                type: 'minute',
+                type: type,
                 host: host,
                 // path: 'historical.'+path,
                 path: path,
@@ -239,14 +250,14 @@ module.exports = function(table){
 
             new_doc.id = new_doc.metadata.host+
               // '.historical.minute.'+
-              '.minute.'+
+              '.'+type+'.'+
               new_doc.metadata.path+'.'+
               new_doc.metadata.range.start+'-'+
               new_doc.metadata.range.end+'@'+Date.now()
 
             // if(path !== 'os.procs'){
             debug('NEW DOC %o', new_doc)
-            // process.exit(1)
+            process.exit(1)
             // }
 
             sanitize_filter(

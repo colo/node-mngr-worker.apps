@@ -1,8 +1,17 @@
 'use strict'
 
 const ss = require('simple-statistics')
+let debug = require('debug')('Server:Apps:Stat:libs:stat');
 
-module.exports = function(value){
+const hour = function(value){
+  debug('hour %o', value)
+  // Object.each(value, )
+  process.exit(1)
+}
+const generic = function(value){
+  debug('generic %o', value)
+  process.exit(1)
+  
   let data_values = Object.values(value);
   let min = ss.min(data_values);
   let max = ss.max(data_values);
@@ -18,3 +27,7 @@ module.exports = function(value){
     range: max - min
   }
 }
+
+exports.hour = hour
+exports.minute = generic
+// module.exports =
