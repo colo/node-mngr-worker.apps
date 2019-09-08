@@ -1,11 +1,12 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:Historical:Minute:Hook:Logs:Nginx');
-var debug_internals = require('debug')('Server:Apps:Historical:Minute:Hook:Logs:Nginx:Internals');
+var debug = require('debug')('Server:Apps:Stat:Hook:Minute:Logs:Nginx');
+var debug_internals = require('debug')('Server:Apps:Stat:Hook:Minute:Logs:Nginx:Internals');
 
 // let networkInterfaces = {} //temp obj to save data
 let ss = require('simple-statistics')
 
+let remote_addr = {}
 
 module.exports = {
   delete: {
@@ -33,7 +34,12 @@ module.exports = {
 
         entry_point[key][method] +=1
       })
-      // process.exit(1)
+
+      if(key === 'remote_addr'){
+        // debug('method - doc', entry_point, value)
+        // process.exit(1)
+        remote_addr = value//save it for building "unique_visitors"
+      }
       return entry_point
     }
   },
@@ -151,7 +157,30 @@ module.exports = {
       })
 
       entry_point[key] = stat
+
+      let unique_visitors_ip_uas = {}
+      Object.each(remote_addr, function(ip, ts){
+        if(!unique_visitors_ip_uas[ip]) unique_visitors_ip_uas[ip] = []
+
+        unique_visitors_ip_uas[ip].combine([JSON.stringify(value[ts])])//save ua for this IP
+
+
+      })
+      let unique_visitors = 0
+      let unique_visitors_by_ip = {}
+      Object.each(unique_visitors_ip_uas, function(uas, ip){
+        debug('user_agent|remote_addr %s %o', ip, uas)
+        // Array.each(uas, function(ua){
+        //   debug('user_agent|remote_addr %s ', ua)
+        // })
+        unique_visitors += uas.length
+        unique_visitors_by_ip[ip] = uas.length
+      })
+
+      debug('user_agent|remote_addr %o %o %o', unique_visitors_ip_uas, unique_visitors)
       // process.exit(1)
+      entry_point['unique_visitors'] = unique_visitors
+      entry_point['unique_visitors_by_ip'] = unique_visitors_by_ip
       return entry_point
     }
   },

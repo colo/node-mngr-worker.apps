@@ -34,7 +34,7 @@ module.exports = function(payload){
   let filter = function(doc, opts, next, pipeline){
 
     if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
-      let { type, input, input_type, app } = opts
+      // let { type, input, input_type, app } = opts
 
       let ranges = []
       let data
@@ -49,12 +49,12 @@ module.exports = function(payload){
       let end_range
       // debug('HOST %s', host)
 
-      if(pipeline.current[table] && pipeline.current[table].data){
-        data = pipeline.current[table].data
+      if(pipeline.current[input.table] && pipeline.current[input.table].data){
+        data = pipeline.current[input.table].data
 
         Array.each(data, function(group){
           if(group.path === path){
-            end_range = group.range[1]
+            end_range = roundSeconds(group.range[1])
           }
 
         })
@@ -62,13 +62,13 @@ module.exports = function(payload){
       /**
       * if no data (404)
       **/
-      if(doc.err && pipeline.current[table] && pipeline.current[table].data){
-        data = pipeline.current[table].data
+      if(doc.err && pipeline.current[input.table] && pipeline.current[input.table].data){
+        data = pipeline.current[input.table].data
 
         Array.each(data, function(group){
           if(group.path === path){
             range[0] = group.range[0]
-            range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+            range[1] = roundSeconds(range[0] + 60000)//limit on next minute
             // end_range = group.range[1]
           }
 
@@ -80,8 +80,8 @@ module.exports = function(payload){
         debug('2nd filter %o', data)
         Array.each(data, function(group){
           Array.each(group, function(group_item){
-            range[0] = group_item.metadata.range.end + 60000
-            range[1] = roundSeconds(range[0] + 61000)//limit on next minute
+            range[0] = group_item.metadata.range.end
+            range[1] = roundSeconds(range[0] + 60000)//limit on next minute
             // end_range = Date.now()
             // end_range =  pipeline.current[table].data
             end_range = (end_range) ? end_range : Date.now()
@@ -93,7 +93,7 @@ module.exports = function(payload){
       debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path, end_range)
       // process.exit(1)
 
-      do{
+      while(range[0] < end_range && range[1] <= roundSeconds(Date.now())){
 
         // for(let i = 0; i < group.hosts.length; i++){
         //   let host = group.hosts[i]
@@ -134,7 +134,7 @@ module.exports = function(payload){
         range[1] += 60000//limit on next minute
 
       }
-      while(range[0] < end_range)
+      
 
 
 

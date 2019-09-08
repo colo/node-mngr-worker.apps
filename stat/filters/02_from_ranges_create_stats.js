@@ -34,12 +34,13 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 }
 
 
+const stat = require('../libs/stat')
 
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
 
-  const stat = require('../libs/stat')[type]
+  // const stat = require('../libs/stat')[type]
 
   let filter = function(doc, opts, next, pipeline){
     // debug('3rd filter %o', doc)
@@ -60,9 +61,9 @@ module.exports = function(payload){
       Array.each(doc.data, function(doc_data, d_index){
 
         // debug('DOC DATA', doc_data)
-        first = doc_data[0].metadata.timestamp;
+        last = doc_data[0].metadata.timestamp;
 
-        last = doc_data[doc_data.length - 1].metadata.timestamp;
+        first = doc_data[doc_data.length - 1].metadata.timestamp;
 
         Array.each(doc_data, function(group, group_index){
           debug('GROUP', group)
@@ -144,13 +145,18 @@ module.exports = function(payload){
 
               }
               else{
-                values[host][path][key][timestamp] = value;
+                if(type === 'minute' || !value['mean']){
+                  values[host][path][key][timestamp] = value;
+                }
+                else{
+                  /**
+                  * from historical
+                  * */
+                  values[host][path][key][timestamp] = value['mean']
+                }
 
-                /**
-                * from historical
-                *
-                * values[host][path][key][timestamp] = value['mean']
-                **/
+
+
 
               }
 
@@ -248,17 +254,23 @@ module.exports = function(payload){
 
             });
 
+            delete new_doc['metadata'].id
+
+            new_doc['metadata'].timestamp = new_doc.metadata.range.end
+
             new_doc.id = new_doc.metadata.host+
               // '.historical.minute.'+
               '.'+type+'.'+
-              new_doc.metadata.path+'.'+
+              new_doc.metadata.path+'@'+
               new_doc.metadata.range.start+'-'+
-              new_doc.metadata.range.end+'@'+Date.now()
+              new_doc.metadata.range.end
+              // +'@'+Date.now()
 
             // if(path !== 'os.procs'){
             debug('NEW DOC %o', new_doc)
-            process.exit(1)
+            // process.exit(1)
             // }
+            new_doc['metadata'].id = new_doc.id
 
             sanitize_filter(
               new_doc,

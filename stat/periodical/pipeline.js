@@ -68,7 +68,12 @@ module.exports = function(payload){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/10 * * * * *', dispatch);//every minute
+              // if(type === 'minute'){
+                return cron.schedule('* * * * *', dispatch);//every minute
+              // }
+              // else{
+              //   return cron.schedule('0 * * * *', dispatch);//every hour
+              // }
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test
@@ -102,10 +107,15 @@ module.exports = function(payload){
     				 * it takes 60 secs to complete, so it makes historical each minute
     				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
     				 * */
-    				periodical: function(dispatch){
-    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('* * * * *', dispatch);//every 20 secs
-    				},
+             periodical: function(dispatch){
+     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+               if(type === 'minute'){
+                 return cron.schedule('* * * * *', dispatch);//every minute
+               }
+               else{
+                 return cron.schedule('0 * * * *', dispatch);//every hour
+               }
+     				},
     				// periodical: 15000,
     				// periodical: 1000,//test
     			},

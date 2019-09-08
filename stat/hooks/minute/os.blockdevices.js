@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Historical:Minute:Hook:OS:Blockdevices');
-let debug_internals = require('debug')('Server:Apps:Historical:Minute:Hook:OS:Blockdevices:Internals');
+let debug = require('debug')('Server:Apps:Stat:Hook:Minute:OS:Blockdevices');
+let debug_internals = require('debug')('Server:Apps:Stat:Hook:Minute:OS:Blockdevices:Internals');
 
 // let networkInterfaces = {} //temp obj to save data
 // let ss = require('simple-statistics')

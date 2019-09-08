@@ -1,13 +1,13 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Historical:Hour:Hook:OS:Blockdevices');
-let debug_internals = require('debug')('Server:Apps:Historical:Hour:Hook:OS:Blockdevices:Internals');
+let debug = require('debug')('Server:Apps:Stat:Hook:Hour:OS:Blockdevices');
+let debug_internals = require('debug')('Server:Apps:Stat:Hook:Hour:OS:Blockdevices:Internals');
 
 let ss = require('simple-statistics')
 
 // let networkInterfaces = {} //temp obj to save data
 // let ss = require('simple-statistics')
-let value_to_data = require('../libs/value.data')
+let value_to_data = require('../../libs/value.data')
 
 // let to_data = function(value, timestamp){
 //   let data = {}
@@ -79,7 +79,8 @@ module.exports = {
       //   times: times
       // }
 
-      // debug_internals('DOC %s %o', key, entry_point[key])
+      // debug_internals('DOC %s %o %o', key, entry_point[key], value)
+      // process.exit(1)
 
       return entry_point
     }
