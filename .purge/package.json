@@ -1,7 +1,7 @@
 {
-  "name": "historical",
+  "name": "purge",
   "version": "0.0.1",
-  "description": "historical App",
+  "description": "purge doc transformation",
   "author": {
     "name": "Luciano Bueno",
     "email": "glamero@gmail.com"
@@ -9,6 +9,9 @@
   "main": "./",
   "engines": {
     "node": ">= 0.10.21"
+  },
+  "dependencies": {
+    "redis": "^2.8.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
@@ -18,12 +21,5 @@
       "url": "http://www.opensource.org/licenses/MIT"
     }
   ],
-  "keywords": [
-    "historical",
-    "authentication"
-  ],
-  "dependencies": {
-    "pluralize": "^8.0.0",
-    "uuid": "^3.3.3"
-  }
+  "keywords": []
 }
