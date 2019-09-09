@@ -14,8 +14,9 @@ const PREFIX =  process.env.NODE_ENV === 'production'
 
 let cron = require('node-cron');
 
-const FrontailHttp = require('./input/frontail.http')
-const FrontailIO = require('./input/frontail.io')
+// const FrontailHttp = require('./input/frontail.http')
+// const FrontailIO = require('./input/frontail.io')
+const Tail = require('./input/tail')
 const STDIN = require('./input/stdin')
 
 // const NginxParser = require('nginxparser')
@@ -45,40 +46,6 @@ const ip = require('ip')
 const qs = require('qs')
 const referer = require('referer-parser')
 
-
-
-
-// let procs_filter = require('./filters/proc'),
-//     networkInterfaces_filter = require('./filters/networkInterfaces'),
-//     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
-//     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
-//
-//     // zipson_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zipson'))
-//     // lzutf8_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzutf8.compress'))
-//     // lzstring_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzstring.compress'))
-
-
-
-// let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
-
-// let modules = {}
-// let all_modules = {
-//   'os': false,
-//   // 'os.procs': false,
-//   // 'os.procs.stats': false,
-//   // // 'os.procs.uid': false,
-//   // 'os.procs.uid.stats': false,
-//   // // 'os.procs.cmd': false,
-//   // 'os.procs.cmd.stats': false,
-//   'os.mounts': false,
-//   'os.blockdevices': false,
-//   'os.networkInterfaces': false,
-//   'os.networkInterfaces.stats': false
-// }
-//
-// let meta_doc = { id: '', data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
-// let meta_docs = {}
-
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)
   d.setMilliseconds(0)
@@ -91,26 +58,26 @@ const roundMilliseconds = function(timestamp){
 **/
 let tag_type = 'nginx'
 
-module.exports = function(frontail, domain, out){
-  let socket_io_input_conf = {
-    poll: {
-      // suspended: true,
-      id: 'input.frontail.io',
-      conn: [
-        Object.merge(
-          Object.clone(frontail),
-          {
-            module: FrontailIO,
-          }
-        )
-      ],
-      connect_retry_count: -1,
-      connect_retry_periodical: 1000,
-      requests: {
-        periodical: 1000
-      }
-    }
-  }
+module.exports = function(file, domain, out){
+  // let socket_io_input_conf = {
+  //   poll: {
+  //     // suspended: true,
+  //     id: 'input.frontail.io',
+  //     conn: [
+  //       Object.merge(
+  //         Object.clone(frontail),
+  //         {
+  //           module: FrontailIO,
+  //         }
+  //       )
+  //     ],
+  //     connect_retry_count: -1,
+  //     connect_retry_periodical: 1000,
+  //     requests: {
+  //       periodical: 1000
+  //     }
+  //   }
+  // }
 
   let conf = {
    input: [
@@ -136,15 +103,13 @@ module.exports = function(frontail, domain, out){
    	},
   	{
   		poll: {
-  			id: "input.frontail.http",
+  			id: "input.tail",
         conn: [
-          Object.merge(
-            Object.clone(frontail),
-            {
-              module: FrontailHttp,
-              domain: domain,
-            }
-          )
+          {
+            file: file,
+            module: Tail,
+            domain: domain,
+          }
   			],
         connect_retry_count: -1,
         connect_retry_periodical: 1000,
@@ -162,26 +127,26 @@ module.exports = function(frontail, domain, out){
    ],
    filters: [
   		// require('./snippets/filter.sanitize.template'),
-      function(doc, opts, next, pipeline){
-        debug_internals('filter doc', doc)
-        if(doc['socket.io']){
-          socket_io_input_conf.poll.conn[0].path = doc['socket.io'].ns
-          socket_io_input_conf.poll.conn[0].domain = doc['socket.io'].domain
-          let _input = pipeline.__process_input(socket_io_input_conf)
-
-          //
-          pipeline.inputs.push(_input)
-          // debug_internals('input', _input.options.conn[0].module)
-          // process.exit(1)
-          // pipeline.start()
-          pipeline.__start_input(_input)
-          //
-          // // pipeline.fireEvent('onResume')
-        }
-        else{
-          next(doc, opts, next, pipeline)
-        }
-      },
+      // function(doc, opts, next, pipeline){
+      //   debug_internals('filter doc', doc)
+      //   if(doc['socket.io']){
+      //     socket_io_input_conf.poll.conn[0].path = doc['socket.io'].ns
+      //     socket_io_input_conf.poll.conn[0].domain = doc['socket.io'].domain
+      //     let _input = pipeline.__process_input(socket_io_input_conf)
+      //
+      //     //
+      //     pipeline.inputs.push(_input)
+      //     // debug_internals('input', _input.options.conn[0].module)
+      //     // process.exit(1)
+      //     // pipeline.start()
+      //     pipeline.__start_input(_input)
+      //     //
+      //     // // pipeline.fireEvent('onResume')
+      //   }
+      //   else{
+      //     next(doc, opts, next, pipeline)
+      //   }
+      // },
       function(doc, opts, next, pipeline){
         /**
         * to test different type of tags
