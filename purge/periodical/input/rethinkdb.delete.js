@@ -528,7 +528,7 @@ module.exports = new Class({
               //   )
               // }
 
-              query.delete().run(app.conn, {arrayLimit: 1000000}, function(err, resp){
+              query.delete().run(app.conn, {durability: "hard"}, function(err, resp){
                 debug_internals('run', err) //resp
                 app.process_default(
                   err,

@@ -30,7 +30,7 @@ const SECOND = 1000
 const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 // const DAY = HOUR * 24
-const DAY = HOUR //devel
+const DAY = 15 * MINUTE //devel
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
@@ -50,6 +50,10 @@ module.exports = function(payload){
       pipeline.current[doc.metadata.from] = doc
 
       // debug('PIPELINE %o', pipeline)
+      let end = roundSeconds(Date.now() - DAY)
+
+      debug('1st filter END RANGE %s', new Date(end))
+
       Array.each(doc.data, function(group, index){
         // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
         // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
@@ -59,7 +63,7 @@ module.exports = function(payload){
         Array.each(group.hosts, function(host){
           pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
             id: "range",
-            Range: "posix 0-"+roundSeconds(Date.now() - DAY)+"/*",
+            Range: "posix 0-"+end+"/*",
             query: {
               "q": [
                 "id",
@@ -77,7 +81,11 @@ module.exports = function(payload){
 
 
               ],
-              "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')", , "r.row('metadata')('type').eq('"+type+"')"]
+              "filter": [
+                "r.row('metadata')('path').eq('"+group.path+"')",
+                "r.row('metadata')('host').eq('"+host+"')",
+                "r.row('metadata')('type').eq('"+type+"')"
+              ]
             },
             params: {},
           })
