@@ -14,10 +14,10 @@ module.exports = new Class({
     path: '/os/procs/',
 
     requests : {
-			once: [
-				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,stat,rss,vsz,pcpu,pmem,ucmd,command'} } },
-        // { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },
-			],
+			// once: [
+			// 	{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,stat,rss,vsz,pcpu,pmem,ucmd,command'} } },
+      //   // { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },
+			// ],
 			periodical: [
 				{ api: { get: {uri: '?format=uid,ppid,etimes,cputime,stat,rss,vsz,pcpu,pmem,ucmd,command'} } },
         // { api: { get: {uri: '?stat=["ppid","state", "comm", "starttime", "utime", "stime", "rss", "vsize"]&status=["Uid", "Gid"]&argv'} } },

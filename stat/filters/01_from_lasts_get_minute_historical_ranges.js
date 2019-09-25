@@ -134,7 +134,7 @@ module.exports = function(payload){
         range[1] += 60000//limit on next minute
 
       }
-      
+
 
 
 
@@ -161,7 +161,7 @@ module.exports = function(payload){
             pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
             // process.exit(1)
             // callback()
-          }, 10)
+          }, 100)
 
           // try{
           wrapped(range, function(err, data) {

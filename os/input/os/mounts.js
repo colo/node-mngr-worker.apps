@@ -9,9 +9,9 @@ module.exports = new Class({
   options: {
 
 	  requests : {
-			once: [
-				{ api: { get: {uri: ''} } },
-			],
+			// once: [
+			// 	{ api: { get: {uri: ''} } },
+			// ],
 			periodical: [
 				{ api: { get: {uri: ''} } },
 			],
