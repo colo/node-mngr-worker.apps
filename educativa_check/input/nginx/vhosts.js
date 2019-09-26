@@ -3,12 +3,14 @@
 var debug = require('debug')('Server:Apps:EducativaCheck:Input:Nginx:Vhosts');
 var debug_internals = require('debug')('Server:Apps:EducativaCheck:Input:Nginx:Vhosts:Internals');
 
-let request = require('request')
-let reqDefaults = request.defaults({
-  // forever:true,
-  agentOptions: {maxSockets: 999},
-  // pool: {maxSockets: Infinity, keepAlive:false}, keepAlive:false
-})
+let async = require('async')
+
+// let request = require('request')
+// let reqDefaults = request.defaults({
+//   // forever:true,
+//   agentOptions: {maxSockets: 999},
+//   // pool: {maxSockets: Infinity, keepAlive:false}, keepAlive:false
+// })
 
 var App = require('node-app-http-client');
 
@@ -124,15 +126,52 @@ module.exports = new Class({
         this.options.requests.once = []
 
         let no_check = /^\_$/
+        let requests = []
         Array.each(decoded_body, function(vhost){
           if(!no_check.test(vhost)){
-            this.options.requests.once.push({ api: { get: {uri: '/enabled/'+vhost+'/listen'} } })
+            // this.options.requests.once.push({ api: { get: {uri: '/enabled/'+vhost+'/listen'} } })
+            requests.push({ api: { get: {uri: '/enabled/'+vhost+'/listen'} } })
           }
         }.bind(this))
 
-        // debug('requests %o', this.requests)
+        debug('requests %O', requests)
+        // process.exit(1)
 
-        this.fireEvent('onOnceRequestsUpdated')
+        async.eachLimit(
+          requests,
+          1,
+          function(request, callback){
+            // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+            // callback()
+            let wrapped = async.timeout(function(request){
+              // sleep(1001).then( () => {
+              //   // process.exit(1)
+              //   debug('RANGE', range)
+              // })
+
+
+              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+              this.options.requests.once = [request]
+              this.fireEvent('onOnceRequestsUpdated')
+              // process.exit(1)
+              // callback()
+            }.bind(this), 10)
+
+            // try{
+            wrapped(request, function(err, data) {
+              if(err){
+                // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                callback()
+              }
+            })
+            // }
+            // catch(e){
+            //   callback()
+            // }
+          }.bind(this)
+        )
+
+
 
 
       //
@@ -250,7 +289,8 @@ module.exports = new Class({
   },
   initialize: function(options){
 
-		this.parent(options, reqDefaults);//override default options
+    this.parent(options);//override default options
+		// this.parent(options, reqDefaults);//override default options
 
 		this.log('nginx', 'info', 'nginx started');
   },
