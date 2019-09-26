@@ -1,7 +1,7 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:EducativaCheck:Input:Nginx');
-var debug_internals = require('debug')('Server:Apps:EducativaCheck:Input:Nginx:Internals');
+var debug = require('debug')('Server:Apps:Vhosts:Input:Nginx');
+var debug_internals = require('debug')('Server:Apps:Vhosts:Input:Nginx:Internals');
 
 
 var App = require('node-app-http-client');

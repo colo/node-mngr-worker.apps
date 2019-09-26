@@ -1,7 +1,7 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:EducativaCheck:Pipeline');
-var debug_internals = require('debug')('Server:Apps:EducativaCheck:Pipeline:Internals');
+var debug = require('debug')('Server:Apps:Vhosts:Pipeline');
+var debug_internals = require('debug')('Server:Apps:Vhosts:Pipeline:Internals');
 
 const path = require('path');
 

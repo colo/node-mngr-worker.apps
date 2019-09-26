@@ -1,7 +1,7 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:EducativaCheck:Input:Nginx:Vhosts');
-var debug_internals = require('debug')('Server:Apps:EducativaCheck:Input:Nginx:Vhosts:Internals');
+var debug = require('debug')('Server:Apps:Vhosts:Input:Nginx:Vhosts');
+var debug_internals = require('debug')('Server:Apps:Vhosts:Input:Nginx:Vhosts:Internals');
 
 let async = require('async')
 
