@@ -58,7 +58,7 @@ module.exports = function(http, out){
             Object.clone(http),
             {
               module: NginxPollHttp,
-              load: ['apps/educativa_check/input/nginx']
+              load: ['apps/vhosts/input/nginx']
             },
           )
 
@@ -78,66 +78,66 @@ module.exports = function(http, out){
 
    ],
    filters: [
-  		// require('./snippets/filter.sanitize.template'),
-      function(doc, opts, next, pipeline){
-        let { type, input, input_type, app } = opts
-
-        debug('filter %o', doc)
-        // let host = input_type.options.id
-        // let module = app.options.id
-        //
-        // // console.log('os filter',doc)
-        // // debug(app.options.id)
-        //
-        // // if(app.options.id == 'os.procs'){
-        // if(app.options.id == 'procs'){
-        //
-        //   procs_filter(
-        //     doc,
-        //     opts,
-        //     next,
-        //     pipeline
-        //   )
-        // }
-        // else{
-        //   if(doc && doc.uptime)
-        //     pipeline.current_uptime = doc.uptime
-        //
-        //   if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
-        //     networkInterfaces_filter(
-        //       doc.networkInterfaces,
-        //       opts,
-        //       next,
-        //       pipeline
-        //     )
-        //
-        //     delete doc.networkInterfaces
-        //
-        //   }
-        //
-        //
-        //
-        //   debug('app.options.id %s', app.options.id)
-        //   if(app.options.id === 'os.mounts'){
-        //     debug('MOUNTS %O', doc)
-        //
-        //     doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
-        //   }
-        //   else{
-        //
-        //     // if(module === 'os'){
-        //     //   debug('OS %o', doc, module)
-        //     //   process.exit(1)
-        //     // }
-        //     doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
-        //   }
-        //   next(doc)
-        //
-        // }
-        //
-        // // debug_internals(input_type.options.id)
-
-      },
+  		// // require('./snippets/filter.sanitize.template'),
+      // function(doc, opts, next, pipeline){
+      //   let { type, input, input_type, app } = opts
+      //
+      //   // debug('filter %o', doc, input_type.options.id)
+      //   let host = input_type.options.id
+      //   // let module = app.options.id
+      //   //
+      //   // // console.log('os filter',doc)
+      //   // // debug(app.options.id)
+      //   //
+      //   // // if(app.options.id == 'os.procs'){
+      //   // if(app.options.id == 'procs'){
+      //   //
+      //   //   procs_filter(
+      //   //     doc,
+      //   //     opts,
+      //   //     next,
+      //   //     pipeline
+      //   //   )
+      //   // }
+      //   // else{
+      //   //   if(doc && doc.uptime)
+      //   //     pipeline.current_uptime = doc.uptime
+      //   //
+      //   //   if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
+      //   //     networkInterfaces_filter(
+      //   //       doc.networkInterfaces,
+      //   //       opts,
+      //   //       next,
+      //   //       pipeline
+      //   //     )
+      //   //
+      //   //     delete doc.networkInterfaces
+      //   //
+      //   //   }
+      //   //
+      //   //
+      //   //
+      //   //   debug('app.options.id %s', app.options.id)
+      //   //   if(app.options.id === 'os.mounts'){
+      //   //     debug('MOUNTS %O', doc)
+      //   //
+      //   //     doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
+      //   //   }
+      //   //   else{
+      //   //
+      //   //     // if(module === 'os'){
+      //   //     //   debug('OS %o', doc, module)
+      //   //     //   process.exit(1)
+      //   //     // }
+      //   //     doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
+      //   //   }
+      //   //   next(doc)
+      //   //
+      //   // }
+      //   //
+      //   // // debug_internals(input_type.options.id)
+      //
+      // },
 
       /**
       * not merge
@@ -149,10 +149,15 @@ module.exports = function(http, out){
         // let host = doc.metadata.host
         // let module = doc.metadata.path
 
+        let host = input_type.options.id
+        doc.metadata.host = input_type.options.id
         let timestamp = roundMilliseconds(Date.now())
-        doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
+        doc.id = doc.metadata.host+'.'+doc.metadata.path+'.'+doc.data.schema+'.'+doc.data.uri+'.'+doc.data.port
+        // +'@'+timestamp
         doc.metadata.timestamp = timestamp
+        doc.metadata.id = doc.id
 
+        debug('filter %o', doc)
         sanitize_filter(
           doc,
           opts,
@@ -204,29 +209,29 @@ module.exports = function(http, out){
       // }
 
   	],
-  // 	output: [
-  //     // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
-  // 		//require('./snippets/output.stdout.template'),
-  //
-  //     {
-  // 			rethinkdb: {
-  // 				id: "output.os.rethinkdb",
-  // 				conn: [
-  //           Object.merge(
-  //             Object.clone(out),
-  //             {table: 'os'}
-  //           )
-  // 				],
-  // 				module: require('js-pipeline/output/rethinkdb'),
-  //         buffer:{
-  // 					// size: 1, //-1
-  // 					// expire:0
-  //           size: -1,
-  //           expire: 999,
-  // 				}
-  // 			}
-  // 		}
-  // 	]
+  	output: [
+      // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
+  		//require('./snippets/output.stdout.template'),
+
+      {
+  			rethinkdb: {
+  				id: "output.vhosts.rethinkdb",
+  				conn: [
+            Object.merge(
+              Object.clone(out),
+              {table: 'vhosts'}
+            )
+  				],
+  				module: require('js-pipeline/output/rethinkdb'),
+          buffer:{
+  					// size: 1, //-1
+  					// expire:0
+            size: -1,
+            expire: 999,
+  				}
+  			}
+  		}
+  	]
   }
 
   return conf

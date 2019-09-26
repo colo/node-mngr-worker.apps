@@ -90,7 +90,55 @@ module.exports = new Class({
 
 	//},
   vhost_listen: function (err, resp, body, req){
-    debug('vhost_listen %o %o', err, body, req.uri)
+    // debug('vhost_listen %o %o', err, body, req.uri)
+
+    if(err){
+			//console.log(err);
+
+			if(req.uri != ''){
+				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1)+'Error', err);//capitalize first letter
+			}
+			else{
+				this.fireEvent('onGetError', err);
+			}
+
+			this.fireEvent(this.ON_DOC_ERROR, err);
+
+			if(this.options.requests.current.type == 'once'){
+				this.fireEvent(this.ON_ONCE_DOC_ERROR, err);
+			}
+			else{
+				this.fireEvent(this.ON_PERIODICAL_DOC_ERROR, err);
+			}
+		}
+		else{
+			////console.log('success');
+
+      try{
+        let uri = req.uri.replace('/enabled/', '').replace('/listen', '')
+        let decoded_body = JSON.decode(body)
+
+        Array.each(decoded_body, function(listen){
+          if(typeof listen !== 'string' && listen._value)
+            listen = listen._value
+
+          let port = listen.split(':')[1]
+          let schema = (port.indexOf('ssl') > 0) ? 'https' : 'http'
+          port = port.replace('ssl', '')
+          port = port.trim()
+          // debug('vhost_listen %o %o', listen, port, schema)
+          this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['enabled', 'nginx']}, data: {uri: uri, port: port, schema: schema }});
+        }.bind(this))
+
+        // debug('vhost_listen %o %o', uri, decoded_body)
+
+
+        // this.fireEvent(this.ON_PERIODICAL_DOC, { type: 'enabled', from: 'nginx', data: decoded_body });
+      }
+      catch(e){
+        console.log(e)
+      }
+    }
   },
   enabled: function (err, resp, body, req){
     debug('enabled %o %o', err, body, req.uri)

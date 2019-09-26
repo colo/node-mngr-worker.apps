@@ -4,7 +4,7 @@ const HOST = 'elk'
 const PORT = 28015
 const DATABASES = ['devel', 'production']
 // const TABLES = ['periodical', 'historical']
-const TABLES = ['os']
+const TABLES = ['vhosts']
 
 
 // const DATABASE = 'historical'
@@ -281,7 +281,7 @@ let MyApp = new Class({
         ),
       opts: {multi:true}
     })
-    
+
     /**
     * old indexes
     *
