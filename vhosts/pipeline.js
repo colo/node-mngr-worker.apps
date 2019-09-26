@@ -69,7 +69,7 @@ module.exports = function(http, out){
   				// periodical: 1000,
           periodical: function(dispatch){
             // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-            return cron.schedule('*/10 * * * * *', dispatch);//every 20 secs
+            return cron.schedule('* * * * *', dispatch);//every minute
           },
   			},
   		},
@@ -156,6 +156,7 @@ module.exports = function(http, out){
         // +'@'+timestamp
         doc.metadata.timestamp = timestamp
         doc.metadata.id = doc.id
+        doc.metadata.type = 'periodical'
 
         debug('filter %o', doc)
         sanitize_filter(
