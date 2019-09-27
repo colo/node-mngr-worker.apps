@@ -78,71 +78,7 @@ module.exports = function(http, out){
 
    ],
    filters: [
-  		// // require('./snippets/filter.sanitize.template'),
-      // function(doc, opts, next, pipeline){
-      //   let { type, input, input_type, app } = opts
-      //
-      //   // debug('filter %o', doc, input_type.options.id)
-      //   let host = input_type.options.id
-      //   // let module = app.options.id
-      //   //
-      //   // // console.log('os filter',doc)
-      //   // // debug(app.options.id)
-      //   //
-      //   // // if(app.options.id == 'os.procs'){
-      //   // if(app.options.id == 'procs'){
-      //   //
-      //   //   procs_filter(
-      //   //     doc,
-      //   //     opts,
-      //   //     next,
-      //   //     pipeline
-      //   //   )
-      //   // }
-      //   // else{
-      //   //   if(doc && doc.uptime)
-      //   //     pipeline.current_uptime = doc.uptime
-      //   //
-      //   //   if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
-      //   //     networkInterfaces_filter(
-      //   //       doc.networkInterfaces,
-      //   //       opts,
-      //   //       next,
-      //   //       pipeline
-      //   //     )
-      //   //
-      //   //     delete doc.networkInterfaces
-      //   //
-      //   //   }
-      //   //
-      //   //
-      //   //
-      //   //   debug('app.options.id %s', app.options.id)
-      //   //   if(app.options.id === 'os.mounts'){
-      //   //     debug('MOUNTS %O', doc)
-      //   //
-      //   //     doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
-      //   //   }
-      //   //   else{
-      //   //
-      //   //     // if(module === 'os'){
-      //   //     //   debug('OS %o', doc, module)
-      //   //     //   process.exit(1)
-      //   //     // }
-      //   //     doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
-      //   //   }
-      //   //   next(doc)
-      //   //
-      //   // }
-      //   //
-      //   // // debug_internals(input_type.options.id)
-      //
-      // },
-
-      /**
-      * not merge
-      **/
-      function(doc, opts, next, pipeline){
+  		function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
 
 
@@ -168,46 +104,7 @@ module.exports = function(http, out){
 
       }
 
-      /**
-      * merge
-      **/
-
-      // function(doc, opts, next, pipeline){
-      //   let { type, input, input_type, app } = opts
-      //
-      //
-      //   let host = doc.metadata.host
-      //   let module = doc.metadata.path
-      //
-      //   if(!modules[host]) modules[host] = Object.clone(all_modules)
-      //
-      //   modules[host][module] = true
-      //
-      //   debug_internals('merge', host, module, modules[host])
-      //
-      //   if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
-      //
-      //   meta_docs[host].data.push(doc)
-      //   meta_docs[host].id = host+'.os.merged@'+Date.now()
-      //   meta_docs[host].metadata['host'] = host
-      //
-      //   if(Object.every(modules[host], function(val, mod){ return val })){
-      //     // debug_internals('META %o', meta_docs[host])
-      //     // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
-      //     sanitize_filter(
-      //       Object.clone(meta_docs[host]),
-      //       opts,
-      //       pipeline.output.bind(pipeline),
-      //       pipeline
-      //     )
-      //
-      //     meta_docs[host].data = []
-      //     Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
-      //
-      //   }
-      //
-      //
-      // }
+      
 
   	],
   	output: [

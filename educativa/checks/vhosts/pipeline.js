@@ -14,6 +14,41 @@ const request = require('request')
 
 let async = require('async')
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  return d.getTime()
+}
+
+const roundSeconds = function(timestamp){
+  timestamp = roundMilliseconds(timestamp)
+  let d = new Date(timestamp)
+  d.setSeconds(0)
+
+  return d.getTime()
+}
+
+const roundMinutes = function(timestamp){
+  timestamp = roundSeconds(timestamp)
+  let d = new Date(timestamp)
+  d.setMinutes(0)
+
+  return d.getTime()
+}
+const roundHours = function(timestamp){
+  timestamp = roundMinutes(timestamp)
+  let d = new Date(timestamp)
+  d.setHours(0)
+
+  return d.getTime()
+}
+
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+// const DAY = HOUR * 24
+const DAY = 15 * MINUTE //devel
 
 module.exports = function(payload){
   let {input, output, filters, type} = payload
@@ -55,7 +90,7 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               // if(type === 'minute'){
-                return cron.schedule('*/10 * * * * *', dispatch);//every minute
+                return cron.schedule('*/30 * * * * *', dispatch);//every minute
               // }
               // else{
               //   return cron.schedule('0 * * * *', dispatch);//every hour
@@ -67,47 +102,6 @@ module.exports = function(payload){
     		},
     	},
 
-      // {
-    	// 	poll: {
-      //
-    	// 		id: "input.historical",
-      //     suspended: true,
-    	// 		conn: [
-      //       Object.merge(
-      //         Object.clone(output),//yeap...fetches from the output table
-      //         {
-      //           // path_key: 'logs',
-      //           module: InputPollerRethinkDB,
-      //           // table: input.table+'_historical'
-      //         }
-      //       )
-    	// 		],
-    	// 		connect_retry_count: -1,
-    	// 		connect_retry_periodical: 1000,
-    	// 		// requests: {
-    	// 		// 	periodical: 1000,
-    	// 		// },
-      //     requests: {
-    	// 			/**
-    	// 			 * runnign at 20 secs intervals
-    	// 			 * needs 3 runs to start analyzing from last historical (or from begining)
-    	// 			 * it takes 60 secs to complete, so it makes historical each minute
-    	// 			 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
-    	// 			 * */
-      //        periodical: function(dispatch){
-     	// 				// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-      //          if(type === 'minute'){
-      //            return cron.schedule('* * * * *', dispatch);//every minute
-      //          }
-      //          else{
-      //            return cron.schedule('0 * * * *', dispatch);//every hour
-      //          }
-     	// 			},
-    	// 			// periodical: 15000,
-    	// 			// periodical: 1000,//test
-    	// 		},
-    	// 	},
-    	// }
     ],
 
     // filters: filters,
@@ -124,11 +118,13 @@ module.exports = function(payload){
               let hosts = group.hosts
 
               Array.each(hosts, function(host){
-                debug('1st filter %O', host)
+                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - MINUTE)) )
+                // process.exit(1)
 
-
-                pipeline.get_input_by_id('input.vhosts').fireEvent('onOnce', {
-                  id: "once",
+                pipeline.get_input_by_id('input.vhosts').fireEvent('onRange', {
+                  // id: "once",
+                  id: "range",
+                  Range: "posix "+roundSeconds(Date.now() - MINUTE )+"-"+Date.now()+"/*",
                   query: {
                     "q": [
                       "data",
@@ -159,37 +155,7 @@ module.exports = function(payload){
             }
           })
 
-          // let { type, input, input_type, app } = opts
 
-
-          // Array.each(doc.data, function(group, index){
-          //
-          //   Array.each(group.hosts, function(host){
-          //     pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
-          //       id: "once",
-          //       query: {
-          //         "q": [
-          //           "data",
-          //           // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-          //           "metadata"
-          //         ],
-          //         "transformation": [
-          //           {
-          //           "orderBy": {"index": "r.desc(timestamp)"}
-          //           },
-          //           {
-          //             "slice": [0, 1]
-          //           }
-          //
-          //
-          //         ],
-          //         "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
-          //       },
-          //       params: {},
-          //     })
-          //   })
-          //
-          // })
 
         }
         else{
@@ -201,82 +167,120 @@ module.exports = function(payload){
         // debug('2nd filter %O', doc)
 
         if(doc && doc.data && doc.metadata && doc.metadata.from === 'vhosts'){
-          let urls = []
+          let hosts_urls = {}
           Array.each(doc.data, function(group){
             // debug('2nd filter groups %O', group)
+            // process.exit(1)
             Array.each(group, function(vhost){
               // let url = vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port
-              urls.push(vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port)
+              if(!hosts_urls[vhost.metadata.host]) hosts_urls[vhost.metadata.host] = []
+              hosts_urls[vhost.metadata.host].push(vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port)
               // debug('2nd filter URL %s', url)
             })
           })
 
-          let urls_result = {}
+          // let urls_result = {}
 
-          async.eachLimit(urls, 10, function(url, callback){
+          let docs = []
+          Object.each(hosts_urls, function(urls, host){
 
-            request.head({uri: url}, function(error, response, body){
-              pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
-              if(response){
-                debug('request result %O %O %O', response.headers, response.statusCode, body)
-              }
+            async.eachLimit(urls, 5, function(url, callback){//current nginx limit 5r/s
 
-              callback()
-            })
-          }, function(err) {
+              request.head({uri: url}, function(error, response, body){
+                if(response && response.statusCode)
+                  debug('request result %O', response.statusCode)
 
-              // if any of the file processing produced an error, err would equal that error
-              if( err ) {
-                debug('request ERROR %o', err)
-              } else {
-                pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
-                // console.log('All files have been processed successfully');
-              }
-          });
+                pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
+                // if(error){
+                //   debug('request result %O', error)
+                //   process.exit(1)
+                // }
+                let doc = {
+                  id: undefined,
+                  data: {},
+                  metadata: {
+                    path: 'educativa.checks.vhosts',
+                    type: 'checks',
+                    host: host,
+                    tag: ['vhosts', 'nginx', 'enabled'],
+                    timestamp: Date.now()
+                  }
+                }
 
-          // async.eachLimit(
-          //   urls,
-          //   1,
-          //   function(url, callback){
-          //     // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-          //     // callback()
-          //     let wrapped = async.timeout(function(url){
-          //       request.head({baseUrl: url})
-          //     }.bind(this), 10)
-          //
-          //     // try{
-          //     wrapped(url, function(err, data) {
-          //       debug('request result %o %o', err, data)
-          //       if(err){
-          //         // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-          //         callback()
-          //       }
-          //     })
-          //     // }
-          //     // catch(e){
-          //     //   callback()
-          //     // }
-          //   }.bind(this)
-          // )
+                let id = url.replace('://', '.').replace(':', '.')
+                doc.id = doc.metadata.host+'.'+doc.metadata.path+'.'+id+'@'+doc.metadata.timestamp
+
+                if(response){
+                  doc.data = {
+                    headers: response.headers,
+                    code: response.statusCode,
+                    message: response.statusMessage,
+                    host: response.request.uri.host,
+                    hostname: response.request.uri.host,
+                    port: response.request.uri.port,
+                    protocol: response.request.uri.protocol,
+                  }
+
+                  doc.metadata.tag.push(response.statusCode)
+
+
+                  // debug('request result %O %O %s',
+                  //   response.headers,
+                  //   response.statusCode,
+                  //   response.request.uri.host,
+                  //   response.request.uri.hostname,
+                  //   response.request.uri.port,
+                  //   response.request.uri.protocol,
+                  //   host
+                  // )
+                  // process.exit(1)
+                }
+                else{
+                  doc.data = error
+                  doc.metadata.tag.push(error.code)
+                  doc.metadata.tag.push('error')
+                }
+
+                docs.push(doc)
+                callback()
+              })
+            }, function(err) {
+
+                // if any of the file processing produced an error, err would equal that error
+                if( err ) {
+                  debug('request ERROR %o', err)
+                } else {
+                  debug('request SAVE %O', docs)
+
+                  pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+                  next(docs, opts, next, pipeline)
+                  // console.log('All files have been processed successfully');
+                }
+            });
+
+          })
+
+
+
         }
 
       }
    	],
-  	// output: [
-    //   {
-  	// 		rethinkdb: {
-  	// 			id: "output.historical.minute.rethinkdb",
-  	// 			conn: [
-    //         output
-  	// 			],
-  	// 			module: require('js-pipeline/output/rethinkdb'),
-    //       buffer:{
-  	// 				size: 0,
-  	// 				expire:0
-  	// 			}
-  	// 		}
-  	// 	}
-  	// ]
+  	output: [
+      {
+  			rethinkdb: {
+  				id: "output.educativa.checks.vhosts.rethinkdb",
+  				conn: [
+            output
+  				],
+  				module: require('js-pipeline/output/rethinkdb'),
+          buffer:{
+  					size: 0,
+  					expire:0
+  				}
+  			}
+  		}
+  	]
   }
 
   return conf
