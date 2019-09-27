@@ -54,6 +54,7 @@ module.exports = new Class({
           * default query from mngr-ui-admin/libs/pipelines/input/rethinkdb
           **/
 					default: function(req, next, app){
+            // debug_internals('default ONCE %o %o', req)
             req = (req) ? Object.clone(req) : { params: {}, query: {} }
             if(req.id === 'once'){
               debug_internals('default ONCE %o %o', req, app.options.table)

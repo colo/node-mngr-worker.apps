@@ -10,7 +10,9 @@ let cron = require('node-cron');
 
 const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
+const request = require('request')
 
+let async = require('async')
 
 
 module.exports = function(payload){
@@ -64,6 +66,7 @@ module.exports = function(payload){
     			},
     		},
     	},
+
       // {
     	// 	poll: {
       //
@@ -121,6 +124,8 @@ module.exports = function(payload){
               let hosts = group.hosts
 
               Array.each(hosts, function(host){
+                debug('1st filter %O', host)
+
 
                 pipeline.get_input_by_id('input.vhosts').fireEvent('onOnce', {
                   id: "once",
@@ -141,15 +146,15 @@ module.exports = function(payload){
                     //
                     // ],
                     "filter": [
-                      "r.row('metadata')('tag').eq(['enabled'])",
+                      "r.row('metadata')('tag').eq(['enabled', 'nginx'])",
                       "r.row('metadata')('host').eq('"+host+"')",
                       "r.row('metadata')('type').eq('periodical')"
                     ]
                   },
                   params: {},
                 })
-                debug('1st filter %O', host)
-                
+
+
               })
             }
           })
@@ -193,7 +198,68 @@ module.exports = function(payload){
       },
       function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
-        debug('2nd filter %O', doc)
+        // debug('2nd filter %O', doc)
+
+        if(doc && doc.data && doc.metadata && doc.metadata.from === 'vhosts'){
+          let urls = []
+          Array.each(doc.data, function(group){
+            // debug('2nd filter groups %O', group)
+            Array.each(group, function(vhost){
+              // let url = vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port
+              urls.push(vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port)
+              // debug('2nd filter URL %s', url)
+            })
+          })
+
+          let urls_result = {}
+
+          async.eachLimit(urls, 10, function(url, callback){
+
+            request.head({uri: url}, function(error, response, body){
+              pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
+              if(response){
+                debug('request result %O %O %O', response.headers, response.statusCode, body)
+              }
+
+              callback()
+            })
+          }, function(err) {
+
+              // if any of the file processing produced an error, err would equal that error
+              if( err ) {
+                debug('request ERROR %o', err)
+              } else {
+                pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+                // console.log('All files have been processed successfully');
+              }
+          });
+
+          // async.eachLimit(
+          //   urls,
+          //   1,
+          //   function(url, callback){
+          //     // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+          //     // callback()
+          //     let wrapped = async.timeout(function(url){
+          //       request.head({baseUrl: url})
+          //     }.bind(this), 10)
+          //
+          //     // try{
+          //     wrapped(url, function(err, data) {
+          //       debug('request result %o %o', err, data)
+          //       if(err){
+          //         // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+          //         callback()
+          //       }
+          //     })
+          //     // }
+          //     // catch(e){
+          //     //   callback()
+          //     // }
+          //   }.bind(this)
+          // )
+        }
+
       }
    	],
   	// output: [
