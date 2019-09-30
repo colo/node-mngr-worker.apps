@@ -69,7 +69,7 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               // if(type === 'minute'){
-                return cron.schedule('*/10 * * * * *', dispatch);//every minute
+                return cron.schedule('* * * * *', dispatch);//every minute
               // }
               // else{
               //   return cron.schedule('0 * * * *', dispatch);//every hour
