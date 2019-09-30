@@ -122,13 +122,13 @@ module.exports = function(payload){
               let hosts = group.hosts
 
               Array.each(hosts, function(host){
-                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - 2 * MINUTE)) )
+                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - MINUTE)) )
                 // process.exit(1)
 
                 pipeline.get_input_by_id('input.checks').fireEvent('onRange', {
                   // id: "once",
                   id: "range",
-                  Range: "posix "+roundSeconds(Date.now() - 2 * MINUTE )+"-"+Date.now()+"/*",
+                  Range: "posix "+roundSeconds(Date.now() - MINUTE )+"-"+Date.now()+"/*",
                   query: {
                     "q": [
                       "data",
@@ -150,7 +150,7 @@ module.exports = function(payload){
                       "r.row('metadata')('tag').contains('enabled')",
                       "r.row('data')('code').gt(399)",
                       "r.row('metadata')('path').eq('educativa.checks.vhosts')",
-                      "r.row('metadata')('type').eq('checks')"
+                      "r.row('metadata')('type').eq('check')"
                     ]
                   },
                   params: {},
@@ -197,11 +197,12 @@ module.exports = function(payload){
               host = host.replace(port, '')
               let protocol = (error.data.protocol) ?  error.data.protocol+'//' : ''
               let id = protocol+host+port
-              error.data.time = {
-                unix: error.metadata.timestamp,
-                local: moment(error.metadata.timestamp).local().format("dddd, MMMM Do YYYY, h:mm:ss a"),
-                relative:moment(error.metadata.timestamp).fromNow()
-              }
+              error.data.timestamp = error.metadata.timestamp
+              // error.data.time = {
+              //   unix: error.metadata.timestamp,
+              //   local: moment(error.metadata.timestamp).local().format("dddd, MMMM Do YYYY, h:mm:ss a"),
+              //   relative:moment(error.metadata.timestamp).fromNow()
+              // }
 
               if(!alert.data[server]) alert.data[server] = {}
               if(!alert.data[server][id]) alert.data[server][id] = []
@@ -217,10 +218,10 @@ module.exports = function(payload){
           Object.each(alert.data, function(value, server){
             Object.each(value, function(errors, host){
               errors.sort(function (a, b) {
-                if (a.time.unix < b.time.unix) {
+                if (a.timestamp < b.timestamp) {
                   return -1
                 }
-                if (a.time.unix > b.time.unix) {
+                if (a.timestamp > b.timestamp) {
                   return 1
                 }
                 // a must be equal to b
@@ -229,7 +230,7 @@ module.exports = function(payload){
             })
           })
 
-          debug('2nd filter %O', alert.data.colo)
+          // debug('2nd filter %O', alert.data.colo)
 
           next(alert, opts, next, pipeline)
 

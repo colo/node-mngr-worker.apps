@@ -55,7 +55,7 @@ const HOUR = 60 * MINUTE
 const DAY = 15 * MINUTE //devel
 
 module.exports = function(payload){
-  let {input, output, filters, type} = payload
+  let {input, output, filters, type, avoid_notify} = payload
 
   Array.each(filters, function(filter, i){
     filters[i] = filter(payload)
@@ -94,7 +94,7 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               // if(type === 'minute'){
-                return cron.schedule('*/10 * * * * *', dispatch);//every minute
+                return cron.schedule('* * * * *', dispatch);//every minute
               // }
               // else{
               //   return cron.schedule('0 * * * *', dispatch);//every hour
@@ -122,13 +122,13 @@ module.exports = function(payload){
               // let hosts = group.hosts
               //
               // Array.each(hosts, function(host){
-                debug('1st filter %s %s', new Date(roundMinutes(Date.now() - MINUTE)) )
+                debug('1st filter %s %s', new Date(roundSeconds(Date.now() - MINUTE)) )
                 // process.exit(1)
 
                 pipeline.get_input_by_id('input.alerts').fireEvent('onRange', {
                   // id: "once",
                   id: "range",
-                  Range: "posix "+roundMinutes(Date.now() - MINUTE )+"-"+Date.now()+"/*",
+                  Range: "posix "+roundSeconds(Date.now() - MINUTE )+"-"+Date.now()+"/*",
                   query: {
                     "q": [
                       "data",
@@ -146,8 +146,9 @@ module.exports = function(payload){
                     //
                     // ],
                     "filter": [
-                      // "r.row('metadata')('tag').contains('nginx')",
-                      // "r.row('metadata')('tag').contains('enabled')",
+                      "r.row('metadata')('tag').contains('vhosts')",
+                      "r.row('metadata')('tag').contains('nginx')",
+                      "r.row('metadata')('tag').contains('enabled')",
                       // "r.row('data')('code').gt(399)",
                       // "r.row('metadata')('path').eq('educativa.checks.vhosts')",
                       "r.row('metadata')('type').eq('alert')"
@@ -170,77 +171,65 @@ module.exports = function(payload){
       },
       function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
-        debug('2nd filter %O', doc)
+        debug('2nd filter %O', doc.data)
+        // process.exit(1)
 
-        next(doc, opts, next, pipeline)
+        if(!doc.err){// err === 404
+          let notifies = []
+
+          Array.each(doc.data, function(alerts){
+            Array.each(alerts, function(alert){
+              // debug('2nd filter ALERT %O', alert)
+
+
+
+              Object.each(alert.data, function(host_alerts, host){
+                Object.each(host_alerts, function(vhost_alert, vhost){
+                  let notification = true
+
+                  debug('2nd filter AVOID %O', avoid_notify)
+                  // process.exit(1)
+
+                  if(avoid_notify && avoid_notify.alerts.vhosts){
+                    if(
+                      avoid_notify.alerts.vhosts.contains(vhost)
+                      || avoid_notify.alerts.vhosts.some(function(item){ return (item instanceof RegExp && item.test(vhost)) ? true: false })
+                    ){
+                      notification = false
+                    }
+
+                  }
+
+                  if(notification === true){
+                    let schema = (vhost_alert.protocol) ? vhost_alert.protocol : (vhost.indexOf(':443') > 0) ? 'https:' : 'http:'
+                    /**
+                    * https://apps.timwhitlock.info/emoji/tables/unicode
+                    **/
+                    let notify = "\uD83D\uDE21"+' *Nginx Vhost Alert: * _'+host+"_\n" //title
+                    // notify += '`'+vhost+"`\n"
+                    notify += '['+schema+'//'+vhost+']('+schema+'//'+vhost+'/)'
+                    notify += '```'+JSON.stringify(vhost_alert, null, 1)+"```\n"
+                    notify += '*'+moment(vhost_alert.timestamp).local().format("dddd, MMMM Do YYYY, h:mm:ss a")+'* _('+moment(vhost_alert.timestamp).fromNow()+")_\n" //time
+
+                    notifies.push(notify)
+                  }
+
+                })
+
+              })
+            })
+          })
+
+          // debug('2nd filter NOTIFIES %O', notifies)
+          // process.exit(1)
+          next(notifies, opts, next, pipeline)
+        }
+
 
         // if(!doc.err)
-        //   process.exit(1)
+          // process.exit(1)
 
-      //
-      //
-      //   if(doc && doc.data && doc.metadata && doc.metadata.from === 'educativa'){
-      //     let timestamp = Date.now()
-      //     let alert = {
-      //       id: 'educativa.alerts.nginx.vhosts.enabled@'+timestamp,
-      //       data: {},
-      //       metadata: {
-      //         path: 'educativa.alerts.vhosts',
-      //         type: 'alert',
-      //         host: os.hostname(),
-      //         tag: ['vhosts', 'nginx', 'enabled', 'error'],
-      //         timestamp: timestamp
-      //       }
-      //     }
-      //     // debug('2nd filter %O', doc.data[0])
-      //     Array.each(doc.data, function(groups){
-      //       debug('2nd filter %O', groups)
-      //       Array.each(groups, function(error){
-      //         let server = error.metadata.host
-      //         let port = (error.data.port) ? ':'+error.data.port : ''
-      //         let host = (error.data.host) ? error.data.host : error.data.hostname
-      //         host = host.replace(port, '')
-      //         let protocol = (error.data.protocol) ?  error.data.protocol+'//' : ''
-      //         let id = protocol+host+port
-      //         error.data.time = {
-      //           unix: error.metadata.timestamp,
-      //           local: moment(error.metadata.timestamp).local().format("dddd, MMMM Do YYYY, h:mm:ss a"),
-      //           relative:moment(error.metadata.timestamp).fromNow()
-      //         }
-      //
-      //         if(!alert.data[server]) alert.data[server] = {}
-      //         if(!alert.data[server][id]) alert.data[server][id] = []
-      //
-      //         alert.data[server][id].push(error.data)
-      //
-      //       })
-      //
-      //
-      //     })
-      //
-      //
-      //     Object.each(alert.data, function(value, server){
-      //       Object.each(value, function(errors, host){
-      //         errors.sort(function (a, b) {
-      //           if (a.time.unix < b.time.unix) {
-      //             return -1
-      //           }
-      //           if (a.time.unix > b.time.unix) {
-      //             return 1
-      //           }
-      //           // a must be equal to b
-      //           return 0
-      //         })
-      //       })
-      //     })
-      //
-      //     debug('2nd filter %O', alert.data.colo)
-      //
-      //     next(alert, opts, next, pipeline)
-      //
-      //
-      //   }
-      //
+
       }
    	],
   	output: [
@@ -250,6 +239,7 @@ module.exports = function(payload){
   				conn: [
             output
   				],
+          message: {parse_mode: 'Markdown'},
   				module: require('js-pipeline/output/telegram'),
           buffer:{
   					size: 0,

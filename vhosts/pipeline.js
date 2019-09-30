@@ -104,7 +104,7 @@ module.exports = function(http, out){
 
       }
 
-      
+
 
   	],
   	output: [

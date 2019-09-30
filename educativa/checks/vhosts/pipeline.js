@@ -90,7 +90,7 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               // if(type === 'minute'){
-                return cron.schedule('*/30 * * * * *', dispatch);//every minute
+                return cron.schedule('* * * * *', dispatch);//every minute
               // }
               // else{
               //   return cron.schedule('0 * * * *', dispatch);//every hour
@@ -200,7 +200,7 @@ module.exports = function(payload){
                   data: {},
                   metadata: {
                     path: 'educativa.checks.vhosts',
-                    type: 'checks',
+                    type: 'check',
                     host: host,
                     tag: ['vhosts', 'nginx', 'enabled'],
                     timestamp: Date.now()
