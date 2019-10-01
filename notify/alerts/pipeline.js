@@ -202,7 +202,7 @@ module.exports = function(payload){
 
                   if(notification === true){
                     let schema = (vhost_alert.protocol) ? vhost_alert.protocol : (vhost.indexOf(':443') > 0) ? 'https:' : 'http:'
-                    vhost = vhost.replace(schema, '')
+                    vhost = vhost.replace(schema+'//', '')
                     /**
                     * https://apps.timwhitlock.info/emoji/tables/unicode
                     **/
