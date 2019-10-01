@@ -187,6 +187,9 @@ module.exports = function(payload){
                 Object.each(host_alerts, function(vhost_alert, vhost){
                   let notification = true
 
+                  let schema = (vhost_alert.protocol) ? vhost_alert.protocol : (vhost.indexOf(':443') > 0) ? 'https:' : 'http:'
+                  vhost = vhost.replace(schema+'//', '')
+
                   debug('2nd filter AVOID %O', avoid_notify)
                   // process.exit(1)
 
@@ -201,8 +204,7 @@ module.exports = function(payload){
                   }
 
                   if(notification === true){
-                    let schema = (vhost_alert.protocol) ? vhost_alert.protocol : (vhost.indexOf(':443') > 0) ? 'https:' : 'http:'
-                    vhost = vhost.replace(schema+'//', '')
+
                     /**
                     * https://apps.timwhitlock.info/emoji/tables/unicode
                     **/
