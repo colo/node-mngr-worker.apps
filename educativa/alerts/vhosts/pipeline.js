@@ -193,12 +193,14 @@ module.exports = function(payload){
             Array.each(groups, function(error){
               let server = error.metadata.host
               let port = (error.data.port) ? ':'+error.data.port : ''
-              let host = (error.data.host) ? error.data.host : (error.data.hostname) ? error.data.hostname : error.data.address
+              let host = (error.data.host) ? error.data.host : (error.data.hostname) ? error.data.hostname : (error.data.uri) ? error.data.uri: error.data.address
 
               if(!host) host = ''
               host = host.replace(port, '')
 
               let protocol = (error.data.protocol) ?  error.data.protocol+'//' : ''
+              host = host.replace(protocol, '')
+
               let id = protocol+host+port
               error.data.timestamp = error.metadata.timestamp
               // error.data.time = {
