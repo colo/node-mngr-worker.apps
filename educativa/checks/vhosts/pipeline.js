@@ -237,6 +237,7 @@ module.exports = function(payload){
                 }
                 else{
                   doc.data = error
+                  doc.data.host = id
                   doc.metadata.tag.push(error.code)
                   doc.metadata.tag.push('error')
                 }
