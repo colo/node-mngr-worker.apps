@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_delete_until_last_hour');
-let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_delete_until_last_hour:Internals');
+let debug = require('debug')('Server:Apps:Purge:Periodical:Filters:from_default_query_delete_until_last_hour');
+let debug_internals = require('debug')('Server:Apps:Purge:Periodical:Filters:from_default_query_delete_until_last_hour:Internals');
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)

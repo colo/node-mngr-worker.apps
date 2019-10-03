@@ -32,7 +32,7 @@ module.exports = function(payload){
   let table = output.table
 
   let filter = function(doc, opts, next, pipeline){
-
+    debug('2nd filter %o', doc)
     if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
       // let { type, input, input_type, app } = opts
 

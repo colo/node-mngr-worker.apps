@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Pipeline');
-let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Pipeline:Internals');
+let debug = require('debug')('Server:Apps:Purge:Periodical:Pipeline');
+let debug_internals = require('debug')('Server:Apps:Purge:Periodical:Pipeline:Internals');
 
 const path = require('path');
 

@@ -4,8 +4,8 @@ const App = require('js-pipeline.inputs.rethinkdb-rest')
 
 // const App = require ( 'node-app-rethinkdb-client/index' )
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Input'),
-    debug_internals = require('debug')('Server:Apps:Stat:Periodical:Input:Internals');
+let debug = require('debug')('Server:Apps:Purge:Periodical:Input'),
+    debug_internals = require('debug')('Server:Apps:Purge:Periodical:Input:Internals');
 
 
 const roundMilliseconds = function(timestamp){
@@ -616,7 +616,9 @@ module.exports = new Class({
   },
 
 
-
+  process_default: function(err, resp, params, error_on_doc){
+    this.parent(err, resp, params, true)
+  }
 
 
 });
