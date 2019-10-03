@@ -124,8 +124,8 @@ module.exports = function(http, out){
           buffer:{
   					// size: 1, //-1
   					// expire:0
-            size: -1,
-            expire: 999,
+            // size: -1,
+            expire: 1001,
   				}
   			}
   		}

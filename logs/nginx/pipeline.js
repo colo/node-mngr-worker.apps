@@ -493,7 +493,8 @@ module.exports = function(file, domain, out){
   					size: -1, //-1
   					// expire:0
             size: 1000,
-            expire: 999,
+            // expire: 999,
+            expire: 1001,
             periodical: 1000,
   				}
   			}

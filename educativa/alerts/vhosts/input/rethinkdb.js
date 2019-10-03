@@ -155,22 +155,23 @@ module.exports = new Class({
                 query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
               }
               else{
-                if(req.query && req.query.q){
+                // if(req.query && req.query.q){
                   query = query
                     .group( app.r.row('metadata')('path') )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 1000000}, _result_callback)
 
-                }
-                else{
-                  app.build_default_result(query, _result_callback)
-                }
+                // }
+                // else{
+                //   app.build_default_result(query, _result_callback)
+                // }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
                 //   .ungroup()
@@ -283,24 +284,25 @@ module.exports = new Class({
                 }
                 else if(req.query.register === 'periodical'){
 
-                  if(req.query && req.query.q){
+                  // if(req.query && req.query.q){
                     query = query
                       .group( app.r.row('metadata')('path') )
                       // .group( {index:'path'} )
                       .ungroup()
                       .map(
                         function (doc) {
-                          return app.build_default_query_result(doc, req.query)
+                          // return app.build_default_query_result(doc, req.query)
+                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                         }
                       )
 
 
-                  }
-                  else{
-                    //Promise
-                    // process.exit(1)
-                    query = app.build_default_result(query)
-                  }
+                  // }
+                  // else{
+                  //   //Promise
+                  //   // process.exit(1)
+                  //   query = app.build_default_result(query)
+                  // }
                 }
 
 
@@ -433,22 +435,23 @@ module.exports = new Class({
                 query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
               }
               else{
-                if(req.query && req.query.q){
+                // if(req.query && req.query.q){
                   query = query
                     .group( app.r.row('metadata')('path') )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 1000000}, _result_callback)
 
-                }
-                else{
-                  app.build_default_result(query, _result_callback)
-                }
+                // }
+                // else{
+                //   app.build_default_result(query, _result_callback)
+                // }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
                 //   .ungroup()
@@ -611,7 +614,8 @@ module.exports = new Class({
                   .ungroup()
                   .map(
                     function (doc) {
-                      return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
+                      // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
+                      return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                     }
                 )
               }

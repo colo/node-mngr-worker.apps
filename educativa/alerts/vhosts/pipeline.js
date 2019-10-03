@@ -344,6 +344,7 @@ module.exports = function(payload){
           buffer:{
   					size: 0,
   					expire:0
+            // expire: 1001,
   				}
   			}
   		}

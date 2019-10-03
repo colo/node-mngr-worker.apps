@@ -28,8 +28,8 @@ const roundMinutes = function(timestamp){
 
 const SECOND = 1000
 const MINUTE = 60 * SECOND
-// const HOUR = 60 * MINUTE
-const HOUR = 15 * MINUTE//devel
+const HOUR = 60 * MINUTE
+// const HOUR = 15 * MINUTE//devel
 const DAY = HOUR * 24
 module.exports = function(payload){
   let {input, output, type } = payload
