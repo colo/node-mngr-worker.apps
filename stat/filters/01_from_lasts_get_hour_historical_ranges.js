@@ -27,6 +27,11 @@ const roundMinutes = function(timestamp){
   return d.getTime()
 }
 
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = HOUR * 24
+
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = output.table
@@ -68,7 +73,8 @@ module.exports = function(payload){
 
         Array.each(data, function(group){
           if(group.path === path){
-            range[0] = group.range[0]
+            // range[0] = group.range[0]
+            range[0] = (group.range[0] > Date.now() - DAY ) ? group.range[0] : roundMinutes(Date.now() - DAY)
             range[1] = roundMinutes(range[0] + 3660000)//limit on next hour
             // end_range = group.range[1]
           }
@@ -148,7 +154,7 @@ module.exports = function(payload){
       // async.tryEach(ranges)
       async.eachLimit(
         ranges,
-        100,
+        10,
         function(range, callback){
           // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
           // callback()

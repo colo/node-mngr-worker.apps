@@ -4,8 +4,8 @@ const App = require('js-pipeline.inputs.rethinkdb-rest')
 
 // const App = require ( 'node-app-rethinkdb-client/index' )
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Input'),
-    debug_internals = require('debug')('Server:Apps:Stat:Periodical:Input:Internals');
+let debug = require('debug')('Server:Apps:Purge:Periodical:Input'),
+    debug_internals = require('debug')('Server:Apps:Purge:Periodical:Input:Internals');
 
 
 const roundMilliseconds = function(timestamp){
@@ -30,20 +30,7 @@ module.exports = new Class({
   Extends: App,
 
   ID: 'b1f06da2-82bd-4c95-8e4e-a5a25075e39b',
-  // registered: {},
-  // registered_ids: {},
-  // feeds: {},
-  // close_feeds: {},
-  // changes_buffer: {},
-  // changes_buffer_expire: {},
-  // periodicals: {},
-  //
-  // // FROM: 'periodical',
-  // RANGES: {
-  //   'periodical': 10000,
-  //   'historical': 60000,
-  //
-  // },
+
   options: {
     db: undefined,
     table: undefined,
@@ -131,6 +118,7 @@ module.exports = new Class({
               // ? query
               //   .filter( app.r.row('metadata')('path').eq(req.params.path) )
               // : query
+
               let _result_callback = function(err, resp){
                 debug_internals('run', err)//resp
                 app.process_default(
@@ -152,25 +140,25 @@ module.exports = new Class({
 
               if (req.query && req.query.aggregation && !req.query.q) {
                 query =  this.result_with_aggregation(query, req.query.aggregation)
-                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+                query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
               }
               else{
-                // if(req.query && req.query.q){
+                if(req.query && req.query.q){
                   query = query
                     .group( app.r.row('metadata')('path') )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        return app.build_default_query_result(doc, req.query)
                       }
                     )
-                    .run(app.conn, {arrayLimit: 10000000}, _result_callback)
-                //
-                // }
-                // else{
-                //   app.build_default_result(query, _result_callback)
-                // }
+                    .run(app.conn, {arrayLimit: 1000000}, _result_callback)
+
+                }
+                else{
+                  app.build_default_result(query, _result_callback)
+                }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
                 //   .ungroup()
@@ -181,24 +169,7 @@ module.exports = new Class({
                 // )
               }
 
-              // query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
-              //   debug_internals('run', err)//resp
-              //   app.process_default(
-              //     err,
-              //     resp,
-              //     {
-              //       _extras: {
-              //         from: from,
-              //         type: (req.params && req.params.path) ? req.params.path : app.options.type,
-              //         id: req.id,
-              //         transformation: (req.query.transformation) ? req.query.transformation : undefined,
-              //         aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-              //         filter: (req.query.filter) ? req.query.filter : undefined
-              //         // prop: pluralize(index)
-              //       }
-              //     }
-              //   )
-              // })
+
 
             } //req.query.register === false
 					}
@@ -282,25 +253,32 @@ module.exports = new Class({
                   query =  this.result_with_aggregation(query, req.query.aggregation)
                 }
                 else if(req.query.register === 'periodical'){
-
-                  // if(req.query && req.query.q){
+                  // query = query
+                  //   .group( app.r.row('metadata')('path') )
+                  //   .ungroup()
+                  //   .map(
+                  //     function (doc) {
+                  //         return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                  //     }
+                  // )
+                  if(req.query && req.query.q){
                     query = query
                       .group( app.r.row('metadata')('path') )
                       // .group( {index:'path'} )
                       .ungroup()
                       .map(
                         function (doc) {
-                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                          return app.build_default_query_result(doc, req.query)
                         }
                       )
 
-                  //
-                  // }
-                  // else{
-                  //   //Promise
-                  //   // process.exit(1)
-                  //   query = app.build_default_result(query)
-                  // }
+
+                  }
+                  else{
+                    //Promise
+                    // process.exit(1)
+                    query = app.build_default_result(query)
+                  }
                 }
 
 
@@ -404,11 +382,6 @@ module.exports = new Class({
               * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
               **/
 
-              // query = (req.params.path)
-              // ? query
-              //   .filter( app.r.row('metadata')('path').eq(req.params.path) )
-              // : query
-
               let _result_callback = function(err, resp){
                 debug_internals('run', err)//resp
                 app.process_default(
@@ -430,25 +403,25 @@ module.exports = new Class({
 
               if (req.query && req.query.aggregation && !req.query.q) {
                 query =  this.result_with_aggregation(query, req.query.aggregation)
-                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+                query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
               }
               else{
-                // if(req.query && req.query.q){
+                if(req.query && req.query.q){
                   query = query
                     .group( app.r.row('metadata')('path') )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        return app.build_default_query_result(doc, req.query)
                       }
                     )
-                    .run(app.conn, {arrayLimit: 10000000}, _result_callback)
+                    .run(app.conn, {arrayLimit: 1000000}, _result_callback)
 
-                // }
-                // else{
-                //   app.build_default_result(query, _result_callback)
-                // }
+                }
+                else{
+                  app.build_default_result(query, _result_callback)
+                }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
                 //   .ungroup()
@@ -459,7 +432,21 @@ module.exports = new Class({
                 // )
               }
 
-              // query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
+              // if (req.query && req.query.aggregation && !req.query.q) {
+              //   query =  this.result_with_aggregation(query, req.query.aggregation)
+              // }
+              // else{
+              //   query = query
+              //     .group( app.r.row('metadata')('path') )
+              //     .ungroup()
+              //     .map(
+              //       function (doc) {
+              //           return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+              //       }
+              //   )
+              // }
+              //
+              // query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
               //   debug_internals('run', err)//resp
               //   app.process_default(
               //     err,
@@ -470,8 +457,7 @@ module.exports = new Class({
               //         type: (req.params && req.params.path) ? req.params.path : app.options.type,
               //         id: req.id,
               //         transformation: (req.query.transformation) ? req.query.transformation : undefined,
-              //         aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-              //         filter: (req.query.filter) ? req.query.filter : undefined
+              //         aggregation: (req.query.aggregation) ? req.query.aggregation : undefined
               //         // prop: pluralize(index)
               //       }
               //     }
@@ -481,35 +467,7 @@ module.exports = new Class({
             // } //req.query.register === false
 					}
 				},
-        // {
-				// 	default: function(req, next, app){
-        //     // req = (req) ? Object.clone(req) : {}
-        //     debug_internals('periodical default %s', new Date());
-        //
-        //     // if(!req.query || (!req.query.register && !req.query.unregister)){
-        //     if(Object.getLength(app.periodicals) > 0){
-        //       // debug_internals('periodical default %O', app.periodicals);
-        //
-        //       Object.each(app.periodicals, function(periodical_req, uuid){
-        //         Object.each(periodical_req, function(periodical, id){
-        //           let {query, params} = periodical
-        //           debug_internals('periodical default %s %O', id, periodical);
-        //           // periodical_req.id = id
-        //           query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
-        //             debug_internals('periodical default run', err, resp)//resp
-        //             app.process_default(
-        //               err,
-        //               resp,
-        //               params
-        //             )
-        //           })
-        //         }.bind(this))
-        //       }.bind(this))
-        //
-        //
-        //     } //req.query.register === false
-				// 	}
-				// },
+
       ],
 
       range: [
@@ -600,24 +558,9 @@ module.exports = new Class({
               * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
               **/
 
-              if (req.query && req.query.aggregation && !req.query.q) {
-                query =  this.result_with_aggregation(query, req.query.aggregation)
 
-                // query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
-              }
-              else{
-                query = query
-                  .group(app.r.row('metadata')('path'))
-                  .ungroup()
-                  .map(
-                    function (doc) {
-                      // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
-                      return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
-                    }
-                )
-              }
 
-              query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
+              query.delete().run(app.conn, {durability: "hard"}, function(err, resp){
                 debug_internals('run', err) //resp
                 app.process_default(
                   err,
@@ -630,8 +573,7 @@ module.exports = new Class({
                       Range: range,
                       range: req.opt.range,
                       transformation: (req.query.transformation) ? req.query.transformation : undefined,
-                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-                      filter: (req.query.filter) ? req.query.filter : undefined
+                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined
                       // prop: pluralize(index)
                     }
                   }
@@ -673,11 +615,10 @@ module.exports = new Class({
 
   },
 
+
   process_default: function(err, resp, params, error_on_doc){
     this.parent(err, resp, params, true)
   }
-
-
 
 
 });

@@ -43,7 +43,8 @@ module.exports = function(payload){
   // const stat = require('../libs/stat')[type]
 
   let filter = function(doc, opts, next, pipeline){
-    // debug('3rd filter %o', doc)
+    debug('3rd filter %o', doc)
+    // process.exit(1)
 
     if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === table && doc.data){
       debug('process filter %o', doc)
