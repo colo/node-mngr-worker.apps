@@ -183,7 +183,7 @@ module.exports = function(payload){
               path: 'educativa.alerts.vhosts',
               type: 'alert',
               host: os.hostname(),
-              tag: ['vhosts', 'nginx', 'enabled', 'error'],
+              tag: ['alert', 'vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol'],
               timestamp: timestamp
             }
           }

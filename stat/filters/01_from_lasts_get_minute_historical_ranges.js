@@ -35,7 +35,7 @@ const DAY = HOUR * 24
 
 
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, type, full_range } = payload
   let table = output.table
 
   let filter = function(doc, opts, next, pipeline){
@@ -75,7 +75,7 @@ module.exports = function(payload){
         Array.each(data, function(group){
           if(group.path === path){
             // range[0] = group.range[0]
-            range[0] = (group.range[0] > Date.now() - HOUR ) ? group.range[0] : roundMinutes(Date.now() - HOUR)
+            range[0] = (group.range[0] > Date.now() - HOUR || full_range === true ) ? group.range[0] : roundMinutes(Date.now() - HOUR)
             range[1] = roundSeconds(range[0] + 60000)//limit on next minute
             // end_range = group.range[1]
           }

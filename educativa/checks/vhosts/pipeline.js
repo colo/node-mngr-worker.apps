@@ -202,7 +202,7 @@ module.exports = function(payload){
                     path: 'educativa.checks.vhosts',
                     type: 'check',
                     host: host,
-                    tag: ['vhosts', 'nginx', 'enabled'],
+                    tag: ['check', 'vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol'],
                     timestamp: Date.now()
                   }
                 }

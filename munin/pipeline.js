@@ -109,6 +109,7 @@ module.exports = function(munin, out){
           let timestamp = roundMilliseconds(Date.now())
           new_doc.id = doc.host+'.'+path+'@'+timestamp
           new_doc.metadata = {
+            id: new_doc.id,
             path: path,
             type: 'periodical',
             host: doc.host,

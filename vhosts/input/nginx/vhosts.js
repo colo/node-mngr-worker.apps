@@ -127,7 +127,7 @@ module.exports = new Class({
           port = port.replace('ssl', '')
           port = port.trim()
           // debug('vhost_listen %o %o', listen, port, schema)
-          this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['enabled', 'nginx']}, data: {uri: uri, port: port, schema: schema }});
+          this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol']}, data: {uri: uri, port: port, schema: schema }});
         }.bind(this))
 
         // debug('vhost_listen %o %o', uri, decoded_body)

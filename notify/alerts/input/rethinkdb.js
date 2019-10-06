@@ -29,7 +29,7 @@ const pluralize = require('pluralize')
 module.exports = new Class({
   Extends: App,
 
-  ID: 'b1f06da2-82bd-4c95-8e4e-a5a25075e39b',
+  ID: '2ba5189b-0a12-5d55-b7fc-f156a483157d',
   // registered: {},
   // registered_ids: {},
   // feeds: {},
@@ -169,7 +169,7 @@ module.exports = new Class({
 
                 }
                 else{
-                  app.build_default_result(query, _result_callback)
+                  app.build_default_result_distinct(query, _result_callback)
                 }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
@@ -299,7 +299,7 @@ module.exports = new Class({
                   else{
                     //Promise
                     // process.exit(1)
-                    query = app.build_default_result(query)
+                    query = app.build_default_result_distinct(query)
                   }
                 }
 

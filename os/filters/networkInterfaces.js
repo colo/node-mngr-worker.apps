@@ -10,7 +10,7 @@ module.exports = function(val, opts, next, pipeline){
 	let { type, input, input_type, app } = opts
 	let host = input_type.options.id
 
-	try{
+	// try{
 		if(
 			val !== null
 			// & %o& doc.data
@@ -55,8 +55,8 @@ module.exports = function(val, opts, next, pipeline){
 
       })
 
-      debug_internals('networkInterfaces %o', networkInterfaces)
 
+			debug_internals('networkInterfaces %o', networkInterfaces)
 
       let networkInterfaces_stats_doc = {
         data: networkInterfaces,
@@ -66,14 +66,20 @@ module.exports = function(val, opts, next, pipeline){
 					tag: ['os', 'networkInterfaces', 'stats'].combine(Object.keys(networkInterfaces))
         }
       }
+			// debug_internals('networkInterfaces %o', val)
+			// process.exit(1)
+
 			let networkInterfaces_doc = {
         data: val,
         metadata:{
 					host: host,
           path: 'os.networkInterfaces',
-					tag: ['os', 'networkInterfaces'].combine(Object.keys(val))
+					tag: ['os', 'networkInterfaces', 'if', 'recived', 'transmited'].combine(Object.keys(val.lo.if[0]))
         }
       }
+
+
+
 
 			next(networkInterfaces_doc, opts, next, pipeline)
 			// next(networkInterfaces_stats_doc, opts, next, pipeline)
@@ -82,11 +88,11 @@ module.exports = function(val, opts, next, pipeline){
 
 
 		}//if
-	}
-	catch(e){
-		console.log(val)
-		throw e
-	}
+	// }
+	// catch(e){
+	// 	console.log(val)
+	// 	throw e
+	// }
 
 
 };

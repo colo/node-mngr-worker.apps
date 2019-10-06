@@ -29,7 +29,7 @@ const pluralize = require('pluralize')
 module.exports = new Class({
   Extends: App,
 
-  ID: 'b1f06da2-82bd-4c95-8e4e-a5a25075e39b',
+  ID: '56bf0649-7015-5267-94aa-ad0052769cd4',
 
   options: {
     db: undefined,
@@ -143,23 +143,23 @@ module.exports = new Class({
                 query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
               }
               else{
-                // if(req.query && req.query.q){
+                if(req.query && req.query.q){
                   query = query
                     .group( app.r.row('metadata')('path') )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        // return app.build_default_query_result(doc, req.query)
-                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        return app.build_default_query_result(doc, req.query)
+                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 1000000}, _result_callback)
 
-                // }
-                // else{
-                //   app.build_default_result(query, _result_callback)
-                // }
+                }
+                else{
+                  app.build_default_result_distinct(query, _result_callback)
+                }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
                 //   .ungroup()
@@ -262,25 +262,25 @@ module.exports = new Class({
                   //         return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                   //     }
                   // )
-                  // if(req.query && req.query.q){
+                  if(req.query && req.query.q){
                     query = query
                       .group( app.r.row('metadata')('path') )
                       // .group( {index:'path'} )
                       .ungroup()
                       .map(
                         function (doc) {
-                          // return app.build_default_query_result(doc, req.query)
-                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                          return app.build_default_query_result(doc, req.query)
+                          // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                         }
                       )
 
 
-                  // }
-                  // else{
-                  //   //Promise
-                  //   // process.exit(1)
-                  //   query = app.build_default_result(query)
-                  // }
+                  }
+                  else{
+                    //Promise
+                    // process.exit(1)
+                    query = app.build_default_result_distinct(query)
+                  }
                 }
 
 

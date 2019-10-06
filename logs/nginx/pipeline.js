@@ -251,7 +251,7 @@ module.exports = function(file, domain, out){
               timestamp: doc_ts,
               // timestamp: Date.now(),
               // tag: [tag_type, 'web', doc.input],
-              tag: ['nginx', 'web', doc.input],
+              tag: ['nginx', 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
               type: 'periodical'
             }
           }

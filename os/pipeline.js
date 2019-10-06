@@ -312,6 +312,11 @@ module.exports = function(http, out){
 
             doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
           }
+          else if(app.options.id === 'os.blockdevices'){
+            debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
+            // process.exit(1)
+            doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[Object.keys(doc)[0]]))}}
+          }
           else{
 
             // if(module === 'os'){
