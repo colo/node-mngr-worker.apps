@@ -142,7 +142,7 @@ module.exports = function(payload){
                     //
                     // ],
                     "filter": [
-                      "r.row('metadata')('tag').eq(['enabled', 'nginx'])",
+                      "r.row('metadata')('tag').contains('enabled').and('nginx').and('vhost')",
                       "r.row('metadata')('host').eq('"+host+"')",
                       "r.row('metadata')('type').eq('periodical')"
                     ]

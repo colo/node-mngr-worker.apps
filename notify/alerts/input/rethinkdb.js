@@ -157,19 +157,20 @@ module.exports = new Class({
               else{
                 if(req.query && req.query.q){
                   query = query
-                    .group( app.r.row('metadata')('path') )
+                    .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
                         return app.build_default_query_result(doc, req.query)
+                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
-                    .run(app.conn, {arrayLimit: 1000000}, _result_callback)
+                    .run(app.conn, {arrayLimit: 10000000}, _result_callback)
 
                 }
                 else{
-                  app.build_default_result_distinct(query, _result_callback)
+                  app.build_default_result_distinct(query, app.get_distinct(req.query.index), _result_callback)
                 }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
@@ -285,7 +286,7 @@ module.exports = new Class({
 
                   if(req.query && req.query.q){
                     query = query
-                      .group( app.r.row('metadata')('path') )
+                      .group( app.get_group(req.query.index) )
                       // .group( {index:'path'} )
                       .ungroup()
                       .map(
@@ -299,7 +300,7 @@ module.exports = new Class({
                   else{
                     //Promise
                     // process.exit(1)
-                    query = app.build_default_result_distinct(query)
+                    query = app.build_default_result_distinct(query,  app.get_distinct(req.query.index))
                   }
                 }
 
@@ -435,19 +436,20 @@ module.exports = new Class({
               else{
                 if(req.query && req.query.q){
                   query = query
-                    .group( app.r.row('metadata')('path') )
+                    .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
                         return app.build_default_query_result(doc, req.query)
+                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
-                    .run(app.conn, {arrayLimit: 1000000}, _result_callback)
+                    .run(app.conn, {arrayLimit: 10000000}, _result_callback)
 
                 }
                 else{
-                  app.build_default_result(query, _result_callback)
+                  app.build_default_result_distinct(query, app.get_distinct(req.query.index), _result_callback)
                 }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
@@ -607,11 +609,12 @@ module.exports = new Class({
               }
               else{
                 query = query
-                  .group(app.r.row('metadata')('path'))
+                  .group(app.get_group(req.query.index))
                   .ungroup()
                   .map(
                     function (doc) {
-                      return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
+                      // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
+                      return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc, (req.query.index) ? req.query.index : 'path')
                     }
                 )
               }
