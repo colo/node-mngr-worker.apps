@@ -95,6 +95,8 @@ module.exports = function(http, out){
         doc.metadata.type = 'periodical'
 
         debug('filter %o', doc)
+        // process.exit(1)
+
         sanitize_filter(
           doc,
           opts,

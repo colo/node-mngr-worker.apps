@@ -65,7 +65,7 @@ module.exports = new Class({
 						//version: '',
 					},
           {
-						path: '/enabled/?comments=false',
+						path: '/enabled/:prop/listen',
 						callbacks: ['vhost_listen'],
 						//version: '',
 					},
@@ -91,7 +91,7 @@ module.exports = new Class({
 	//},
   vhost_listen: function (err, resp, body, req){
     // debug('vhost_listen %o %o', err, body, req.uri)
-    // process.exit(1)
+
     if(err){
 			//console.log(err);
 
@@ -113,35 +113,22 @@ module.exports = new Class({
 		}
 		else{
 			////console.log('success');
-      // debug('vhost_listen %o %o', body)
+
       try{
-        // let uri = req.uri.replace('/enabled/', '').replace('/listen', '')
-        // let decoded_body = JSON.decode(body)
+        let uri = req.uri.replace('/enabled/', '').replace('/listen', '')
+        let decoded_body = JSON.decode(body)
 
-        Object.each(body, function(vhost, uri){
-          Array.each(vhost, function(listen){
-            if(typeof listen !== 'string' && listen._value)
-              listen = listen._value
+        Array.each(decoded_body, function(listen){
+          if(typeof listen !== 'string' && listen._value)
+            listen = listen._value
 
-            let port = listen.split(':')[1]
-            let schema = (port.indexOf('ssl') > 0) ? 'https' : 'http'
-            port = port.replace('ssl', '')
-            port = port.trim()
-            // debug('vhost_listen %o %o', listen, port, schema)
-            this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol']}, data: {uri: uri, port: port, schema: schema }});
-          }.bind(this))
+          let port = listen.split(':')[1]
+          let schema = (port.indexOf('ssl') > 0) ? 'https' : 'http'
+          port = port.replace('ssl', '')
+          port = port.trim()
+          // debug('vhost_listen %o %o', listen, port, schema)
+          this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol']}, data: {uri: uri, port: port, schema: schema }});
         }.bind(this))
-        // Array.each(decoded_body, function(listen){
-        //   if(typeof listen !== 'string' && listen._value)
-        //     listen = listen._value
-        //
-        //   let port = listen.split(':')[1]
-        //   let schema = (port.indexOf('ssl') > 0) ? 'https' : 'http'
-        //   port = port.replace('ssl', '')
-        //   port = port.trim()
-        //   // debug('vhost_listen %o %o', listen, port, schema)
-        //   this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol']}, data: {uri: uri, port: port, schema: schema }});
-        // }.bind(this))
 
         // debug('vhost_listen %o %o', uri, decoded_body)
 
@@ -187,66 +174,50 @@ module.exports = new Class({
         this.options.requests.once = []
 
         let no_check = /^\_$/
-        // let requests = []
-        let request_body = {uri: [], prop: "listen"}
-
+        let requests = []
         Array.each(decoded_body, function(vhost){
           if(!no_check.test(vhost)){
             // this.options.requests.once.push({ api: { get: {uri: '/enabled/'+vhost+'/listen'} } })
-            // requests.push({ api: { get: {uri: '/enabled/'+vhost+'/listen'} } })
-            request_body.uri.push(vhost)
+            requests.push({ api: { get: {uri: '/enabled/'+vhost+'/listen'} } })
           }
         }.bind(this))
 
-        // debug('requests %O', request_body)
-
-
-        this.options.requests.once = [{
-          api: {
-            get: {
-              uri: '/enabled/?comments=false',
-              body: request_body,
-              json: true
-            }
-          }
-        }]
-        this.fireEvent('onOnceRequestsUpdated')
-
+        debug('requests %O', requests)
         // process.exit(1)
 
-        // async.eachLimit(
-        //   requests,
-        //   1,
-        //   function(request, callback){
-        //     // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-        //     // callback()
-        //     let wrapped = async.timeout(function(request){
-        //       // sleep(1001).then( () => {
-        //       //   // process.exit(1)
-        //       //   debug('RANGE', range)
-        //       // })
-        //
-        //
-        //       // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-        //       this.options.requests.once = [request]
-        //       this.fireEvent('onOnceRequestsUpdated')
-        //       // process.exit(1)
-        //       // callback()
-        //     }.bind(this), 10)
-        //
-        //     // try{
-        //     wrapped(request, function(err, data) {
-        //       if(err){
-        //         // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-        //         callback()
-        //       }
-        //     })
-        //     // }
-        //     // catch(e){
-        //     //   callback()
-        //     // }
-        //   }.bind(this)
-        // )
+        async.eachLimit(
+          requests,
+          1,
+          function(request, callback){
+            // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+            // callback()
+            let wrapped = async.timeout(function(request){
+              // sleep(1001).then( () => {
+              //   // process.exit(1)
+              //   debug('RANGE', range)
+              // })
+
+
+              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+              this.options.requests.once = [request]
+              this.fireEvent('onOnceRequestsUpdated')
+              // process.exit(1)
+              // callback()
+            }.bind(this), 10)
+
+            // try{
+            wrapped(request, function(err, data) {
+              if(err){
+                // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                callback()
+              }
+            })
+            // }
+            // catch(e){
+            //   callback()
+            // }
+          }.bind(this)
+        )
 
 
 
