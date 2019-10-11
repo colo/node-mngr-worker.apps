@@ -236,9 +236,12 @@ module.exports = function(payload){
                   // process.exit(1)
                 }
                 else{
+                  Object.each(error, function(value, key){
+                    error[key] = value.toString()
+                  })
                   doc.data = error
                   doc.data.uri = url
-                  doc.metadata.tag.push(error.code)
+                  if(error.code) doc.metadata.tag.push(error.code)
                   doc.metadata.tag.push('error')
                 }
 
@@ -277,8 +280,8 @@ module.exports = function(payload){
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
   					size: 0,
-  					expire:0
-            // expire: 1001,
+  					// expire: 0
+            expire: 1001,
   				}
   			}
   		}
