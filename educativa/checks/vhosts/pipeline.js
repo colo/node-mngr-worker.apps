@@ -242,6 +242,7 @@ module.exports = function(payload){
                   doc.data = error
                   doc.data.uri = url
                   if(error.code) doc.metadata.tag.push(error.code)
+                  error.code = (error.code) ? error.code : (error.reason) ? error.reason : 'unknown'
                   doc.metadata.tag.push('error')
                 }
 
