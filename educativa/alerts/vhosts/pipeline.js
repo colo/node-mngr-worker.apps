@@ -151,7 +151,8 @@ module.exports = function(payload){
                       "r.row('metadata')('tag').contains('enabled').and('nginx').and('vhost')",
                       "r.row('data')('code').gt(399)",
                       "r.row('metadata')('path').eq('educativa.checks.vhosts')",
-                      "r.row('metadata')('type').eq('check')"
+                      "r.row('metadata')('type').eq('check')",
+                      "r.row('metadata')('host').eq('"+host+"')"
                     ]
                   },
                   params: {},
