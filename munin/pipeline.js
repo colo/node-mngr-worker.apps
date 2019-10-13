@@ -36,7 +36,14 @@ module.exports = function(munin, out){
             Object.merge(
               munin,
               {module: InputPollerMunin, load: []},
-            )
+            ),
+            // Object.merge(
+            //   munin,
+            //   {
+            //     host: 'elk',
+            //     module: InputPollerMunin, load: []
+            //   },
+            // )
       			// {
       			// 	scheme: 'munin',
       			// 	host:'dev',
@@ -58,7 +65,7 @@ module.exports = function(munin, out){
       			// periodical: 5000,
             periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+              return cron.schedule('*/10 * * * * *', dispatch);//every 20 secs
     				},
       		},
       	}

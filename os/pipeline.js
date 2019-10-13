@@ -25,16 +25,16 @@ let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
 let modules = {}
 let all_modules = {
   'os': false,
-  // 'os.procs': false,
+  'os.procs': false,
   // 'os.procs.stats': false,
-  // // 'os.procs.uid': false,
+  'os.procs.uid': false,
   // 'os.procs.uid.stats': false,
-  // // 'os.procs.cmd': false,
+  'os.procs.cmd': false,
   // 'os.procs.cmd.stats': false,
   'os.mounts': false,
   'os.blockdevices': false,
   'os.networkInterfaces': false,
-  'os.networkInterfaces.stats': false
+  // 'os.networkInterfaces.stats': false
 }
 
 let meta_doc = { id: '', data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
@@ -382,7 +382,7 @@ module.exports = function(http, out){
         // }
 
 
-      }
+      },
 
       /**
       * merge
@@ -399,16 +399,16 @@ module.exports = function(http, out){
       //
       //   modules[host][module] = true
       //
-      //   debug_internals('merge', host, module, modules[host])
-      //
       //   if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
       //
       //   meta_docs[host].data.push(doc)
       //   meta_docs[host].id = host+'.os.merged@'+Date.now()
       //   meta_docs[host].metadata['host'] = host
       //
+      //   debug_internals('merge', host, module, modules[host])
+      //
       //   if(Object.every(modules[host], function(val, mod){ return val })){
-      //     // debug_internals('META %o', meta_docs[host])
+      //     debug_internals('META %o', meta_docs[host])
       //     // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
       //     sanitize_filter(
       //       Object.clone(meta_docs[host]),
@@ -467,6 +467,7 @@ module.exports = function(http, out){
             // size: -1,
             // size: 100,
             expire: 1001,
+            // expire: 5001,
   				}
   			}
   		}
