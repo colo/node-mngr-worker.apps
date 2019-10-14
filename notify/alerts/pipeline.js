@@ -117,18 +117,18 @@ module.exports = function(payload){
         if(doc && doc.id === 'default' && doc.data){
 
           Array.each(doc.data, function(group){
-            if(group.tags && group.types.contains('alert')){
+            if(group.types && group.types.contains('alert')){
               debug('1st filter %O', group)
               // let hosts = group.hosts
               //
               // Array.each(hosts, function(host){
-                debug('1st filter %s %s', new Date(roundSeconds(Date.now() - 2 * MINUTE)) )
+                debug('1st filter %s %s', new Date(roundSeconds(Date.now() - (2 * MINUTE) )) )
                 // process.exit(1)
 
                 pipeline.get_input_by_id('input.alerts').fireEvent('onRange', {
                   // id: "once",
                   id: "range",
-                  Range: "posix "+roundSeconds(Date.now() - 2 * MINUTE )+"-"+Date.now()+"/*",
+                  Range: "posix "+roundSeconds(Date.now() - (2 * MINUTE) )+"-"+Date.now()+"/*",
                   query: {
                     "q": [
                       "data",
@@ -226,7 +226,8 @@ module.exports = function(payload){
 
           // debug('2nd filter NOTIFIES %O', notifies)
           // process.exit(1)
-          next(notifies, opts, next, pipeline)
+          if(notifies.length > 0)
+            next(notifies, opts, next, pipeline)
         }
 
 

@@ -122,13 +122,13 @@ module.exports = function(payload){
               let hosts = group.hosts
 
               Array.each(hosts, function(host){
-                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - 2 * MINUTE)) )
+                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - (5 * MINUTE))) )
                 // process.exit(1)
 
                 pipeline.get_input_by_id('input.checks').fireEvent('onRange', {
                   // id: "once",
                   id: "range",
-                  Range: "posix "+roundSeconds(Date.now() - 2 * MINUTE )+"-"+Date.now()+"/*",
+                  Range: "posix "+roundSeconds(Date.now() - (5 * MINUTE) )+"-"+Date.now()+"/*",
                   query: {
                     "q": [
                       "data",
@@ -149,6 +149,7 @@ module.exports = function(payload){
                       // "r.row('metadata')('tag').contains('nginx')",
                       // "r.row('metadata')('tag').contains('enabled')",
                       "r.row('metadata')('tag').contains('enabled').and('nginx').and('vhost')",
+                      // "r.row('data')('code').gt(399).or(r.row.hasFields({'data': 'errno'}))",
                       "r.row('data')('code').gt(399)",
                       "r.row('metadata')('path').eq('educativa.checks.vhosts')",
                       "r.row('metadata')('type').eq('check')",
