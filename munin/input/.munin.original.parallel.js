@@ -23,8 +23,6 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
   return filtered
 }
 
-const async = require('async')
-
 module.exports = new Class({
   Extends: App,
 
@@ -40,8 +38,7 @@ module.exports = new Class({
     // blacklist: /^.*/g, //blacklist all modules
     whitelist: /^.*/g,
     // blacklist: /^[.]/g,
-    // blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users|^interrupts/g,
-    blacklist: undefined,
+    blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users|^interrupts/g,
 
     requests : {
 			once: [
@@ -49,37 +46,6 @@ module.exports = new Class({
 				// { list: { uri: '' } },
 			],
 			periodical: [
-        {
-          fetch: function(req, next, app){
-            if(app.modules.length > 0){
-              debug('periodical fetch %o', app.modules)
-
-              async.eachLimit(
-                app.modules,
-                1,
-                function(module, callback){
-                  // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                  // callback()
-                  let wrapped = async.timeout(function(module){
-                    app.fetch({uri: module})
-                  }, 100)
-
-                  // try{
-                  wrapped(module, function(err, data) {
-                    if(err){
-                      // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                      callback()
-                    }
-                  })
-                  // }
-                  // catch(e){
-                  //   callback()
-                  // }
-                }
-              )
-            }
-          },
-        }
 				//{ list: { uri: '' } },
 				//{ fetch: { uri: 'cpu' } },
 				//{ fetch: { uri: 'if_eth0' } },
@@ -236,7 +202,7 @@ module.exports = new Class({
 		else{
       let whitelist = this.options.whitelist
       let blacklist = this.options.blacklist
-      this.modules = []
+      let modules = []
 
 			Array.each(resp, function(module, index){
         // module = module.trim()
@@ -250,10 +216,10 @@ module.exports = new Class({
         // if(blacklist == null || blacklist.test(module) == false)//not in blacklist
         //   if(whitelist == null || whitelist.test(module) == true)//if no whitelist, or in whitelist
         if(__white_black_lists_filter(whitelist, blacklist, module)){
-			      // this.options.requests.periodical.push( { fetch: { uri: module } });
+			      this.options.requests.periodical.push( { fetch: { uri: module } });
 
             debug_internals('module %s', module);
-            this.modules.push(module)
+            modules.push(module)
         }
 
 				if(index == resp.length - 1){
@@ -263,13 +229,13 @@ module.exports = new Class({
             this[
               'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
             ],
-            [{modules: this.modules, host: this.node}, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+            [{modules: modules, host: this.node}, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
           )
 
-          // this.fireEvent(
-          //   this['ON_PERIODICAL_REQUESTS_UPDATED'],
-          //   [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
-          // )
+          this.fireEvent(
+            this['ON_PERIODICAL_REQUESTS_UPDATED'],
+            [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+          )
 
 
         }
@@ -280,7 +246,14 @@ module.exports = new Class({
 
 			}.bind(this));
 
-
+			// // this.fireEvent(this.ON_ONCE_DOC, [resp]);
+      //
+      // this.fireEvent(
+      //   this[
+      //     'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+      //   ],
+      //   [resp, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+      // )
 		}
 	},
   nodes: function (err, resp, params){

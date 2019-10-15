@@ -31,19 +31,13 @@ module.exports = function(munin, out){
     input: [
     	{
         poll: {
-      		id: "input.munin",
+      		id: "input.localhost.munin",
       		conn: [
             Object.merge(
-              munin,
+              Object.clone(munin),
               {module: InputPollerMunin, load: []},
             ),
-            // Object.merge(
-            //   munin,
-            //   {
-            //     host: 'elk',
-            //     module: InputPollerMunin, load: []
-            //   },
-            // )
+
       			// {
       			// 	scheme: 'munin',
       			// 	host:'dev',
@@ -65,7 +59,7 @@ module.exports = function(munin, out){
       			// periodical: 5000,
             periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/10 * * * * *', dispatch);//every 20 secs
+              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
     				},
       		},
       	}
@@ -75,13 +69,31 @@ module.exports = function(munin, out){
       //   poll: {
       // 		id: "input.elk.munin",
       // 		conn: [
-      // 			{
-      // 				scheme: 'munin',
-      // 				host:'elk',
-      // 				port: 4949,
-      // 				module: InputPollerMunin,
-      // 				load: [],
-      // 			}
+      //       // Object.merge(
+      //       //   Object.clone(munin),
+      //       //   {module: InputPollerMunin, load: []},
+      //       // ),
+      //       Object.merge(
+      //         Object.clone(munin),
+      //         {
+      //           host: 'elk',
+      //           module: InputPollerMunin, load: []
+      //         },
+      //       )
+      // 			// {
+      // 			// 	scheme: 'munin',
+      // 			// 	host:'dev',
+      // 			// 	port: 4949,
+      // 			// 	module: InputPollerMunin,
+      // 			// 	load: [],
+      // 			// },
+      //       // {
+      // 			// 	scheme: 'munin',
+      // 			// 	host:'elk',
+      // 			// 	port: 4949,
+      // 			// 	module: InputPollerMunin,
+      // 			// 	load: [],
+      // 			// }
       // 		],
       // 		connect_retry_count: -1,
       // 		connect_retry_periodical: 1000,
@@ -94,7 +106,8 @@ module.exports = function(munin, out){
       // 		},
       // 	}
       //
-    	// }
+    	// },
+      
     ],
 
     filters: [
@@ -214,9 +227,9 @@ module.exports = function(munin, out){
   				],
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
-  					size: 1, //-1
-  					expire: 0 //ms
-            // expire: 999 //ms
+  					// size: 1, //-1
+  					// expire: 0 //ms
+            expire: 1001 //ms
   				}
   			}
   		}

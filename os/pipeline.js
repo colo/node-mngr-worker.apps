@@ -52,7 +52,7 @@ module.exports = function(http, out){
    input: [
   	{
   		poll: {
-  			id: "input.os.http",
+  			id: "input.localhost.os.http",
   			conn: [
           Object.merge(
             Object.clone(http),
@@ -92,7 +92,7 @@ module.exports = function(http, out){
 
     {
   		poll: {
-  			id: "input.os.procs.http",
+  			id: "input.localhost.os.procs.http",
   			conn: [
           Object.merge(
             Object.clone(http),
@@ -129,18 +129,32 @@ module.exports = function(http, out){
   	},
     // {
   	// 	poll: {
-  	// 		id: "input.os.elk.http",
+  	// 		id: "input.elk.os.http",
   	// 		conn: [
-    //
-    //       {
-  	// 				scheme: 'http',
-  	// 				host:'elk',
-  	// 				port: 8081,
-  	// 				module: OSPollHttp,
-  	// 				// load: ['apps/info/os/']
-    //         load: ['apps/os/input/os']
-  	// 			},
-    //
+    //       Object.merge(
+    //         Object.clone(http),
+    //         {
+    //           host: 'elk',
+    //           module: OSPollHttp,
+    //           load: ['apps/os/input/os']
+    //         },
+    //       )
+  	// 			// {
+  	// 			// 	scheme: 'http',
+  	// 			// 	host:'elk',
+  	// 			// 	port: 8081,
+  	// 			// 	module: OSPollHttp,
+  	// 			// 	// load: ['apps/info/os/']
+    //       //   load: ['apps/os/input/os']
+  	// 			// },
+    //       // {
+  	// 			// 	scheme: 'http',
+  	// 			// 	host:'dev',
+  	// 			// 	port: 8081,
+  	// 			// 	module: OSPollHttp,
+  	// 			// 	// load: ['apps/info/os/']
+    //       //   load: ['apps/os/input/os']
+  	// 			// }
   	// 		],
     //     connect_retry_count: -1,
     //     connect_retry_periodical: 1000,
@@ -156,16 +170,30 @@ module.exports = function(http, out){
     //
     // {
   	// 	poll: {
-  	// 		id: "input.os.procs.elk.http",
+  	// 		id: "input.elk.os.procs.http",
   	// 		conn: [
-  	// 			{
-  	// 				scheme: 'http',
-  	// 				host:'elk',
-  	// 				port: 8081,
-  	// 				module: ProcsPollHttp,
-    //         load: ['apps/os/input/procs']
-  	// 			},
-    //
+    //       Object.merge(
+    //         Object.clone(http),
+    //         {
+    //           host: 'elk',
+    //           module: ProcsPollHttp,
+    //           load: ['apps/os/input/procs']
+    //         },
+    //       )
+  	// 			// {
+  	// 			// 	scheme: 'http',
+  	// 			// 	host:'elk',
+  	// 			// 	port: 8081,
+  	// 			// 	module: ProcsPollHttp,
+    //       //   load: ['apps/os/input/procs']
+  	// 			// },
+    //       // {
+  	// 			// 	scheme: 'http',
+  	// 			// 	host:'dev',
+  	// 			// 	port: 8081,
+  	// 			// 	module: ProcsPollHttp,
+    //       //   load: ['apps/os/input/procs']
+  	// 			// }
   	// 		],
     //     connect_retry_count: -1,
     //     connect_retry_periodical: 1000,
@@ -177,7 +205,7 @@ module.exports = function(http, out){
     //       // },
   	// 		},
   	// 	},
-  	// }
+  	// },
    ],
    filters: [
   		// require('./snippets/filter.sanitize.template'),

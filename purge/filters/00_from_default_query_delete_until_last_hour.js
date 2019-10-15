@@ -37,6 +37,7 @@ module.exports = function(payload){
 
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
+    // process.exit(1)
     if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === table){
       // let { type, input, input_type, app } = opts
 
@@ -55,15 +56,12 @@ module.exports = function(payload){
       debug('1st filter END RANGE %s', new Date(end))
 
       Array.each(doc.data, function(group, index){
-        // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
-        // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
-        // hosts.combine(group.hosts)
-        // paths.push(group.path)
+        debug('1st filter GROUP %o', group)
 
-        Array.each(group.hosts, function(host){
+        Array.each(group, function(data){
           pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
             id: "range",
-            Range: "posix 0-"+end+"/*",
+            Range: "posix "+data.metadata.timestamp+"-"+end+"/*",
             query: {
               "q": [
                 "id",
@@ -81,15 +79,46 @@ module.exports = function(payload){
 
 
               ],
-              "filter": [
-                "r.row('metadata')('path').eq('"+group.path+"')",
-                "r.row('metadata')('host').eq('"+host+"')",
-                "r.row('metadata')('type').eq('"+type+"')"
-              ]
+              // "filter": [
+              //   "r.row('metadata')('path').eq('"+group.path+"')",
+              //   "r.row('metadata')('host').eq('"+host+"')",
+              //   "r.row('metadata')('type').eq('"+type+"')"
+              // ]
             },
             params: {},
           })
         })
+
+        // Array.each(group.hosts, function(host){
+        //   pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
+        //     id: "range",
+        //     Range: "posix 0-"+end+"/*",
+        //     query: {
+        //       "q": [
+        //         "id",
+        //         // "data",
+        //         // // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+        //         // "metadata"
+        //       ],
+        //       "transformation": [
+        //         // {
+        //         // "orderBy": {"index": "r.desc(asc)"}
+        //         // },
+        //         // {
+        //         //   "slice": [0, 1]
+        //         // }
+        //
+        //
+        //       ],
+        //       "filter": [
+        //         "r.row('metadata')('path').eq('"+group.path+"')",
+        //         "r.row('metadata')('host').eq('"+host+"')",
+        //         "r.row('metadata')('type').eq('"+type+"')"
+        //       ]
+        //     },
+        //     params: {},
+        //   })
+        // })
 
       })
       // }

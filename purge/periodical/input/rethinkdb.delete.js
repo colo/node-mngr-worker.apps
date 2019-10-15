@@ -312,7 +312,17 @@ module.exports = new Class({
           * default query from mngr-ui-admin/libs/pipelines/input/rethinkdb
           **/
 					default: function(req, next, app){
-            req = (req) ? Object.clone(req) : { id: 'default', params: {}, query: {} }
+            req = (req) ? Object.clone(req) : { id: 'default', params: {},
+              query: {
+                "q":[
+              		{"metadata": ["timestamp"]}
+              	],
+              	"transformation": [
+              		{ "orderBy": { "index": "r.asc(timestamp)" } },
+                  "slice:0:1"
+              	]
+              }
+            }
             // if(!req.query || (!req.query.register && !req.query.unregister)){
 
 
