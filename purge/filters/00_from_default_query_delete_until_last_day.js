@@ -46,50 +46,78 @@ module.exports = function(payload){
       // let historical_range = [0,0]
 
       // if(doc && doc.data && doc.metadata && doc.metadata.from === 'logs'){
-      if(!pipeline.current) pipeline.current = {}
-      pipeline.current[doc.metadata.from] = doc
+      // if(!pipeline.current) pipeline.current = {}
+      // pipeline.current[doc.metadata.from] = doc
 
       // debug('PIPELINE %o', pipeline)
+      pipeline.fireEvent('onSuspend')
+
       let end = roundSeconds(Date.now() - DAY)
 
       debug('1st filter END RANGE %s', new Date(end))
 
       Array.each(doc.data, function(group, index){
-        // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
-        // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
-        // hosts.combine(group.hosts)
-        // paths.push(group.path)
+        debug('1st filter GROUP %o', group)
 
-        Array.each(group.hosts, function(host){
-          pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
-            id: "range",
-            Range: "posix 0-"+end+"/*",
-            query: {
-              "q": [
-                "id",
-                // "data",
-                // // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-                // "metadata"
-              ],
-              "transformation": [
-                // {
-                // "orderBy": {"index": "r.desc(asc)"}
-                // },
-                // {
-                //   "slice": [0, 1]
-                // }
+        pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
+          id: "range",
+          Range: "posix "+group.metadata.timestamp+"-"+end+"/*",
+          query: {
+            "q": [
+              "id",
+              // "data",
+              // // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+              // "metadata"
+            ],
+            "transformation": [
+              // {
+              // "orderBy": {"index": "r.desc(asc)"}
+              // },
+              // {
+              //   "slice": [0, 1]
+              // }
 
 
-              ],
-              "filter": [
-                "r.row('metadata')('path').eq('"+group.path+"')",
-                "r.row('metadata')('host').eq('"+host+"')",
-                "r.row('metadata')('type').eq('"+type+"')"
-              ]
-            },
-            params: {},
-          })
+            ],
+            // "filter": [
+            //   "r.row('metadata')('path').eq('"+group.path+"')",
+            //   "r.row('metadata')('host').eq('"+host+"')",
+            //   "r.row('metadata')('type').eq('"+type+"')"
+            // ]
+          },
+          params: {},
         })
+
+        // Array.each(group.hosts, function(host){
+        //   pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
+        //     id: "range",
+        //     Range: "posix 0-"+end+"/*",
+        //     query: {
+        //       "q": [
+        //         "id",
+        //         // "data",
+        //         // // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+        //         // "metadata"
+        //       ],
+        //       "transformation": [
+        //         // {
+        //         // "orderBy": {"index": "r.desc(asc)"}
+        //         // },
+        //         // {
+        //         //   "slice": [0, 1]
+        //         // }
+        //
+        //
+        //       ],
+        //       "filter": [
+        //         "r.row('metadata')('path').eq('"+group.path+"')",
+        //         "r.row('metadata')('host').eq('"+host+"')",
+        //         "r.row('metadata')('type').eq('"+type+"')"
+        //       ]
+        //     },
+        //     params: {},
+        //   })
+        // })
 
       })
       // }
@@ -101,6 +129,7 @@ module.exports = function(payload){
       // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
     }
     else{
+      pipeline.fireEvent('onResume')
       next(doc, opts, next, pipeline)
     }
 

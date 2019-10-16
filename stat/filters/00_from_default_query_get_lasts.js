@@ -7,6 +7,18 @@ module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
 
+  throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
+  process.exit(1)
+  // {
+  //
+  //
+  // 	"q": [
+  // 		{"metadata": ["path"]}
+  // 	],
+  // "aggregation": "distinct",
+  // "filter": "r.row('metadata')('host').eq('colo')"
+  // }
+
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
     if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === table){

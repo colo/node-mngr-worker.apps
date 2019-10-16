@@ -47,21 +47,23 @@ module.exports = function(payload){
       // let historical_range = [0,0]
 
       // if(doc && doc.data && doc.metadata && doc.metadata.from === 'logs'){
-      if(!pipeline.current) pipeline.current = {}
-      pipeline.current[doc.metadata.from] = doc
+      // if(!pipeline.current) pipeline.current = {}
+      // pipeline.current[doc.metadata.from] = doc
 
       // debug('PIPELINE %o', pipeline)
       let end = roundSeconds(Date.now() - HOUR)
+
+      pipeline.fireEvent('onSuspend')
 
       debug('1st filter END RANGE %s', new Date(end))
 
       Array.each(doc.data, function(group, index){
         debug('1st filter GROUP %o', group)
 
-        Array.each(group, function(data){
+        // Array.each(group, function(data){
           pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
             id: "range",
-            Range: "posix "+data.metadata.timestamp+"-"+end+"/*",
+            Range: "posix "+group.metadata.timestamp+"-"+end+"/*",
             query: {
               "q": [
                 "id",
@@ -87,7 +89,7 @@ module.exports = function(payload){
             },
             params: {},
           })
-        })
+        // })
 
         // Array.each(group.hosts, function(host){
         //   pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
@@ -130,6 +132,7 @@ module.exports = function(payload){
       // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
     }
     else{
+      pipeline.fireEvent('onResume')
       next(doc, opts, next, pipeline)
     }
 
