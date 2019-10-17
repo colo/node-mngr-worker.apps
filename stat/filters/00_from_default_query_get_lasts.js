@@ -7,8 +7,8 @@ module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
 
-  throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
-  process.exit(1)
+  // throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
+  // process.exit(1)
   // {
   //
   //
@@ -21,7 +21,9 @@ module.exports = function(payload){
 
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
-    if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === table){
+    // process.exit(1)
+
+    if(doc && doc.id === 'paths' && doc.data && doc.metadata && doc.metadata.from === table){
       // let { type, input, input_type, app } = opts
 
       // let hosts = []
@@ -34,13 +36,17 @@ module.exports = function(payload){
       pipeline.current[doc.metadata.from] = doc
 
       // debug('PIPELINE %o', pipeline)
-      Array.each(doc.data, function(group, index){
-        // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
-        // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
-        // hosts.combine(group.hosts)
-        // paths.push(group.path)
+      // let hosts = pipeline.current[doc.metadata.from].hosts //from first filter, attach hosts
 
-        Array.each(group.hosts, function(host){
+      // debug('2nd filter %o', hosts)
+      Object.each(doc.data, function(path_data, path){
+      //   // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
+      //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
+      //   // hosts.combine(group.hosts)
+      //   // paths.push(group.path)
+
+        Array.each(path_data.hosts, function(host){
+
           pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
             id: "once",
             query: {
@@ -59,7 +65,7 @@ module.exports = function(payload){
 
 
               ],
-              "filter": ["r.row('metadata')('path').eq('"+group.path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
+              "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
             },
             params: {},
           })

@@ -38,6 +38,8 @@ module.exports = function(payload){
 
   let filter = function(doc, opts, next, pipeline){
     debug('2nd filter %o', doc, doc.id, table, doc.metadata.from)
+    // process.exit(1)
+
     if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
       // let { type, input, input_type, app } = opts
 
@@ -58,9 +60,9 @@ module.exports = function(payload){
       if(pipeline.current[input.table] && pipeline.current[input.table].data){
         data = pipeline.current[input.table].data
 
-        Array.each(data, function(group){
+        Object.each(data, function(group){
           if(group.path === path){
-            end_range = roundMinutes(group.range[1])
+            end_range = (!end_range ||  roundMinutes(group.range[1]) > end_range) ? roundMinutes(group.range[1]) : end_range
           }
 
         })
@@ -71,7 +73,7 @@ module.exports = function(payload){
       if(doc.err && pipeline.current[input.table] && pipeline.current[input.table].data){
         data = pipeline.current[input.table].data
 
-        Array.each(data, function(group){
+        Object.each(data, function(group){
           if(group.path === path){
             // range[0] = group.range[0]
             range[0] = (group.range[0] > Date.now() - DAY || full_range === true ) ? group.range[0] : roundMinutes(Date.now() - DAY)
