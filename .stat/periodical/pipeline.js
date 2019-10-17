@@ -139,7 +139,7 @@ module.exports = function(payload){
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
   					// size: -1,
-  					expire: 60001,
+  					expire:60001,
   				}
   			}
   		}

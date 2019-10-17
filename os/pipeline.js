@@ -127,85 +127,85 @@ module.exports = function(http, out){
   			},
   		},
   	},
-    // {
-  	// 	poll: {
-  	// 		id: "input.elk.os.http",
-  	// 		conn: [
-    //       Object.merge(
-    //         Object.clone(http),
-    //         {
-    //           host: 'elk',
-    //           module: OSPollHttp,
-    //           load: ['apps/os/input/os']
-    //         },
-    //       )
-  	// 			// {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'elk',
-  	// 			// 	port: 8081,
-  	// 			// 	module: OSPollHttp,
-  	// 			// 	// load: ['apps/info/os/']
-    //       //   load: ['apps/os/input/os']
-  	// 			// },
-    //       // {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'dev',
-  	// 			// 	port: 8081,
-  	// 			// 	module: OSPollHttp,
-  	// 			// 	// load: ['apps/info/os/']
-    //       //   load: ['apps/os/input/os']
-  	// 			// }
-  	// 		],
-    //     connect_retry_count: -1,
-    //     connect_retry_periodical: 1000,
-  	// 		requests: {
-  	// 			// periodical: 1000,
-    //       periodical: function(dispatch){
-    //         // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-    //         return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    //       },
-  	// 		},
-  	// 	},
-  	// },
-    //
-    // {
-  	// 	poll: {
-  	// 		id: "input.elk.os.procs.http",
-  	// 		conn: [
-    //       Object.merge(
-    //         Object.clone(http),
-    //         {
-    //           host: 'elk',
-    //           module: ProcsPollHttp,
-    //           load: ['apps/os/input/procs']
-    //         },
-    //       )
-  	// 			// {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'elk',
-  	// 			// 	port: 8081,
-  	// 			// 	module: ProcsPollHttp,
-    //       //   load: ['apps/os/input/procs']
-  	// 			// },
-    //       // {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'dev',
-  	// 			// 	port: 8081,
-  	// 			// 	module: ProcsPollHttp,
-    //       //   load: ['apps/os/input/procs']
-  	// 			// }
-  	// 		],
-    //     connect_retry_count: -1,
-    //     connect_retry_periodical: 1000,
-  	// 		requests: {
-  	// 			periodical: 1000,//ms
-    //       // periodical: function(dispatch){
-    //       //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-    //       //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    //       // },
-  	// 		},
-  	// 	},
-  	// },
+    {
+  		poll: {
+  			id: "input.elk.os.http",
+  			conn: [
+          Object.merge(
+            Object.clone(http),
+            {
+              host: 'elk',
+              module: OSPollHttp,
+              load: ['apps/os/input/os']
+            },
+          )
+  				// {
+  				// 	scheme: 'http',
+  				// 	host:'elk',
+  				// 	port: 8081,
+  				// 	module: OSPollHttp,
+  				// 	// load: ['apps/info/os/']
+          //   load: ['apps/os/input/os']
+  				// },
+          // {
+  				// 	scheme: 'http',
+  				// 	host:'dev',
+  				// 	port: 8081,
+  				// 	module: OSPollHttp,
+  				// 	// load: ['apps/info/os/']
+          //   load: ['apps/os/input/os']
+  				// }
+  			],
+        connect_retry_count: -1,
+        connect_retry_periodical: 1000,
+  			requests: {
+  				// periodical: 1000,
+          periodical: function(dispatch){
+            // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+            return cron.schedule('* * * * * *', dispatch);//every 20 secs
+          },
+  			},
+  		},
+  	},
+
+    {
+  		poll: {
+  			id: "input.elk.os.procs.http",
+  			conn: [
+          Object.merge(
+            Object.clone(http),
+            {
+              host: 'elk',
+              module: ProcsPollHttp,
+              load: ['apps/os/input/procs']
+            },
+          )
+  				// {
+  				// 	scheme: 'http',
+  				// 	host:'elk',
+  				// 	port: 8081,
+  				// 	module: ProcsPollHttp,
+          //   load: ['apps/os/input/procs']
+  				// },
+          // {
+  				// 	scheme: 'http',
+  				// 	host:'dev',
+  				// 	port: 8081,
+  				// 	module: ProcsPollHttp,
+          //   load: ['apps/os/input/procs']
+  				// }
+  			],
+        connect_retry_count: -1,
+        connect_retry_periodical: 1000,
+  			requests: {
+  				periodical: 1000,//ms
+          // periodical: function(dispatch){
+          //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+          //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
+          // },
+  			},
+  		},
+  	},
    ],
    filters: [
   		// require('./snippets/filter.sanitize.template'),
