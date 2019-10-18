@@ -3,6 +3,30 @@
 let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts');
 let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts:Internals');
 
+// paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
+let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
+let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
+// let paths_whitelist = /^munin/
+// let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
+
+let __white_black_lists_filter = function(whitelist, blacklist, str){
+  let filtered = false
+  if(!blacklist && !whitelist){
+    filtered = true
+  }
+  else if(blacklist && !blacklist.test(str)){
+    filtered = true
+  }
+  else if(blacklist && blacklist.test(str) && (whitelist && whitelist.test(str))){
+    filtered = true
+  }
+  else if(!blacklist && (whitelist && whitelist.test(str))){
+    filtered = true
+  }
+
+  return filtered
+}
+
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
@@ -44,32 +68,34 @@ module.exports = function(payload){
       //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
       //   // hosts.combine(group.hosts)
       //   // paths.push(group.path)
+        if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+          Array.each(path_data.hosts, function(host){
 
-        Array.each(path_data.hosts, function(host){
+            pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
+              id: "once",
+              query: {
+                index: false,
+                "q": [
+                  "data",
+                  // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+                  "metadata"
+                ],
+                "transformation": [
+                  {
+                  "orderBy": {"index": "r.desc(timestamp)"}
+                  },
+                  {
+                    "slice": [0, 1]
+                  }
 
-          pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
-            id: "once",
-            query: {
-              "q": [
-                "data",
-                // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-                "metadata"
-              ],
-              "transformation": [
-                {
-                "orderBy": {"index": "r.desc(timestamp)"}
-                },
-                {
-                  "slice": [0, 1]
-                }
 
-
-              ],
-              "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
-            },
-            params: {},
+                ],
+                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
+              },
+              params: {},
+            })
           })
-        })
+        }
 
       })
       // }

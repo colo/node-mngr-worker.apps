@@ -13,6 +13,7 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
 let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
+// let paths_whitelist = /^os$/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
@@ -58,15 +59,20 @@ module.exports = function(payload){
       // if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
 
+      first = doc.data[0].metadata.timestamp;
 
-      Array.each(doc.data, function(doc_data, d_index){
+      last = doc.data[doc.data.length - 1].metadata.timestamp;
+      // Array.each(doc.data, function(doc_data, d_index){
+      //
+      //   debug('DOC DATA', doc_data)
+      //   process.exit(1)
+      //
+      //   last = doc_data[0].metadata.timestamp;
+      //
+      //   first = doc_data[doc_data.length - 1].metadata.timestamp;
 
-        // debug('DOC DATA', doc_data)
-        last = doc_data[0].metadata.timestamp;
-
-        first = doc_data[doc_data.length - 1].metadata.timestamp;
-
-        Array.each(doc_data, function(group, group_index){
+        // Array.each(doc_data, function(group, group_index){
+        Array.each(doc.data, function(group, group_index){
           debug('GROUP', group)
 
           let path = group.metadata.path
@@ -164,10 +170,12 @@ module.exports = function(payload){
 
             });
 
-            if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+            // if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+            //   values[host][path] = hooks[path].post_values(values[host][path])
+            // }
+            if(group_index == doc.data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
               values[host][path] = hooks[path].post_values(values[host][path])
             }
-
           }//__white_black_lists_filter
 
 
@@ -175,7 +183,7 @@ module.exports = function(payload){
 
         })
 
-      })
+      // })
 
 
 
@@ -184,7 +192,7 @@ module.exports = function(payload){
 //
 //
       // if(values.colo && values.colo)
-      debug_internals('values %o', values)
+      // debug_internals('values %o', values)
       // process.exit(1)
 
       if(Object.getLength(values) > 0){
@@ -268,7 +276,7 @@ module.exports = function(payload){
               // +'@'+Date.now()
 
             // if(path !== 'os.procs'){
-            debug('NEW DOC %o', new_doc)
+            // debug('NEW DOC %o', new_doc)
             // process.exit(1)
             // }
             new_doc['metadata'].id = new_doc.id

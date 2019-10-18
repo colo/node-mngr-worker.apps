@@ -88,13 +88,13 @@ module.exports = function(payload){
         data = doc.data
         debug('2nd filter %o', data)
         Array.each(data, function(group){
-          Array.each(group, function(group_item){
-            range[0] = group_item.metadata.range.end
+          // Array.each(group, function(group_item){
+            range[0] = (!range[0] || group.metadata.range.end < range[0]) ? group.metadata.range.end : range[0]
             range[1] = roundMinutes(range[0] + 3660000)//limit on next hour
             // end_range = Date.now()
             // end_range =  pipeline.current[table].data
             end_range = (end_range) ? end_range : Date.now()
-          })
+          // })
         })
         // process.exit(1)
       }
@@ -111,6 +111,7 @@ module.exports = function(payload){
             id: "range",
             Range: "posix "+range[0]+"-"+range[1]+"/*",
             query: {
+              index: false,
               "q": [
                 "id",
                 "data",
@@ -170,7 +171,7 @@ module.exports = function(payload){
             pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
             // process.exit(1)
             // callback()
-          }, 10)
+          }, 100)
 
           // try{
           wrapped(range, function(err, data) {
