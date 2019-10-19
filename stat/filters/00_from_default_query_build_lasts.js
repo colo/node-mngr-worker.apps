@@ -27,6 +27,8 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
   return filtered
 }
 
+const async = require('async')
+
 module.exports = function(payload){
   let {input, output, type, full_range } = payload
   let table = input.table
@@ -65,6 +67,8 @@ module.exports = function(payload){
       // let hosts = pipeline.current[doc.metadata.from].hosts //from first filter, attach hosts
 
       // debug('2nd filter %o', hosts)
+      let docs = []
+
       Object.each(doc.data, function(path_data, path){
       //   // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
       //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
@@ -73,33 +77,59 @@ module.exports = function(payload){
         if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
           Array.each(path_data.hosts, function(host){
 
-            pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
-              id: "once",
-              query: {
-                index: false,
-                "q": [
-                  "data",
-                  // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-                  "metadata"
-                ],
-                "transformation": [
-                  {
-                  "orderBy": {"index": "r.desc(timestamp)"}
-                  },
-                  {
-                    "slice": [0, 1]
+            docs.push({
+              id: 'once',
+              data: [
+                {
+                  metadata: {
+                    host: host,
+                    path: path,
+                    range: { end: path_data.range[0], start: path_data.range[1] },// use range end to start on next filter
+                    type: 'minute'
                   }
-
-
-                ],
-                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
-              },
-              params: {},
+                }
+              ],
+              metadata: {
+                from: output.table,
+                filter: [
+                   'r.row(\'metadata\')(\'path\').eq(\''+path+'\')',
+                   'r.row(\'metadata\')(\'host\').eq(\''+host+'\')',
+                   'r.row(\'metadata\')(\'type\').eq(\''+type+'\')'
+                 ],
+                timestamp: Date.now()
+              }
             })
+
+
+
           })
         }
 
       })
+
+      async.eachLimit(
+        docs,
+        1,
+        function(new_doc, callback){
+          // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+          // callback()
+          let wrapped = async.timeout(function(new_doc){
+            next(new_doc, opts, next, pipeline)
+          }, 100)
+
+          // try{
+          wrapped(new_doc, function(err, data) {
+            if(err){
+              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+              callback()
+            }
+          })
+          // }
+          // catch(e){
+          //   callback()
+          // }
+        }
+      )
       // }
       // else if(doc && doc.metadata && doc.metadata.from === 'logs_historical'){
       //

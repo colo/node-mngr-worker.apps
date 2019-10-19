@@ -29,7 +29,7 @@ const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 
 module.exports = function(payload){
-  let {input, output, filters, type, full_range} = payload
+  let {input, output, filters, type} = payload
 
   Array.each(filters, function(filter, i){
     filters[i] = filter(payload)
@@ -50,8 +50,6 @@ module.exports = function(payload){
               Object.clone(input),
               {
                 // path_key: 'os',
-                full_range: full_range,
-                type: type,
                 module: InputPollerRethinkDB,
               }
             )

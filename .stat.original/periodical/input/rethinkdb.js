@@ -8,6 +8,14 @@ let debug = require('debug')('Server:Apps:Stat:Periodical:Input'),
     debug_internals = require('debug')('Server:Apps:Stat:Periodical:Input:Internals');
 
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  // console.log('roundMilliseconds', d.getTime())
+  return d.getTime()
+}
+
 const pluralize = require('pluralize')
 
 // const uuidv5 = require('uuid/v5')
@@ -17,34 +25,6 @@ const async = require('async')
 // const sleep = (milliseconds) => {
 //   return new Promise(resolve => setTimeout(resolve, milliseconds))
 // }
-
-const roundMilliseconds = function(timestamp){
-  let d = new Date(timestamp)
-  d.setMilliseconds(0)
-
-  return d.getTime()
-}
-
-const roundSeconds = function(timestamp){
-  timestamp = roundMilliseconds(timestamp)
-  let d = new Date(timestamp)
-  d.setSeconds(0)
-
-  return d.getTime()
-}
-
-const roundMinutes = function(timestamp){
-  timestamp = roundSeconds(timestamp)
-  let d = new Date(timestamp)
-  d.setMinutes(0)
-
-  return d.getTime()
-}
-
-const SECOND = 1000
-const MINUTE = 60 * SECOND
-const HOUR = 60 * MINUTE
-const DAY = HOUR * 24
 
 module.exports = new Class({
   Extends: App,
@@ -407,11 +387,6 @@ module.exports = new Class({
       periodical: [
         {
           paths: function(req, next, app){
-            app.options.full_range = app.options.full_range || false
-            // debug('FULL RANGE %o', app.options.full_range)
-            // process.exit(1)
-
-
             app.fireEvent('onSuspend')
 
             req = (req) ? Object.clone(req) : { id: 'paths', params: {}, query: {} }
@@ -422,29 +397,7 @@ module.exports = new Class({
             let query = app.r
               .db(app.options.db)
               .table(from)
-
-            let distinct_query = query.distinct({index: 'path'})
-
-            if(app.options.full_range === false){
-              if(app.options.type === 'minute'){
-                query = query
-                  .between(
-                    roundSeconds(Date.now() - MINUTE),
-                    Date.now(),
-                    {index: 'timestamp'}
-                  )
-              }
-              else{
-                query = query
-                  .between(
-                    roundMinutes(Date.now() - HOUR),
-                    Date.now(),
-                    {index: 'timestamp'}
-                  )
-              }
-
-            }
-
+              .distinct({index: 'path'})
 
 
 
@@ -468,7 +421,7 @@ module.exports = new Class({
               )
             }
 
-            distinct_query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
+            query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
               if(err){
                 _result_callback(err, undefined)
               }
@@ -485,12 +438,18 @@ module.exports = new Class({
                       _groups[path].path = path
 
                       app.r.expr([
-                        query
+                        app.r
+                        .db(app.options.db)
+                        .table(from)
                         .filter(app.r.row('metadata')('path').eq(path))('metadata')('host')
                         .distinct(),
-                        query
+                        app.r
+                        .db(app.options.db)
+                        .table(from)
                         .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').min(),
-                        query
+                        app.r
+                        .db(app.options.db)
+                        .table(from)
                         .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').max(),
 
                       ]).run(app.conn, {arrayLimit: 1000000}, function(err, resp){

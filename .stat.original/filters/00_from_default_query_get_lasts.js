@@ -28,9 +28,8 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 }
 
 module.exports = function(payload){
-  let {input, output, type, full_range } = payload
+  let {input, output, type } = payload
   let table = input.table
-  full_range = full_range || false
 
   // throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
   // process.exit(1)
@@ -49,7 +48,6 @@ module.exports = function(payload){
     // process.exit(1)
 
     if(doc && doc.id === 'paths' && doc.data && doc.metadata && doc.metadata.from === table){
-      // process.exit(1)
       // let { type, input, input_type, app } = opts
 
       // let hosts = []
@@ -73,31 +71,29 @@ module.exports = function(payload){
         if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
           Array.each(path_data.hosts, function(host){
 
-            next({
-              id: 'once',
-              data: [
-                {
-                  metadata: {
-                    host: host,
-                    path: path,
-                    range: { end: path_data.range[0], start: path_data.range[1] },// use range end to start on next filter
-                    type: 'minute'
+            pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
+              id: "once",
+              query: {
+                index: false,
+                "q": [
+                  "data",
+                  // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+                  "metadata"
+                ],
+                "transformation": [
+                  {
+                  "orderBy": {"index": "r.desc(timestamp)"}
+                  },
+                  {
+                    "slice": [0, 1]
                   }
-                }
-              ],
-              metadata: {
-                from: output.table,
-                filter: [
-                   'r.row(\'metadata\')(\'path\').eq(\''+path+'\')',
-                   'r.row(\'metadata\')(\'host\').eq(\''+host+'\')',
-                   'r.row(\'metadata\')(\'type\').eq(\''+type+'\')'
-                 ],
-                timestamp: Date.now()
-              }
-            }
-            , opts, next, pipeline)
 
 
+                ],
+                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
+              },
+              params: {},
+            })
           })
         }
 

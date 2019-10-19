@@ -200,11 +200,11 @@ let MyApp = new Class({
       row: this.r.row("metadata")("path")
     })
 
-    // this.indexCreate({
-    //   uri: params.options.uri+'/'+params.options.args[0],
-    //   args:'domain',
-    //   row: this.r.row("metadata")("domain")
-    // })
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'domain',
+      row: this.r.row("metadata")("domain")
+    })
 
     this.indexCreate({
       uri: params.options.uri+'/'+params.options.args[0],
@@ -235,52 +235,52 @@ let MyApp = new Class({
       opts: {multi:true}
     })
 
-    // this.indexCreate({
-    //   uri: params.options.uri+'/'+params.options.args[0],
-    //   args:'path.timestamp',
-    //   row: [
-    //     this.r.row("metadata")("path"),
-    //     this.r.row("metadata")("timestamp")
-    //   ]
-    // })
-    //
-    // this.indexCreate({
-    //   uri: params.options.uri+'/'+params.options.args[0],
-    //   args:'domain.timestamp',
-    //   row: [
-    //     this.r.row("metadata")("domain"),
-    //     this.r.row("metadata")("timestamp")
-    //   ]
-    // })
-    //
-    // this.indexCreate({
-    //   uri: params.options.uri+'/'+params.options.args[0],
-    //   args:'host.timestamp',
-    //   row: [
-    //     this.r.row("metadata")("host"),
-    //     this.r.row("metadata")("timestamp")
-    //   ]
-    // })
-    //
-    //
-    // this.indexCreate({
-    //   uri: params.options.uri+'/'+params.options.args[0],
-    //   args:'type.timestamp',
-    //   row: [
-    //     this.r.row("metadata")("type"),
-    //     this.r.row("metadata")("timestamp")
-    //   ]
-    // })
-    //
-    // this.indexCreate({
-    //   uri: params.options.uri+'/'+params.options.args[0],
-    //   args:'tag.timestamp',
-    //   row: row => row("metadata")("tag").
-    //     map(
-    //       tag => [tag, row("metadata")("timestamp")]
-    //     ),
-    //   opts: {multi:true}
-    // })
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'path.timestamp',
+      row: [
+        this.r.row("metadata")("path"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'domain.timestamp',
+      row: [
+        this.r.row("metadata")("domain"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'host.timestamp',
+      row: [
+        this.r.row("metadata")("host"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'type.timestamp',
+      row: [
+        this.r.row("metadata")("type"),
+        this.r.row("metadata")("timestamp")
+      ]
+    })
+
+    this.indexCreate({
+      uri: params.options.uri+'/'+params.options.args[0],
+      args:'tag.timestamp',
+      row: row => row("metadata")("tag").
+        map(
+          tag => [tag, row("metadata")("timestamp")]
+        ),
+      opts: {multi:true}
+    })
 
     // this.indexCreate({
     //   uri: params.options.uri+'/'+params.options.args[0],

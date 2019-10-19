@@ -39,7 +39,7 @@ module.exports = function(payload){
   let table = output.table
 
   let filter = function(doc, opts, next, pipeline){
-    debug('2nd filter %o', doc)
+    // debug('2nd filter %o', doc)
     // process.exit(1)
 
     if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
@@ -86,13 +86,12 @@ module.exports = function(payload){
 
       }
       else if(doc.data){
-        debug('2nd filter %o %s', doc, new Date(end_range))
-        process.exit(1)
+        debug('2nd filter %o', doc)
+        // process.exit(1)
 
         data = doc.data
 
         // debug('3rd filter %o', data)
-        // process.exit(1)
         Array.each(data, function(group){
           // Array.each(group, function(group_item){
             range[0] = (!range[0] || group.metadata.range.end < range[0]) ? group.metadata.range.end : range[0]
@@ -105,7 +104,7 @@ module.exports = function(payload){
         // process.exit(1)
       }
 
-      debug('range %s %s %s %s %s', new Date(range[0]), new Date(range[1]), host, path, new Date(end_range))
+      debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path, end_range)
       // process.exit(1)
 
       while(range[0] < end_range && range[1] <= roundSeconds(Date.now())){

@@ -9,6 +9,8 @@ let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.moun
 // let paths_whitelist = /^munin/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
+const async = require ('async')
+
 let __white_black_lists_filter = function(whitelist, blacklist, str){
   let filtered = false
   if(!blacklist && !whitelist){
@@ -28,8 +30,9 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 }
 
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, type, full_range } = payload
   let table = input.table
+  full_range = full_range || false
 
   // throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
   // process.exit(1)
@@ -48,6 +51,7 @@ module.exports = function(payload){
     // process.exit(1)
 
     if(doc && doc.id === 'paths' && doc.data && doc.metadata && doc.metadata.from === table){
+      // process.exit(1)
       // let { type, input, input_type, app } = opts
 
       // let hosts = []
@@ -63,6 +67,8 @@ module.exports = function(payload){
       // let hosts = pipeline.current[doc.metadata.from].hosts //from first filter, attach hosts
 
       // debug('2nd filter %o', hosts)
+      let requests= []
+
       Object.each(doc.data, function(path_data, path){
       //   // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
       //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
@@ -71,7 +77,7 @@ module.exports = function(payload){
         if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
           Array.each(path_data.hosts, function(host){
 
-            pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
+            requests.push({
               id: "once",
               query: {
                 index: false,
@@ -94,10 +100,37 @@ module.exports = function(payload){
               },
               params: {},
             })
+
           })
         }
 
       })
+
+
+
+      async.eachLimit(
+        requests,
+        1,
+        function(request, callback){
+          // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+          // callback()
+          let wrapped = async.timeout(function(request){
+            pipeline.get_input_by_id('input.historical').fireEvent('onOnce', request)
+          }, 100)
+
+          // try{
+          wrapped(request, function(err, data) {
+            if(err){
+              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+              callback()
+            }
+          })
+          // }
+          // catch(e){
+          //   callback()
+          // }
+        }
+      )
       // }
       // else if(doc && doc.metadata && doc.metadata.from === 'logs_historical'){
       //

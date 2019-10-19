@@ -59,9 +59,9 @@ module.exports = function(payload){
       // if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
 
-      first = doc.data[0].metadata.timestamp;
+      last = doc.data[0].metadata.timestamp;
 
-      last = doc.data[doc.data.length - 1].metadata.timestamp;
+      first = doc.data[doc.data.length - 1].metadata.timestamp;
       // Array.each(doc.data, function(doc_data, d_index){
       //
       //   debug('DOC DATA', doc_data)
