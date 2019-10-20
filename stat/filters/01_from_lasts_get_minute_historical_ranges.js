@@ -63,7 +63,7 @@ module.exports = function(payload){
 
         Object.each(data, function(group){
           if(group.path === path){
-            end_range = (!end_range ||  roundSeconds(group.range[1] + 59000) > end_range) ? roundSeconds(group.range[1] + 59000) : end_range
+            end_range = (!end_range ||  roundSeconds(group.range[1] + (MINUTE - SECOND)) > end_range) ? roundSeconds(group.range[1] + (MINUTE - SECOND)) : end_range
           }
 
         })

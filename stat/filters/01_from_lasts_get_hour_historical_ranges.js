@@ -62,7 +62,7 @@ module.exports = function(payload){
 
         Object.each(data, function(group){
           if(group.path === path){
-            end_range = (!end_range ||  roundMinutes(group.range[1]) > end_range) ? roundMinutes(group.range[1]) : end_range
+            end_range = (!end_range ||  roundMinutes(group.range[1]  + (HOUR - SECOND)) > end_range) ? roundMinutes(group.range[1] + (HOUR - SECOND)) : end_range
           }
 
         })
@@ -157,7 +157,7 @@ module.exports = function(payload){
       // async.tryEach(ranges)
       async.eachLimit(
         ranges,
-        10,
+        1,
         function(range, callback){
           // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
           // callback()

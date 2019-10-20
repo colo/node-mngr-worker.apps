@@ -439,6 +439,7 @@ module.exports = new Class({
                   .between(
                     roundMinutes(Date.now() - HOUR),
                     roundMinutes(Date.now()),
+                    // Date.now(),
                     {index: 'timestamp'}
                   )
               }
@@ -484,25 +485,30 @@ module.exports = new Class({
 
                       _groups[path].path = path
 
-                      app.r.expr([
-                        query
-                        .filter(app.r.row('metadata')('path').eq(path))('metadata')('host')
-                        .distinct(),
-                        query
-                        .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').min(),
-                        query
-                        .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').max(),
+                      try{
+                        app.r.expr([
+                          query
+                          .filter(app.r.row('metadata')('path').eq(path))('metadata')('host')
+                          .distinct(),
+                          query
+                          .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').min(),
+                          query
+                          .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').max(),
 
-                      ]).run(app.conn, {arrayLimit: 1000000}, function(err, resp){
-                        debug('EXPR RESULT %o %o', err, resp)
-                        // process.exit(1)
-                        if(resp && Array.isArray(resp)){
-                          _groups[path].range =[ resp[1], resp[2] ]
-                          _groups[path].hosts = resp[0]
-                        }
+                        ]).run(app.conn, {arrayLimit: 1000000}, function(err, resp){
+                          debug('EXPR RESULT %o %o', err, resp)
+                          // process.exit(1)
+                          if(resp && Array.isArray(resp)){
+                            _groups[path].range =[ resp[1], resp[2] ]
+                            _groups[path].hosts = resp[0]
+                          }
+                          _async_callback(err, _groups)
+                          // rowFinished(err)
+                        })
+                      }
+                      catch(err){
                         _async_callback(err, _groups)
-                        // rowFinished(err)
-                      })
+                      }
 
 
                     }, function (err) {
