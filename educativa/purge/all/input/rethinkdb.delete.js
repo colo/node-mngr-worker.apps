@@ -151,15 +151,15 @@ module.exports = new Class({
 
               }
               else{
-                if(req.query && req.query.q){
+                if(req.query && (req.query.q || req.query.filter)){
                   query = query
                     .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
-                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 10000000}, _result_callback)
@@ -276,14 +276,14 @@ module.exports = new Class({
                   //         return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                   //     }
                   // )
-                  if(req.query && req.query.q){
+                  if(req.query && (req.query.q || req.query.filter)){
                     query = query
                       .group( app.get_group(req.query.index) )
                       // .group( {index:'path'} )
                       .ungroup()
                       .map(
                         function (doc) {
-                          return app.build_default_query_result(doc, req.query)
+                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                         }
                       )
 
@@ -429,16 +429,16 @@ module.exports = new Class({
 
               }
               else{
+                if(req.query && (req.query.q || req.query.filter)){
                 // if(req.query && req.query.q){
-                if(req.query && req.query.q){
                   query = query
                     .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
-                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 10000000}, _result_callback)

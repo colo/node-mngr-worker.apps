@@ -209,7 +209,8 @@ module.exports = function(payload){
 
                 let id = url.replace('://', '.').replace(':', '.')
                 doc.id = doc.metadata.host+'.'+doc.metadata.path+'.'+id+'@'+doc.metadata.timestamp
-
+                doc.metadata.id = doc.id
+                
                 if(response){
                   doc.data = {
                     headers: response.headers,

@@ -183,6 +183,7 @@ module.exports = function(payload){
             id: 'educativa.alerts.nginx.vhosts.enabled@'+timestamp,
             data: {},
             metadata: {
+              id: 'educativa.alerts.nginx.vhosts.enabled@'+timestamp,
               path: 'educativa.alerts.vhosts',
               type: 'alert',
               host: os.hostname(),
