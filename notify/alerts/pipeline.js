@@ -13,7 +13,6 @@ const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 const request = require('request')
 
-let async = require('async')
 
 let moment = require('moment')
 
@@ -53,6 +52,8 @@ const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 // const DAY = HOUR * 24
 const DAY = 15 * MINUTE //devel
+
+const async = require('async')
 
 module.exports = function(payload){
   let {input, output, filters, type, avoid_notify} = payload
@@ -110,66 +111,66 @@ module.exports = function(payload){
 
     // filters: filters,
     filters: [
-      function(doc, opts, next, pipeline){
-        // let { type, input, input_type, app } = opts
-        debug('1st filter %O', doc)
-
-        if(doc && doc.id === 'default' && doc.data){
-
-          Array.each(doc.data, function(group){
-            if(group.types && group.types.contains('alert')){
-              debug('1st filter %O', group)
-              // let hosts = group.hosts
-              //
-              // Array.each(hosts, function(host){
-                debug('1st filter %s %s', new Date(roundSeconds(Date.now() - (2 * MINUTE) )) )
-                // process.exit(1)
-
-                pipeline.get_input_by_id('input.alerts').fireEvent('onRange', {
-                  // id: "once",
-                  id: "range",
-                  Range: "posix "+roundSeconds(Date.now() - (2 * MINUTE) )+"-"+Date.now()+"/*",
-                  query: {
-                    "q": [
-                      "data",
-                      // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-                      // "metadata"
-                    ],
-                    // "transformation": [
-                    //   {
-                    //   "orderBy": {"index": "host"}
-                    //   },
-                    //   // {
-                    //   //   "slice": [0, 1]
-                    //   // }
-                    //
-                    //
-                    // ],
-                    "filter": [
-                      // "r.row('metadata')('tag').contains('vhosts')",
-                      // "r.row('metadata')('tag').contains('nginx')",
-                      // "r.row('metadata')('tag').contains('enabled')",
-                      "r.row('metadata')('tag').contains('enabled').and('nginx').and('vhost')",
-                      // "r.row('data')('code').gt(399)",
-                      // "r.row('metadata')('path').eq('educativa.checks.vhosts')",
-                      "r.row('metadata')('type').eq('alert')"
-                    ]
-                  },
-                  params: {},
-                })
-
-
-              // })
-            }
-          })
-
-
-
-        }
-        else{
-          next(doc, opts, next, pipeline)
-        }
-      },
+      // function(doc, opts, next, pipeline){
+      //   // let { type, input, input_type, app } = opts
+      //   debug('1st filter %O', doc)
+      //
+      //   if(doc && doc.id === 'default' && doc.data){
+      //
+      //     Array.each(doc.data, function(group){
+      //       if(group.types && group.types.contains('alert')){
+      //         debug('1st filter %O', group)
+      //         // let hosts = group.hosts
+      //         //
+      //         // Array.each(hosts, function(host){
+      //           debug('1st filter %s %s', new Date(roundSeconds(Date.now() - (2 * MINUTE) )) )
+      //           // process.exit(1)
+      //
+      //           pipeline.get_input_by_id('input.alerts').fireEvent('onRange', {
+      //             // id: "once",
+      //             id: "range",
+      //             Range: "posix "+roundSeconds(Date.now() - (2 * MINUTE) )+"-"+Date.now()+"/*",
+      //             query: {
+      //               "q": [
+      //                 "data",
+      //                 // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+      //                 // "metadata"
+      //               ],
+      //               // "transformation": [
+      //               //   {
+      //               //   "orderBy": {"index": "host"}
+      //               //   },
+      //               //   // {
+      //               //   //   "slice": [0, 1]
+      //               //   // }
+      //               //
+      //               //
+      //               // ],
+      //               "filter": [
+      //                 // "r.row('metadata')('tag').contains('vhosts')",
+      //                 // "r.row('metadata')('tag').contains('nginx')",
+      //                 // "r.row('metadata')('tag').contains('enabled')",
+      //                 "r.row('metadata')('tag').contains('enabled').and('nginx').and('vhost')",
+      //                 // "r.row('data')('code').gt(399)",
+      //                 // "r.row('metadata')('path').eq('educativa.checks.vhosts')",
+      //                 "r.row('metadata')('type').eq('alert')"
+      //               ]
+      //             },
+      //             params: {},
+      //           })
+      //
+      //
+      //         // })
+      //       }
+      //     })
+      //
+      //
+      //
+      //   }
+      //   else{
+      //     next(doc, opts, next, pipeline)
+      //   }
+      // },
       function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
         debug('2nd filter %O', doc.data)
@@ -178,11 +179,11 @@ module.exports = function(payload){
         if(!doc.err){// err === 404
           let notifies = []
 
-          Array.each(doc.data, function(alerts){
-            Array.each(alerts, function(alert){
+          // Array.each(doc.data, function(alerts){
+          //   Array.each(alerts, function(alert){
+          Array.each(doc.data, function(alert){
+
               // debug('2nd filter ALERT %O', alert)
-
-
 
               Object.each(alert.data, function(host_alerts, host){
                 Object.each(host_alerts, function(vhost_alert, vhost){
@@ -213,7 +214,7 @@ module.exports = function(payload){
                     // notify += '`'+vhost+"`\n"
                     notify += '['+schema+'//'+vhost+']('+schema+'//'+vhost+'/)'
                     notify += '```'+JSON.stringify(vhost_alert, null, 1)+"```\n"
-                    notify += '*'+moment(vhost_alert.timestamp).local().format("dddd, MMMM Do YYYY, h:mm:ss a")+'* _('+moment(vhost_alert.timestamp).fromNow()+")_\n" //time
+                    notify += '*'+moment(vhost_alert.timestamp).local().format("dddd, MMMM Do YYYY, h:mm:ss a")+'*'// _('+moment(vhost_alert.timestamp).fromNow()+")_\n" //time
 
                     notifies.push(notify)
                   }
@@ -221,13 +222,41 @@ module.exports = function(payload){
                 })
 
               })
-            })
+            // })
           })
 
           // debug('2nd filter NOTIFIES %O', notifies)
           // process.exit(1)
           if(notifies.length > 0)
-            next(notifies, opts, next, pipeline)
+            // next(notifies, opts, next, pipeline)
+
+            /**
+            * telegram bot limit rate
+            * https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this
+            **/
+            async.eachLimit(
+              notifies,
+              1,
+              function(notify, callback){
+                // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                // callback()
+                let wrapped = async.timeout(function(module){
+                  next(notify, opts, next, pipeline)
+                }, 1001)
+
+                // try{
+                wrapped(notify, function(err, data) {
+                  if(err){
+                    // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                    callback()
+                  }
+                })
+                // }
+                // catch(e){
+                //   callback()
+                // }
+              }
+            )
         }
 
 
@@ -247,9 +276,9 @@ module.exports = function(payload){
           message: {parse_mode: 'Markdown'},
   				module: require('js-pipeline/output/telegram'),
           buffer:{
-  					// size: 0,
-  					// expire:0
-            expire: 1001,
+  					size: -1,
+  					expire:0
+            // expire: 1001,
   				}
   			}
   		}
