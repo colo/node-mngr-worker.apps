@@ -31,6 +31,7 @@ module.exports = new Class({
   //ON_CONNECT: 'onConnect',
   //ON_CONNECT_ERROR: 'onConnectError',
   modules: [],
+  modules_config: {},
 
   node: undefined,//munin host
 
@@ -50,9 +51,18 @@ module.exports = new Class({
 			],
 			periodical: [
         {
-          fetch: function(req, next, app){
+          list: function(req, next, app){
+            if(app.options.id){
+              debug('periodical list %o', app.options.id)
+
+              app.list({uri: ''})
+            }
+          },
+        },
+        {
+          config: function(req, next, app){
             if(app.modules.length > 0){
-              debug('periodical fetch %o', app.modules)
+              debug('periodical config %o', app.modules)
 
               async.eachLimit(
                 app.modules,
@@ -61,7 +71,7 @@ module.exports = new Class({
                   // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
                   // callback()
                   let wrapped = async.timeout(function(module){
-                    app.fetch({uri: module})
+                    app.config({uri: module})
                   }, 100)
 
                   // try{
@@ -75,6 +85,46 @@ module.exports = new Class({
                   // catch(e){
                   //   callback()
                   // }
+                }
+              )
+            }
+          },
+        },
+        {
+          fetch: function(req, next, app){
+            if(app.modules.length > 0 && Object.getLength(app.modules_config) > 0){
+              debug('periodical fetch %o', app.modules)
+
+              async.eachLimit(
+                app.modules,
+                1,
+                function(module, callback){
+                  // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                  // callback()
+                  if(!app.modules_config[module]){
+                    callback()
+                  }
+                  else{
+                    let wrapped = async.timeout(function(module){
+                      app.fetch({uri: module})
+                    }, 100)
+
+                    // try{
+                    wrapped(module, function(err, data) {
+                      if(err){
+                        // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+                        callback()
+                      }
+                    })
+                  }
+
+                  // }
+                  // catch(e){
+                  //   callback()
+                  // }
+                }, function(err) {
+                  debug('FINISH!!')
+                  // app.modules_config = {}
                 }
               )
             }
@@ -98,6 +148,13 @@ module.exports = new Class({
 				{
 					path: ':module',
 					callbacks: ['fetch']
+
+				},
+			],
+      config: [
+				{
+					path: ':module',
+					callbacks: ['config']
 
 				},
 			],
@@ -131,7 +188,75 @@ module.exports = new Class({
 		},
 
   },
+  config: function (err, resp, params){
+		// debug('config %o', resp);
+		// debug('config params %o', params);
 
+		if(err){
+			debug('save err %o', err);
+
+      if(params.uri != ''){
+				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1)+'Error', err);//capitalize first letter
+			}
+			else{
+				this.fireEvent('onGetError', err);
+			}
+
+			this.fireEvent(this.ON_DOC_ERROR, err);
+
+			this.fireEvent(
+				this[
+					'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC_ERROR'
+				],
+				err
+			);
+		}
+		else{
+			////console.log('success');
+
+			if(params.uri != ''){
+				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1), [JSON.decode(resp), {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]);//capitalize first letter
+			}
+			else{
+				this.fireEvent('onGet', [JSON.decode(resp), {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]);
+			}
+
+
+      //if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
+				//resp = [resp];
+      let new_data = {}
+      // let mem = /memory/
+
+      if(resp && resp !== null)
+        Object.each(resp, function(data, key){
+          let new_key = key.replace(/\_/, '')
+
+          // if(mem.test(params.uri))
+          //   data = (data / 1024 / 1024).toFixed(2) * 1
+
+          new_data[new_key] = data
+          // delete resp[key]
+        })
+
+      // debug('modified data %o', new_data);
+
+			let doc = {};
+			doc.data = new_data
+			doc.id = params.uri
+      // doc.host = this.options.host
+      doc.host = this.node
+
+      this.modules_config[doc.id] = doc.data
+
+      // this.fireEvent(
+      //   this[
+      //     'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+      //   ],
+      //   [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+      // )
+
+    }
+	},
 	fetch: function (err, resp, params){
 		debug('save %o', resp);
 		debug('save params %o', params);
@@ -155,11 +280,7 @@ module.exports = new Class({
 				err
 			);
 		}
-		// else{
-    /**
-    * even with err response emit doc (doc.data = {}) and filter later
-    **/
-			////console.log('success');
+		else{
 
 			if(params.uri != ''){
 				this.fireEvent('on'+params.uri.charAt(0).toUpperCase() + params.uri.slice(1), [JSON.decode(resp), {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]);//capitalize first letter
@@ -172,14 +293,14 @@ module.exports = new Class({
       //if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
 				//resp = [resp];
       let new_data = {}
-      let mem = /memory/
+      // let mem = /memory/
 
       if(resp && resp !== null)
         Object.each(resp, function(data, key){
           let new_key = key.replace(/\_/, '')
 
-          if(mem.test(params.uri))
-            data = (data / 1024 / 1024).toFixed(2) * 1
+          // if(mem.test(params.uri))
+          //   data = (data / 1024 / 1024).toFixed(2) * 1
 
           new_data[new_key] = data
           // delete resp[key]
@@ -189,18 +310,12 @@ module.exports = new Class({
 
 			let doc = {};
 			doc.data = new_data
-			doc.id = params.uri
+      doc.id = params.uri
+      doc.config = this.modules_config[doc.id]
       // doc.host = this.options.host
       doc.host = this.node
 
-      // debug_internals('OPTIONS', this.options.host)
 
-			// this.fireEvent(
-			// 	this[
-			// 		'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
-			// 	],
-			// 	doc
-			// );
       this.fireEvent(
         this[
           'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
@@ -208,7 +323,7 @@ module.exports = new Class({
         [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
       )
 
-		// }
+		}
 	},
 	list: function (err, resp, params){
 		debug_internals('list %o', resp);
@@ -320,7 +435,8 @@ module.exports = new Class({
 
       this.options.id = this.node
 
-      this.list({uri: ''})
+      // this.list({uri: ''})
+
       // Array.each(resp, function(module, index){
       //   // module = module.trim()
       //
@@ -377,6 +493,10 @@ module.exports = new Class({
 		debug_internals('initialized %o', options);
 
   },
-
+  connect(){
+    this.modules = []
+    this.modules_config = {}
+		this.fireEvent(this.ON_ONCE);
+	},
 
 });

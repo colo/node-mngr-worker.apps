@@ -29,42 +29,42 @@ const roundMilliseconds = function(timestamp){
 module.exports = function(munin, out){
   let conf = {
     input: [
-    	{
-        poll: {
-      		id: "input.localhost.munin",
-      		conn: [
-            Object.merge(
-              Object.clone(munin),
-              {module: InputPollerMunin, load: []},
-            ),
-
-      			// {
-      			// 	scheme: 'munin',
-      			// 	host:'dev',
-      			// 	port: 4949,
-      			// 	module: InputPollerMunin,
-      			// 	load: [],
-      			// },
-            // {
-      			// 	scheme: 'munin',
-      			// 	host:'elk',
-      			// 	port: 4949,
-      			// 	module: InputPollerMunin,
-      			// 	load: [],
-      			// }
-      		],
-      		connect_retry_count: -1,
-      		connect_retry_periodical: 1000,
-      		requests: {
-      			// periodical: 5000,
-            periodical: function(dispatch){
-    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
-    				},
-      		},
-      	}
-
-    	},
+    	// {
+      //   poll: {
+      // 		id: "input.localhost.munin",
+      // 		conn: [
+      //       Object.merge(
+      //         Object.clone(munin),
+      //         {module: InputPollerMunin, load: []},
+      //       ),
+      //
+      // 			// {
+      // 			// 	scheme: 'munin',
+      // 			// 	host:'dev',
+      // 			// 	port: 4949,
+      // 			// 	module: InputPollerMunin,
+      // 			// 	load: [],
+      // 			// },
+      //       // {
+      // 			// 	scheme: 'munin',
+      // 			// 	host:'elk',
+      // 			// 	port: 4949,
+      // 			// 	module: InputPollerMunin,
+      // 			// 	load: [],
+      // 			// }
+      // 		],
+      // 		connect_retry_count: -1,
+      // 		connect_retry_periodical: 1000,
+      // 		requests: {
+      // 			// periodical: 5000,
+      //       periodical: function(dispatch){
+    	// 				// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+      //         return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+    	// 			},
+      // 		},
+      // 	}
+      //
+    	// },
       {
         poll: {
       		id: "input.elk.munin",
@@ -117,14 +117,16 @@ module.exports = function(munin, out){
       * NOT merge
       **/
       function(doc, opts, next, pipeline){
-       let { type, input, input_type } = opts
-       let app = opts.app = pipeline
+        let { type, input, input_type } = opts
+        let app = opts.app = pipeline
 
-       debug('filter %o', doc)
+        // if(!doc.modules && Object.getLength(doc.data) > 0){//discard modules doc
+        if(doc.data && doc.config && Object.getLength(doc.data) > 0 && Object.getLength(doc.config) > 0){//discard modules doc
+          debug('filter %o', doc)
 
-        if(!doc.modules && Object.getLength(doc.data) > 0){//discard modules doc
-          let new_doc = {data: {}, metadata: {}}
+          let new_doc = {data: {}, config: {}, metadata: {}}
           new_doc.data = doc.data
+          new_doc.config = doc.config
           let path = 'munin.'+doc.id.replace(/\_/, '.', 'g')
           let timestamp = roundMilliseconds(Date.now())
           new_doc.id = doc.host+'.'+path+'@'+timestamp
