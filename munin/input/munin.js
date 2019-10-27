@@ -52,17 +52,49 @@ module.exports = new Class({
 			periodical: [
         {
           list: function(req, next, app){
-            if(app.options.id){
+            if(app.options.id && app.modules.length === 0){
               debug('periodical list %o', app.options.id)
 
               app.list({uri: ''})
             }
           },
         },
+        // {
+        //   config: function(req, next, app){
+        //     if(app.modules.length > 0){
+        //       debug('periodical config %o', app.modules)
+        //
+        //       async.eachLimit(
+        //         app.modules,
+        //         1,
+        //         function(module, callback){
+        //           // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+        //           // callback()
+        //           let wrapped = async.timeout(function(module){
+        //             app.config({uri: module})
+        //           }, 100)
+        //
+        //           // try{
+        //           wrapped(module, function(err, data) {
+        //             if(err){
+        //               // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+        //               callback()
+        //             }
+        //           })
+        //           // }
+        //           // catch(e){
+        //           //   callback()
+        //           // }
+        //         }
+        //       )
+        //     }
+        //   },
+        // },
         {
-          config: function(req, next, app){
+          fetch: function(req, next, app){
+            // if(app.modules.length > 0 && Object.getLength(app.modules_config) > 0){
             if(app.modules.length > 0){
-              debug('periodical config %o', app.modules)
+              debug('periodical fetch %o', app.modules)
 
               async.eachLimit(
                 app.modules,
@@ -70,8 +102,15 @@ module.exports = new Class({
                 function(module, callback){
                   // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
                   // callback()
+
                   let wrapped = async.timeout(function(module){
-                    app.config({uri: module})
+                    if(!app.modules_config[module]){
+                      app.config({uri: module})
+                      // callback()
+                    }
+                    else{
+                      app.fetch({uri: module})
+                    }
                   }, 100)
 
                   // try{
@@ -81,42 +120,7 @@ module.exports = new Class({
                       callback()
                     }
                   })
-                  // }
-                  // catch(e){
-                  //   callback()
-                  // }
-                }
-              )
-            }
-          },
-        },
-        {
-          fetch: function(req, next, app){
-            if(app.modules.length > 0 && Object.getLength(app.modules_config) > 0){
-              debug('periodical fetch %o', app.modules)
 
-              async.eachLimit(
-                app.modules,
-                1,
-                function(module, callback){
-                  // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                  // callback()
-                  if(!app.modules_config[module]){
-                    callback()
-                  }
-                  else{
-                    let wrapped = async.timeout(function(module){
-                      app.fetch({uri: module})
-                    }, 100)
-
-                    // try{
-                    wrapped(module, function(err, data) {
-                      if(err){
-                        // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-                        callback()
-                      }
-                    })
-                  }
 
                   // }
                   // catch(e){
