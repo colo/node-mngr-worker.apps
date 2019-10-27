@@ -29,42 +29,42 @@ const roundMilliseconds = function(timestamp){
 module.exports = function(munin, out){
   let conf = {
     input: [
-    	// {
-      //   poll: {
-      // 		id: "input.localhost.munin",
-      // 		conn: [
-      //       Object.merge(
-      //         Object.clone(munin),
-      //         {module: InputPollerMunin, load: []},
-      //       ),
-      //
-      // 			// {
-      // 			// 	scheme: 'munin',
-      // 			// 	host:'dev',
-      // 			// 	port: 4949,
-      // 			// 	module: InputPollerMunin,
-      // 			// 	load: [],
-      // 			// },
-      //       // {
-      // 			// 	scheme: 'munin',
-      // 			// 	host:'elk',
-      // 			// 	port: 4949,
-      // 			// 	module: InputPollerMunin,
-      // 			// 	load: [],
-      // 			// }
-      // 		],
-      // 		connect_retry_count: -1,
-      // 		connect_retry_periodical: 1000,
-      // 		requests: {
-      // 			// periodical: 5000,
-      //       periodical: function(dispatch){
-    	// 				// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-      //         return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
-    	// 			},
-      // 		},
-      // 	}
-      //
-    	// },
+    	{
+        poll: {
+      		id: "input.localhost.munin",
+      		conn: [
+            Object.merge(
+              Object.clone(munin),
+              {module: InputPollerMunin, load: []},
+            ),
+
+      			// {
+      			// 	scheme: 'munin',
+      			// 	host:'dev',
+      			// 	port: 4949,
+      			// 	module: InputPollerMunin,
+      			// 	load: [],
+      			// },
+            // {
+      			// 	scheme: 'munin',
+      			// 	host:'elk',
+      			// 	port: 4949,
+      			// 	module: InputPollerMunin,
+      			// 	load: [],
+      			// }
+      		],
+      		connect_retry_count: -1,
+      		connect_retry_periodical: 1000,
+      		requests: {
+      			// periodical: 5000,
+            periodical: function(dispatch){
+    					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+    				},
+      		},
+      	}
+
+    	},
       {
         poll: {
       		id: "input.elk.munin",
