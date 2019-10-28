@@ -502,12 +502,14 @@ module.exports = new Class({
                             _groups[path].range =[ resp[1], resp[2] ]
                             _groups[path].hosts = resp[0]
                           }
-                          _async_callback(err, _groups)
+                          // _async_callback(err, _groups)
+                          _async_callback(undefined, _groups)
                           // rowFinished(err)
                         })
                       }
                       catch(err){
-                        _async_callback(err, _groups)
+                        // _async_callback(err, _groups)
+                        _async_callback(undefined, _groups)
                       }
 
 
