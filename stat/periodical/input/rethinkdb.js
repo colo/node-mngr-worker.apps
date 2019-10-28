@@ -513,12 +513,12 @@ module.exports = new Class({
 
                     }, function (err) {
                       debug('build_default_result ERR %o', err)
-                      if(err){
-                        _result_callback(err, undefined)
-                      }
-                      else{
-                        _result_callback(err, _groups)
-                      }
+                      // if(err){
+                      //   _result_callback(err, undefined)
+                      // }
+                      // else{
+                      _result_callback(err, _groups)
+                      // }
                     // process.exit(1)
                     })
                   }
