@@ -146,6 +146,11 @@ module.exports = function(munin, out){
           // debug_internals('filter %o %o', new_doc, input_type.options.requests.periodical.length)
 
           // pipeline.outputs[0].options.buffer.size = input_type.options.requests.periodical.length
+          // let redis = /redis/
+          // if(redis.test(path)){
+          //   debug('redis doc %o', new_doc)
+          //   process.exit(1)
+          // }
 
           sanitize_filter(
             new_doc,

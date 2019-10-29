@@ -293,42 +293,99 @@ module.exports = new Class({
 				this.fireEvent('onGet', [JSON.decode(resp), {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]);
 			}
 
+      resp = resp || {}
 
-      //if(typeof(resp) == 'array' || resp instanceof Array || Array.isArray(resp))
-				//resp = [resp];
-      let new_data = {}
-      // let mem = /memory/
+      if(resp && resp.multigraph){
+        Object.each(resp.multigraph, function(resp, key){
+          this.create_emit_doc(resp, params.uri, key)
+          // let new_data = {}
+          // // let mem = /memory/
+          //
+          // // if(resp && resp !== null)
+          // Object.each(resp, function(data, key){
+          //   let new_key = key.replace(/\_/, '')
+          //   new_data[new_key] = data
+          // })
+          //
+          // debug('modified data %o', new_data);
+          //
+    			// let doc = {};
+    			// doc.data = new_data
+          // doc.id = params.uri+'.'+key
+          // doc.config = this.modules_config[params.uri].multigraph[key]
+          // // doc.host = this.options.host
+          // doc.host = this.node
+          //
+          //
+          // this.fireEvent(
+          //   this[
+          //     'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+          //   ],
+          //   [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+          // )
+        }.bind(this))
+      }
+      else{
+        this.create_emit_doc(resp, params.uri)
+        // let new_data = {}
+        // // let mem = /memory/
+        //
+        // // if(resp && resp !== null)
+        // Object.each(resp, function(data, key){
+        //   let new_key = key.replace(/\_/, '')
+        //   new_data[new_key] = data
+        // })
+        //
+        // debug('modified data %o', new_data);
+        //
+  			// let doc = {};
+  			// doc.data = new_data
+        // doc.id = params.uri
+        // doc.config = this.modules_config[doc.id]
+        // // doc.host = this.options.host
+        // doc.host = this.node
+        //
+        //
+        // this.fireEvent(
+        //   this[
+        //     'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+        //   ],
+        //   [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+        // )
+      }
 
-      if(resp && resp !== null)
-        Object.each(resp, function(data, key){
-          let new_key = key.replace(/\_/, '')
-
-          // if(mem.test(params.uri))
-          //   data = (data / 1024 / 1024).toFixed(2) * 1
-
-          new_data[new_key] = data
-          // delete resp[key]
-        })
-
-      debug('modified data %o', new_data);
-
-			let doc = {};
-			doc.data = new_data
-      doc.id = params.uri
-      doc.config = this.modules_config[doc.id]
-      // doc.host = this.options.host
-      doc.host = this.node
-
-
-      this.fireEvent(
-        this[
-          'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
-        ],
-        [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
-      )
 
 		}
 	},
+  create_emit_doc: function(resp, id, key){
+    resp = resp || {}
+    let new_data = {}
+    // let mem = /memory/
+
+    // if(resp && resp !== null)
+    Object.each(resp, function(data, key){
+      let new_key = key.replace(/\_/, '')
+      new_data[new_key] = data
+    })
+
+    debug('modified data %o', new_data);
+
+    let doc = {};
+    doc.data = new_data
+    doc.id = (key) ? id+'.'+key : id
+    doc.config = (key) ? this.modules_config[id].multigraph[key] : this.modules_config[id]
+    // doc.host = this.options.host
+    doc.host = this.node
+
+
+    this.fireEvent(
+      this[
+        'ON_'+this.options.requests.current.type.toUpperCase()+'_DOC'
+      ],
+      [doc, {id: this.id, type: this.options.requests.current.type, input_type: this, app: this}]
+    )
+  },
+
 	list: function (err, resp, params){
 		debug_internals('list %o', resp);
 		debug_internals('list params %o', params);
