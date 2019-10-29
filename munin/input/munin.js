@@ -111,7 +111,7 @@ module.exports = new Class({
                     else{
                       app.fetch({uri: module})
                     }
-                  }, 100)
+                  }, 200)
 
                   // try{
                   wrapped(module, function(err, data) {
