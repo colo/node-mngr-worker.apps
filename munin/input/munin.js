@@ -39,7 +39,7 @@ module.exports = new Class({
 
     // whitelist: /^(users|vmstat|nginx.*)/g,
     // blacklist: /^.*/g, //blacklist all modules
-    whitelist: /^.*/g,
+    whitelist: undefined,
     // blacklist: /^[.]/g,
     // blacklist: /^cpu|^if|^load|^netstat|^ntp|^uptime|^df|^irq|^uptime|^users|^interrupts/g,
     blacklist: undefined,
@@ -111,7 +111,7 @@ module.exports = new Class({
                     else{
                       app.fetch({uri: module})
                     }
-                  }, 200)
+                  }, 100)
 
                   // try{
                   wrapped(module, function(err, data) {
@@ -425,6 +425,7 @@ module.exports = new Class({
 
         // if(blacklist == null || blacklist.test(module) == false)//not in blacklist
         //   if(whitelist == null || whitelist.test(module) == true)//if no whitelist, or in whitelist
+        // debug_internals('pre __white_black_lists_filter module %o %o %s', whitelist, blacklist, module);
         if(__white_black_lists_filter(whitelist, blacklist, module)){
 			      // this.options.requests.periodical.push( { fetch: { uri: module } });
 
