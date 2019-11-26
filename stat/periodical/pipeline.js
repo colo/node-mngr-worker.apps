@@ -143,8 +143,8 @@ module.exports = function(payload){
   					// size: -1,
   					// expire: 60001,
             size: -1,//-1 =will add until expire | 0 = no buffer | N > 0 = limit buffer no more than N
-      			expire: 10000, //miliseconds until saving
-      			periodical: 1000 //how often will check if buffer timestamp has expire
+      			expire: 1000, //miliseconds until saving
+      			periodical: 10000 //how often will check if buffer timestamp has expire
   				}
   			}
   		}
