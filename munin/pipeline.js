@@ -234,9 +234,10 @@ module.exports = function(munin, out){
   				],
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
-  					// size: 1, //-1
+  					size: -1, //-1
   					// expire: 0 //ms
-            expire: 1001 //ms
+            expire: 1000, //ms
+            periodical: 999 //how often will check if buffer timestamp has expire
   				}
   			}
   		}
