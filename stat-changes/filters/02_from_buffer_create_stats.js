@@ -82,11 +82,12 @@ module.exports = function(payload){
 
 
         // if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+        // debug('real_data %s %o', path, real_data)
+        // process.exit(1)
 
+        first = real_data[0].metadata.timestamp;
 
-        last = real_data[0].metadata.timestamp;
-
-        first = real_data[real_data.length - 1].metadata.timestamp;
+        last = real_data[real_data.length - 1].metadata.timestamp;
         // Array.each(real_data, function(doc_data, d_index){
         //
         //   debug('DOC DATA', doc_data)
@@ -224,9 +225,11 @@ module.exports = function(payload){
         if(Object.getLength(values) > 0){
           Object.each(values, function(host_data, host){
 
-            let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
+
 
             Object.each(host_data, function(data, path){
+
+              let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
 
               Object.each(data, function(value, key){
                 let _key = key
@@ -250,44 +253,31 @@ module.exports = function(payload){
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
                   new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
 
-                  // if(path == 'os.mounts')
-                  //   debug_internals('value %s %o', key, new_doc.data)
                 }
                 else{
-                  // let data_values = Object.values(value);
-                  // let min = ss.min(data_values);
-                  // let max = ss.max(data_values);
-
-                  // new_doc['data'][key] = {
-                  //   // samples : value,
-                  //   min : min,
-                  //   max : max,
-                  //   mean : ss.mean(data_values),
-                  //   median : ss.median(data_values),
-                  //   mode : ss.mode(data_values),
-                  //   range: max - min
-                  // };
                   new_doc['data'][key] = stat(value)
                 }
 
-                /**
-                * add other metadata fields like "domain" for logs
-                */
-                new_doc['metadata'] = Object.merge(metadata, {
-                  tag: tag,
-                  type: type,
-                  host: host,
-                  // path: 'historical.'+path,
-                  path: path,
-                  range: {
-                    start: first,
-                    end: last
-                  }
-                })
+
 
 
 
               });
+
+              /**
+              * add other metadata fields like "domain" for logs
+              */
+              new_doc['metadata'] = Object.merge(metadata, {
+                tag: tag,
+                type: type,
+                host: host,
+                // path: 'historical.'+path,
+                path: path,
+                range: {
+                  start: first,
+                  end: last
+                }
+              })
 
               delete new_doc['metadata'].id
 
@@ -314,7 +304,7 @@ module.exports = function(payload){
                 pipeline
               )
 
-            })
+            })//host_data
           });
 
         }//if(Object.getLength(values) > 0)

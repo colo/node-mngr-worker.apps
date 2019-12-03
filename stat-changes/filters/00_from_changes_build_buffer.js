@@ -109,12 +109,13 @@ module.exports = function(payload){
           buffer = []
         }
 
-        if(type === 'minute'){
-          expire = roundSeconds(Date.now() + MINUTE)
-        }
-        else if(type === 'hour'){
-          expire = roundMinutes(Date.now() + HOUR)
-        }
+        expire = undefined
+        // if(type === 'minute'){
+        //   expire = roundSeconds(Date.now() + MINUTE)
+        // }
+        // else if(type === 'hour'){
+        //   expire = roundMinutes(Date.now() + HOUR)
+        // }
 
         // process.exit(1)
       }
