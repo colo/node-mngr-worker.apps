@@ -84,7 +84,7 @@ module.exports = function(http, out){
   				// periodical: 1000,
           periodical: function(dispatch){
             // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-            return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+            return cron.schedule('* * * * * *', dispatch);//every 20 secs
           },
   			},
   		},
@@ -119,7 +119,7 @@ module.exports = function(http, out){
         connect_retry_count: -1,
         connect_retry_periodical: 1000,
   			requests: {
-  				periodical: 5000,//ms
+  				periodical: 250,//ms
           // periodical: function(dispatch){
           //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
           //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
