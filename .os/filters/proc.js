@@ -139,82 +139,110 @@ module.exports = function(doc, opts, next, pipeline){
 
 				procs_doc.metadata.host = host
 
-				// let stats_doc = Object.clone(procs_doc)
-				//
-				// let uids_doc = Object.clone(procs_doc)
-				// let uids_stats_doc = Object.clone(procs_doc)
-				//
-				// let cmds_doc = Object.clone(procs_doc)
-				// let cmds_stats_doc = Object.clone(procs_doc)
+				let stats_doc = Object.clone(procs_doc)
+
+				let uids_doc = Object.clone(procs_doc)
+				let uids_stats_doc = Object.clone(procs_doc)
+
+				let cmds_doc = Object.clone(procs_doc)
+				let cmds_stats_doc = Object.clone(procs_doc)
 
 
 				procs_doc.data = procs
-				// uids_doc.data = per_uid
-				// cmds_doc.data = per_cmd
+				uids_doc.data = per_uid
+				cmds_doc.data = per_cmd
 
 
 				procs_doc.metadata.path = 'os.procs'
 				procs_doc.metadata.tag = ['os', 'procs', 'pid', 'cmd', 'command', 'elapsed', 'cpu', 'mem', 'pid', 'ppid', 'rss', 'stat', 'time', 'uid', 'vsz']
 
-				// stats_doc.metadata.path = 'os.procs.stats'
-				// stats_doc.metadata.tag = ['os', 'procs', 'stats']
+				stats_doc.metadata.path = 'os.procs.stats'
+				stats_doc.metadata.tag = ['os', 'procs', 'stats']
+
+				uids_doc.metadata.path = 'os.procs.uid'
+				uids_doc.metadata.tag = ['os', 'procs', 'uid', 'cpu', 'mem', 'rss', 'time', 'vsz']
+
+				uids_stats_doc.metadata.path = 'os.procs.uid.stats'
+				uids_stats_doc.metadata.tag = ['os', 'procs', 'ui', 'stats']
+
+				cmds_doc.metadata.path = 'os.procs.cmd'
+				cmds_doc.metadata.tag = ['os', 'procs', 'cmd', 'cpu', 'mem', 'rss', 'time', 'vsz']
+
+				cmds_stats_doc.metadata.path = 'os.procs.cmd.stats'
+				cmds_stats_doc.metadata.tag = ['os', 'procs', 'cmd', 'stats']
+
+				// let by_cpu = []
+				// let by_mem = []
+				// let by_elapsed = []
+				// let by_time = []
+				let kernel_space = []
+				let user_space = []
+
+				let by_cpu = {}
+				let by_mem = {}
+				let by_time = {}
+				let by_elapsed = {}
+				// let by_count = {}
+				Object.each(procs_doc.data, function(proc, pid){
+					// by_cpu.push({pid: pid, 'percentage_cpu': proc['percentage_cpu'] })
+					// by_mem.push({pid: pid, 'percentage_mem': proc['percentage_mem'] })
+					// by_elapsed.push({pid: pid, 'elapsed': proc.elapsed })
+					// by_time.push({pid: pid, 'time': proc.time })
+
+					by_cpu[pid] = proc['percentage_cpu']
+					by_mem[pid] = proc['percentage_mem']
+					by_elapsed[pid] = proc.elapsed
+					by_time[pid] = proc.time
+
+
+					if(proc.command[0].indexOf('[') == 0 && proc.command[0].indexOf(']') == proc.command[0].length -1){
+						kernel_space.push(proc.pid)
+					}
+					else{
+						user_space.push(proc.pid)
+					}
+				})
+
+				// by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['percentage_cpu'] > 0})
 				//
-				// uids_doc.metadata.path = 'os.procs.uid'
-				// uids_doc.metadata.tag = ['os', 'procs', 'uid', 'cpu', 'mem', 'rss', 'time', 'vsz']
 				//
-				// uids_stats_doc.metadata.path = 'os.procs.uid.stats'
-				// uids_stats_doc.metadata.tag = ['os', 'procs', 'ui', 'stats']
+				// by_mem = by_mem.sort(function(a,b) {return (a['percentage_mem'] > b['percentage_mem']) ? 1 : ((b['percentage_mem'] > a['percentage_mem']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['percentage_mem'] > 0})
 				//
-				// cmds_doc.metadata.path = 'os.procs.cmd'
-				// cmds_doc.metadata.tag = ['os', 'procs', 'cmd', 'cpu', 'mem', 'rss', 'time', 'vsz']
+				// by_elapsed = by_elapsed.sort(function(a,b) {return (a['elapsed'] > b['elapsed']) ? 1 : ((b['elapsed'] > a['elapsed']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['elapsed'] > 0})
 				//
-				// cmds_stats_doc.metadata.path = 'os.procs.cmd.stats'
-				// cmds_stats_doc.metadata.tag = ['os', 'procs', 'cmd', 'stats']
-				//
-				//
-				// let kernel_space = []
-				// let user_space = []
-				//
-				// let by_cpu = {}
-				// let by_mem = {}
-				// let by_time = {}
-				// let by_elapsed = {}
-				//
-				// Object.each(procs_doc.data, function(proc, pid){
-				// 	by_cpu[pid] = proc['percentage_cpu']
-				// 	by_mem[pid] = proc['percentage_mem']
-				// 	by_elapsed[pid] = proc.elapsed
-				// 	by_time[pid] = proc.time
-				//
-				//
-				// 	if(proc.command[0].indexOf('[') == 0 && proc.command[0].indexOf(']') == proc.command[0].length -1){
-				// 		kernel_space.push(proc.pid)
-				// 	}
-				// 	else{
-				// 		user_space.push(proc.pid)
-				// 	}
-				// })
-				//
-				// by_cpu = Object.filter(by_cpu, function(item, index){ return item > 0})
-				//
-				// by_mem = Object.filter(by_mem, function(item, index){ return item > 0})
-				//
-				// by_elapsed = Object.filter(by_elapsed, function(item, index){ return item > 0})
-				//
-				// by_time = Object.filter(by_time, function(item, index){ return item > 0})
-				//
-				//
-				//
-				// stats_doc.data = {
-				// 	pids_count: Object.keys(procs_doc.data).length,
-				// 	'percentage_cpu': by_cpu,
-				// 	'percentage_mem': by_mem,
-				// 	elapsed: by_elapsed,
-				// 	time: by_time,
-				// 	kernel: kernel_space,
-				// 	user: user_space
-				// }
-				//
+				// by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['time'] > 0})
+
+				by_cpu = Object.filter(by_cpu, function(item, index){ return item > 0})
+
+				by_mem = Object.filter(by_mem, function(item, index){ return item > 0})
+
+				by_elapsed = Object.filter(by_elapsed, function(item, index){ return item > 0})
+
+				by_time = Object.filter(by_time, function(item, index){ return item > 0})
+
+
+
+				stats_doc.data = {
+					pids_count: Object.keys(procs_doc.data).length,
+					'percentage_cpu': by_cpu,
+					'percentage_mem': by_mem,
+					elapsed: by_elapsed,
+					time: by_time,
+					kernel: kernel_space,
+					user: user_space
+				}
+				/**
+				* bad, too many tags
+				**/
+				// stats_doc.metadata.tag.combine(Object.keys(stats_doc.data))
 
 				next(procs_doc, opts, next, pipeline)
 				// next(stats_doc, opts, next, pipeline)
@@ -222,20 +250,40 @@ module.exports = function(doc, opts, next, pipeline){
 				/**
 				* UIDS
 				**/
-				/**
-				* commented on 11/12/2019 - better use stats-periodical ??
-				*
 				by_cpu = {}
 				by_mem = {}
 				by_time = {}
 				let by_count = {}
 				Object.each(uids_doc.data, function(proc, uid){
+					// by_cpu.push({uid: uid, 'percentage_cpu': proc['percentage_cpu'] })
+					// by_mem.push({uid: uid, 'percentage_mem': proc['percentage_mem'] })
+					// by_time.push({uid: uid, 'time': proc.time })
+					// by_count.push({uid: uid, 'count': proc.count })
 					by_cpu[uid] = proc['percentage_cpu']
 					by_mem[uid] = proc['percentage_mem']
 					by_time[uid] = proc.time
 					by_count[uid] = proc.count
 				})
+				/**
+				* bad, too many tags
+				**/
+				// uids_doc.metadata.tag.combine(Object.keys(uids_doc.data))
 
+				// by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['percentage_cpu'] > 0})
+				//
+				// by_mem = by_mem.sort(function(a,b) {return (a['percentage_mem'] > b['percentage_mem']) ? 1 : ((b['percentage_mem'] > a['percentage_mem']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['percentage_mem'] > 0})
+				//
+				// by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['time'] > 0})
+				//
+				// by_count = by_count.sort(function(a,b) {return (a['count'] > b['count']) ? 1 : ((b['count'] > a['count']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['count'] > 0})
 
 				by_cpu = Object.filter(by_cpu, function(item, index){ return item > 0})
 
@@ -252,27 +300,51 @@ module.exports = function(doc, opts, next, pipeline){
 					time: by_time,
 					count: by_count,
 				}
+				/**
+				* bad, too many tags
+				**/
+				// uids_stats_doc.metadata.tag.combine(Object.keys(uids_stats_doc.data))
 
 				next(uids_doc, opts, next, pipeline)//was commented
 				// next(uids_stats_doc, opts, next, pipeline)
-				**/
 
 				/**
 				* CMDS
 				**/
-				/**
-				* commented on 11/12/2019 - better use stats-periodical ??
-				*
 				by_cpu = {}
 				by_mem = {}
 				by_time = {}
 				by_count = {}
 				Object.each(cmds_doc.data, function(proc, cmd){
+					// by_cpu.push({cmd: cmd, 'percentage_cpu': proc['percentage_cpu'] })
+					// by_mem.push({cmd: cmd, 'percentage_mem': proc['percentage_mem'] })
+					// by_time.push({cmd: cmd, 'time': proc.time })
+					// by_count.push({cmd: cmd, 'count': proc.count })
 					by_cpu[cmd] = proc['percentage_cpu']
 					by_mem[cmd] = proc['percentage_mem']
 					by_time[cmd] = proc.time
 					by_count[cmd] = proc.count
 				})
+				/**
+				* bad, too many tags
+				**/
+				// cmds_doc.metadata.tag.combine(Object.keys(cmds_doc.data))
+
+				// by_cpu = by_cpu.sort(function(a,b) {return (a['percentage_cpu'] > b['percentage_cpu']) ? 1 : ((b['percentage_cpu'] > a['percentage_cpu']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['percentage_cpu'] > 0})
+				//
+				// by_mem = by_mem.sort(function(a,b) {return (a['percentage_mem'] > b['percentage_mem']) ? 1 : ((b['percentage_mem'] > a['percentage_mem']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['percentage_mem'] > 0})
+				//
+				// by_time = by_time.sort(function(a,b) {return (a['time'] > b['time']) ? 1 : ((b['time'] > a['time']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['time'] > 0})
+				//
+				// by_count = by_count.sort(function(a,b) {return (a['count'] > b['count']) ? 1 : ((b['count'] > a['count']) ? -1 : 0);} )
+				// .reverse()
+				// .filter(function(item, index){ return item['count'] > 0})
 
 				by_cpu = Object.filter(by_cpu, function(item, index){ return item > 0})
 
@@ -290,11 +362,13 @@ module.exports = function(doc, opts, next, pipeline){
 					time: by_time,
 					count: by_count,
 				}
-
-
-				* next(cmds_doc, opts, next, pipeline)//was commented
-				* // next(cmds_stats_doc, opts, next, pipeline)
+				/**
+				* bad, too many tags
 				**/
+				// cmds_stats_doc.metadata.tag.combine(Object.keys(cmds_stats_doc.data))
+
+				next(cmds_doc, opts, next, pipeline)//was commented
+				// next(cmds_stats_doc, opts, next, pipeline)
 
 			}
 

@@ -10,12 +10,6 @@
   "engines": {
     "node": ">= 0.10.21"
   },
-  "dependencies": {
-    "blockdevice": "^0.5.1",
-    "etc-passwd": "^0.1.1",
-    "q": "^1.4.1",
-    "uid-username": "0.0.2"
-  },
   "devDependencies": {},
   "optionalDependencies": {},
   "licenses": [

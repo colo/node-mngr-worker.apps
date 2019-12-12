@@ -3,7 +3,7 @@ var debug_internals = require('debug')('pipeline:os-alerts:Internals');
 
 // var sanitize_filter = require(path.join(process.cwd(), '/etc/snippets/filter.sanitize.template')),
 
-'use stric'
+'use strict'
 
 const path = require('path')
 

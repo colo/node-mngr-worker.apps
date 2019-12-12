@@ -510,7 +510,7 @@ module.exports = {
   //     //
   //     //   Object.each(proc[0].value, function(val, prop){
   //     //
-  //     //     if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+  //     //     if(prop == 'percentage_cpu' || prop == 'percentage_mem' || prop == 'time'){
   //     //       if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
   //     //
   //     //       per_uid[proc[0].value.uid][prop] += val
@@ -577,7 +577,7 @@ module.exports = {
   //
   //       Object.each(proc[0].value, function(val, prop){
   //
-  //         if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+  //         if(prop == 'percentage_cpu' || prop == 'percentage_mem' || prop == 'time'){
   //           if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
   //
   //           per_uid[proc[0].value.uid][prop] += val
@@ -1127,7 +1127,7 @@ module.exports = {
   //     //
   //     //   Object.each(proc[0].value, function(val, prop){
   //     //
-  //     //     if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+  //     //     if(prop == 'percentage_cpu' || prop == 'percentage_mem' || prop == 'time'){
   //     //       if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
   //     //
   //     //       per_uid[proc[0].value.uid][prop] += val
@@ -1178,7 +1178,7 @@ module.exports = {
   //     //
   //     //   Object.each(proc[0].value, function(val, prop){
   //     //
-  //     //     if(prop == '%cpu' || prop == '%mem' || prop == 'time'){
+  //     //     if(prop == 'percentage_cpu' || prop == 'percentage_mem' || prop == 'time'){
   //     //       if(!per_uid[proc[0].value.uid][prop]) per_uid[proc[0].value.uid][prop] = 0
   //     //
   //     //       per_uid[proc[0].value.uid][prop] += val

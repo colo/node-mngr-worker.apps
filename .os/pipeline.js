@@ -84,7 +84,7 @@ module.exports = function(http, out){
   				// periodical: 1000,
           periodical: function(dispatch){
             // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-            return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
+            return cron.schedule('* * * * * *', dispatch);//every 20 secs
           },
   			},
   		},
@@ -119,7 +119,7 @@ module.exports = function(http, out){
         connect_retry_count: -1,
         connect_retry_periodical: 1000,
   			requests: {
-  				periodical: 5000,//ms
+  				periodical: 1000,//ms
           // periodical: function(dispatch){
           //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
           //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
@@ -168,44 +168,44 @@ module.exports = function(http, out){
   	// 	},
   	// },
 
-    // {
-  	// 	poll: {
-  	// 		id: "input.elk.os.procs.http",
-  	// 		conn: [
-    //       Object.merge(
-    //         Object.clone(http),
-    //         {
-    //           host: 'elk',
-    //           module: ProcsPollHttp,
-    //           load: ['apps/os/input/procs']
-    //         },
-    //       )
-  	// 			// {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'elk',
-  	// 			// 	port: 8081,
-  	// 			// 	module: ProcsPollHttp,
-    //       //   load: ['apps/os/input/procs']
-  	// 			// },
-    //       // {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'dev',
-  	// 			// 	port: 8081,
-  	// 			// 	module: ProcsPollHttp,
-    //       //   load: ['apps/os/input/procs']
-  	// 			// }
-  	// 		],
-    //     connect_retry_count: -1,
-    //     connect_retry_periodical: 1000,
-  	// 		requests: {
-  	// 			periodical: 1000,//ms
-    //       // periodical: function(dispatch){
-    //       //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-    //       //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    //       // },
-  	// 		},
-  	// 	},
-  	// },
+    {
+  		poll: {
+  			id: "input.elk.os.procs.http",
+  			conn: [
+          Object.merge(
+            Object.clone(http),
+            {
+              host: 'elk',
+              module: ProcsPollHttp,
+              load: ['apps/os/input/procs']
+            },
+          )
+  				// {
+  				// 	scheme: 'http',
+  				// 	host:'elk',
+  				// 	port: 8081,
+  				// 	module: ProcsPollHttp,
+          //   load: ['apps/os/input/procs']
+  				// },
+          // {
+  				// 	scheme: 'http',
+  				// 	host:'dev',
+  				// 	port: 8081,
+  				// 	module: ProcsPollHttp,
+          //   load: ['apps/os/input/procs']
+  				// }
+  			],
+        connect_retry_count: -1,
+        connect_retry_periodical: 1000,
+  			requests: {
+  				periodical: 1000,//ms
+          // periodical: function(dispatch){
+          //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+          //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
+          // },
+  			},
+  		},
+  	},
    ],
    filters: [
   		// require('./snippets/filter.sanitize.template'),
@@ -224,6 +224,46 @@ module.exports = function(http, out){
           procs_filter(
             doc,
             opts,
+            // function(doc, opts, next, pipeline){
+            //   sanitize_filter(
+            //     doc,
+            //     opts,
+            //     // function(doc, opts, next, pipeline){
+            //     //   zipson_filter(
+            //     //     doc,
+            //     //     opts,
+            //     //     pipeline.output.bind(pipeline),
+            //     //     pipeline
+            //     //   )
+            //     // },
+            //     // function(doc, opts, next, pipeline){
+            //     //   lzutf8_filter(
+            //     //     doc,
+            //     //     opts,
+            //     //     pipeline.output.bind(pipeline),
+            //     //     pipeline
+            //     //   )
+            //     // },
+            //     // function(doc, opts, next, pipeline){
+            //     //   lzstring_filter(
+            //     //     doc,
+            //     //     opts,
+            //     //     pipeline.output.bind(pipeline),
+            //     //     pipeline
+            //     //   )
+            //     // },
+            //     // function(doc, opts, next, pipeline){
+            //     //   compress_filter(
+            //     //     doc,
+            //     //     opts,
+            //     //     pipeline.output.bind(pipeline),
+            //     //     pipeline
+            //     //   )
+            //     // },
+            //     pipeline.output.bind(pipeline),
+            //     pipeline
+            //   )
+            // },
             next,
             pipeline
           )
@@ -236,7 +276,16 @@ module.exports = function(http, out){
             networkInterfaces_filter(
               doc.networkInterfaces,
               opts,
+              // function(doc, opts, next, pipeline){
+              //   sanitize_filter(
+              //     doc,
+              //     opts,
+              //     pipeline.output.bind(pipeline),
+              //     pipeline
+              //   )
+              // },
               next,
+              // sanitize_filter,
               pipeline
             )
 
@@ -244,23 +293,57 @@ module.exports = function(http, out){
 
           }
 
+
+
+          // sanitize_filter(
+          //   doc,
+          //   opts,
+          //   // function(doc, opts, next, pipeline){
+          //   //   zipson_filter(
+          //   //     doc,
+          //   //     opts,
+          //   //     pipeline.output.bind(pipeline),
+          //   //     pipeline
+          //   //   )
+          //   // },
+          //   // function(doc, opts, next, pipeline){
+          //   //   lzutf8_filter(
+          //   //     doc,
+          //   //     opts,
+          //   //     pipeline.output.bind(pipeline),
+          //   //     pipeline
+          //   //   )
+          //   // },
+          //   // function(doc, opts, next, pipeline){
+          //   //   lzstring_filter(
+          //   //     doc,
+          //   //     opts,
+          //   //     pipeline.output.bind(pipeline),
+          //   //     pipeline
+          //   //   )
+          //   // },
+          //   // function(doc, opts, next, pipeline){
+          //   //   compress_filter(
+          //   //     doc,
+          //   //     opts,
+          //   //     pipeline.output.bind(pipeline),
+          //   //     pipeline
+          //   //   )
+          //   // },
+          //   pipeline.output.bind(pipeline),
+          //   pipeline
+          // )
+
           debug('app.options.id %s', app.options.id)
           if(app.options.id === 'os.mounts'){
             debug('MOUNTS %O', doc)
 
             doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
-
-            next(doc)
           }
           else if(app.options.id === 'os.blockdevices'){
             debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
             // process.exit(1)
-            Object.each(doc, function(_doc, device){
-              next({data: _doc, metadata: {host: host, path: module+'.'+device, tag: ['os', 'blockdevices', device].combine(Object.keys(_doc))}})
-            })
-            // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[Object.keys(doc)[0]]))}}
-            //
-            // next(doc)
+            doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[Object.keys(doc)[0]]))}}
           }
           else{
 
@@ -268,25 +351,9 @@ module.exports = function(http, out){
             //   debug('OS %o', doc, module)
             //   process.exit(1)
             // }
-
-            let memdoc = {data: {}, metadata: {host: host, path: module+'.memory', tag: ['os']}}
-            Object.each(doc, function(_doc, key){
-              if(/mem/.test(key)){
-                memdoc.metadata.tag.push(key)
-                memdoc.data[key] = _doc
-              }
-              else{
-                next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
-              }
-            })
-
-            if(Object.getLength(memdoc) > 0){
-              next(memdoc)
-            }
-            // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
+            doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
           }
-
-          // next(doc)
+          next(doc)
 
         }
 
@@ -423,12 +490,12 @@ module.exports = function(http, out){
   				],
   				module: require('js-pipeline/output/rethinkdb'),
           buffer:{
-  					// // size: 1, //-1
-  					// expire: 1001,
-            size: -1, //-1
-  					// expire: 0 //ms
-            expire: 1000, //ms
-            periodical: 999 //how often will check if buffer timestamp has expire
+  					// size: 1, //-1
+  					// expire:0
+            // size: -1,
+            // size: 100,
+            expire: 1001,
+            // expire: 5001,
   				}
   			}
   		}

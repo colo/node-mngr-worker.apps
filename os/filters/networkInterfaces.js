@@ -35,18 +35,36 @@ module.exports = function(val, opts, next, pipeline){
         * turn data property->messure (ex: transmited { bytes: .. }),
         * to: messure->property (ex: bytes {transmited:.., recived: ... })
         **/
-        Array.each(messures, function(messure){// "bytes" | "packets"
-          if(!networkInterfaces[iface+'_'+messure])
-            networkInterfaces[iface+'_'+messure] = {}
+        // Array.each(messures, function(messure){// "bytes" | "packets"
+        //   if(!networkInterfaces[iface+'_'+messure])
+        //     networkInterfaces[iface+'_'+messure] = {}
+				//
+        //   Array.each(properties, function(property, index){
+        //     /**
+        //     * properties[0] is "if", we want recived | transmited only
+        //     **/
+        //     if(index != 0 && val[iface] && val[iface][property] && val[iface][property][messure]){
+        //       networkInterfaces[iface+'_'+messure][property] = val[iface][property][messure] * 1
+				// 			if(isNaN(networkInterfaces[iface+'_'+messure][property]))
+				// 				delete networkInterfaces[iface+'_'+messure][property]
+        //     }
+				//
+        //   })
+				//
+        // })
+				Array.each(messures, function(messure){// "bytes" | "packets"
+					if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
+
+					if(!networkInterfaces[iface][messure]) networkInterfaces[iface][messure] = {}
 
           Array.each(properties, function(property, index){
             /**
             * properties[0] is "if", we want recived | transmited only
             **/
             if(index != 0 && val[iface] && val[iface][property] && val[iface][property][messure]){
-              networkInterfaces[iface+'_'+messure][property] = val[iface][property][messure] * 1
-							if(isNaN(networkInterfaces[iface+'_'+messure][property]))
-								delete networkInterfaces[iface+'_'+messure][property]
+              networkInterfaces[iface][messure][property] = val[iface][property][messure] * 1
+							if(isNaN(networkInterfaces[iface][messure][property]))
+								delete networkInterfaces[iface][messure][property]
             }
 
           })
@@ -57,18 +75,39 @@ module.exports = function(val, opts, next, pipeline){
 
 
 			debug_internals('networkInterfaces %o', networkInterfaces)
-
-      let networkInterfaces_stats_doc = {
-        data: networkInterfaces,
+			let networkInterfaces_stats_doc = {
+        data: {},
         metadata:{
 					host: host,
-          path: 'os.networkInterfaces.stats',
-					tag: ['os', 'networkInterfaces', 'stats'].combine(Object.keys(networkInterfaces))
+          path: 'os.networkInterfaces',
+					tag: ['os', 'networkInterfaces']
         }
       }
-			// debug_internals('networkInterfaces %o', val)
-			// process.exit(1)
 
+			Object.each(networkInterfaces, function(data, iface){
+				let doc = Object.clone(networkInterfaces_stats_doc)
+				doc.metadata.path += '.'+iface
+				doc.metadata.tag.push(iface)
+				doc.metadata.tag = doc.metadata.tag.combine(Object.keys(data))
+				doc.data = data
+
+				next(doc, opts, next, pipeline)
+
+			})
+
+      // let networkInterfaces_stats_doc = {
+      //   data: networkInterfaces,
+      //   metadata:{
+			// 		host: host,
+      //     path: 'os.networkInterfaces.stats',
+			// 		tag: ['os', 'networkInterfaces', 'stats'].combine(Object.keys(networkInterfaces))
+      //   }
+      // }
+			// next(networkInterfaces_stats_doc, opts, next, pipeline)
+
+			/**
+			* commented on 11/12/2019
+			* this should be an INFO doc?
 			let networkInterfaces_doc = {
         data: val,
         metadata:{
@@ -77,12 +116,11 @@ module.exports = function(val, opts, next, pipeline){
 					tag: ['os', 'networkInterfaces', 'if', 'recived', 'transmited'].combine(Object.keys(val.lo.if[0]))
         }
       }
-
-
-
-
 			next(networkInterfaces_doc, opts, next, pipeline)
-			// next(networkInterfaces_stats_doc, opts, next, pipeline)
+			**/
+
+
+
 
 			// }
 
