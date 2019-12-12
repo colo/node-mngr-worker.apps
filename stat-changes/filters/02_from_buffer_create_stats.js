@@ -12,8 +12,8 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
-// let paths_whitelist = /^os$/
+// let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
+let paths_whitelist = /^os|^munin|^logs/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
@@ -127,7 +127,7 @@ module.exports = function(payload){
               catch(e){
                 debug_internals('no hook file for %s %o', path, e)
               }
-              // if(path === 'os.procs'){
+              // if(path === 'os.loadavg'){
               //   debug_internals('HOOKs', hooks)
               //   process.exit(1)
               // }
@@ -137,7 +137,7 @@ module.exports = function(payload){
 
                 let _key = key
                 debug('KEY', key)
-                // process.exit(1)
+
 
                 if(hooks[path]){
                   Object.each(hooks[path], function(hook_data, hook_key){
@@ -157,6 +157,7 @@ module.exports = function(payload){
 
                 }
 
+
                 // if(path == 'os.procs')
                 //   debug_internals('KEY %s %s', key, _key)
 
@@ -173,6 +174,11 @@ module.exports = function(payload){
                   }
                 }
 
+
+                // if(path === 'os.loadavg'){
+                //   debug_internals('os.loadavg ', values[host][path])
+                //   process.exit(1)
+                // }
 
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
                   values[host][path] = hooks[path][_key].value(values[host][path], timestamp, value, key)
