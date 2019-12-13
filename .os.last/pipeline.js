@@ -9,7 +9,6 @@ let cron = require('node-cron');
 
 let procs_filter = require('./filters/proc'),
     networkInterfaces_filter = require('./filters/networkInterfaces'),
-    blockdevices_filter = require('./filters/blockdevices'),
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
 
@@ -254,20 +253,14 @@ module.exports = function(http, out){
             next(doc)
           }
           else if(app.options.id === 'os.blockdevices'){
-            blockdevices_filter(
-              doc,
-              opts,
-              next,
-              pipeline
-            )
-            // debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
-            // // process.exit(1)
-            // Object.each(doc, function(_doc, device){
-            //   next({data: _doc, metadata: {host: host, path: module+'.'+device, tag: ['os', 'blockdevices', device].combine(Object.keys(_doc))}})
-            // })
-            // // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[Object.keys(doc)[0]]))}}
-            // //
-            // // next(doc)
+            debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
+            // process.exit(1)
+            Object.each(doc, function(_doc, device){
+              next({data: _doc, metadata: {host: host, path: module+'.'+device, tag: ['os', 'blockdevices', device].combine(Object.keys(_doc))}})
+            })
+            // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[Object.keys(doc)[0]]))}}
+            //
+            // next(doc)
           }
           else{
 

@@ -84,30 +84,14 @@ module.exports = function(val, opts, next, pipeline){
         }
       }
 
-			/**
-			* one per iface
-			**/
-			// Object.each(networkInterfaces, function(data, iface){
-			// 	let doc = Object.clone(networkInterfaces_stats_doc)
-			// 	doc.metadata.path += '.'+iface
-			// 	doc.metadata.tag.push(iface)
-			// 	doc.metadata.tag = doc.metadata.tag.combine(Object.keys(data))
-			// 	doc.data = data
-			//
-			// 	next(doc, opts, next, pipeline)
-			//
-			// })
-
 			Object.each(networkInterfaces, function(data, iface){
-				Object.each(data, function(value, messure){
-					let doc = Object.clone(networkInterfaces_stats_doc)
-					doc.metadata.path += '.'+iface+'.'+messure
-					doc.metadata.tag.combine([iface, messure])
-					doc.metadata.tag.combine(Object.keys(data))
-					doc.data = value
+				let doc = Object.clone(networkInterfaces_stats_doc)
+				doc.metadata.path += '.'+iface
+				doc.metadata.tag.push(iface)
+				doc.metadata.tag = doc.metadata.tag.combine(Object.keys(data))
+				doc.data = data
 
-					next(doc, opts, next, pipeline)
-				})
+				next(doc, opts, next, pipeline)
 
 			})
 
