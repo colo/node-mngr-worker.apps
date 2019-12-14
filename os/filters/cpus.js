@@ -10,16 +10,21 @@ module.exports = function(val, opts, next, pipeline){
 			val !== null
 		){
 
-			let cpus = []
-			Array.each(val, function(_doc, cpu){
+			let cpus_merged = {}
+			Array.each(val, function(_doc, index){
+
 				if(_doc.times){
 					Object.each(_doc.times, function(value, prop){
 						_doc.times[prop] = value * 1
+						if(!cpus_merged[prop]) cpus_merged[prop] = 0
+						cpus_merged[prop] +=  _doc.times[prop]
 					})
 
 				}
 
-				cpus.push(_doc.times)
+				next({data: _doc.times, metadata: {host: host, path: module+'.cpus.'+index, tag: ['os', 'cpus'].combine(Object.keys(_doc.times))}})
+
+
 				/**
 				* @todo - move to "info" docs
 				**/
@@ -27,7 +32,7 @@ module.exports = function(val, opts, next, pipeline){
 				// }
 			})
 
-			next({data: cpus, metadata: {host: host, path: module+'.cpus', tag: ['os', 'cpus'].combine(Object.keys(cpus[0]))}})
+			next({data: cpus_merged, metadata: {host: host, path: module+'.cpus', tag: ['os', 'cpus'].combine(Object.keys(cpus_merged))}})
 
 			/**
 			* @todo - move to "info" docs

@@ -127,7 +127,7 @@ module.exports = function(payload){
               catch(e){
                 debug_internals('no hook file for %s %o', path, e)
               }
-              // if(path === 'os.loadavg'){
+              // if(path === 'os.cpus'){
               //   debug_internals('HOOKs', hooks)
               //   process.exit(1)
               // }
@@ -224,9 +224,10 @@ module.exports = function(payload){
 
   //
   //
-        // if(values.colo && values.colo)
-        debug_internals('values %o', values)
-        // process.exit(1)
+        // if(values.colo && values.colo['os.cpus']){
+        //   debug_internals('values %o', values.colo['os.cpus'])
+        //   process.exit(1)
+        // }
 
         if(Object.getLength(values) > 0){
           Object.each(values, function(host_data, host){

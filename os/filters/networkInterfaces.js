@@ -6,6 +6,10 @@ var debug_internals = require('debug')('filter:os-networkInterfaces:Internals');
 * if 2 procs match pid but are different, we use pid.0 ....pid.N
 * good read -> https://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
 **/
+
+const messure_filter = /^((?!multicast|frame|compressed|fifo).)*$/ //this RegExp is negated
+const iface_filter = /^((?!tap).)*$/ //this RegExp is negated
+
 module.exports = function(val, opts, next, pipeline){
 	let { type, input, input_type, app } = opts
 	let host = input_type.options.id
@@ -52,6 +56,7 @@ module.exports = function(val, opts, next, pipeline){
         //   })
 				//
         // })
+
 				Array.each(messures, function(messure){// "bytes" | "packets"
 					if(!networkInterfaces[iface]) networkInterfaces[iface] = {}
 
@@ -102,15 +107,22 @@ module.exports = function(val, opts, next, pipeline){
 			* one per messure per iface
 			**/
 			Object.each(networkInterfaces, function(data, iface){
-				Object.each(data, function(value, messure){
-					let doc = Object.clone(networkInterfaces_stats_doc)
-					doc.metadata.path += '.'+iface+'.'+messure
-					doc.metadata.tag.combine([iface, messure])
-					doc.metadata.tag.combine(Object.keys(data))
-					doc.data = value
+				if((iface_filter && iface_filter.test(iface)) || !iface_filter){
+					Object.each(data, function(value, messure){
+						if((messure_filter && messure_filter.test(messure)) || !messure_filter){
+							let doc = Object.clone(networkInterfaces_stats_doc)
+							doc.metadata.path += '.'+iface+'.'+messure
+							doc.metadata.tag.combine([iface, messure])
+							doc.metadata.tag.combine(Object.keys(data))
+							doc.data = value
 
-					next(doc, opts, next, pipeline)
-				})
+							next(doc, opts, next, pipeline)
+						}
+
+					})
+				}
+
+
 
 			})
 
