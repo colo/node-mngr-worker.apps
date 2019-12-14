@@ -15,12 +15,15 @@ module.exports = function(val, opts, next, pipeline){
 					Object.each(_doc.stats, function(value, prop){
 						_doc.stats[prop] = value * 1
 					})
-					next({data: _doc.stats, metadata: {host: host, path: module+'.'+device+'.stats', tag: ['os', 'blockdevices', device].combine(Object.keys(_doc.stats))}})
+					next({data: _doc.stats, metadata: {host: host, path: module+'.'+device, tag: ['os', 'blockdevices', device].combine(Object.keys(_doc.stats))}})
 				}
 
-				if(_doc.size && _doc.blockSize){
-					next({data: {size: _doc.size, blockSize: _doc.blockSize}, metadata: {host: host, path: module+'.'+device+'.info', tag: ['os', 'blockdevices', device, 'blockSize', 'size']}})
-				}
+				/**
+				* @todo - move to "info" docs
+				**/
+				// if(_doc.size && _doc.blockSize){
+				// 	next({data: {size: _doc.size, blockSize: _doc.blockSize}, metadata: {host: host, path: module+'.'+device+'.info', tag: ['os', 'blockdevices', device, 'blockSize', 'size']}})
+				// }
 			}
 			Object.each(val, function(_doc, device){
 				process_device(_doc, device)

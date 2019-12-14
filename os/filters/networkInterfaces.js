@@ -98,6 +98,9 @@ module.exports = function(val, opts, next, pipeline){
 			//
 			// })
 
+			/**
+			* one per messure per iface
+			**/
 			Object.each(networkInterfaces, function(data, iface){
 				Object.each(data, function(value, messure){
 					let doc = Object.clone(networkInterfaces_stats_doc)

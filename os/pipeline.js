@@ -10,6 +10,8 @@ let cron = require('node-cron');
 let procs_filter = require('./filters/proc'),
     networkInterfaces_filter = require('./filters/networkInterfaces'),
     blockdevices_filter = require('./filters/blockdevices'),
+    cpus_filter = require('./filters/cpus'),
+    mounts_filter = require('./filters/mounts'),
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
 
@@ -249,9 +251,16 @@ module.exports = function(http, out){
           if(app.options.id === 'os.mounts'){
             debug('MOUNTS %O', doc)
 
-            doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
+            mounts_filter(
+              doc,
+              opts,
+              next,
+              pipeline
+            )
 
-            next(doc)
+            // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc[0]))}}
+            //
+            // next(doc)
           }
           else if(app.options.id === 'os.blockdevices'){
             blockdevices_filter(
@@ -260,6 +269,7 @@ module.exports = function(http, out){
               next,
               pipeline
             )
+
             // debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
             // // process.exit(1)
             // Object.each(doc, function(_doc, device){
@@ -271,10 +281,7 @@ module.exports = function(http, out){
           }
           else{
 
-            // if(module === 'os'){
-            //   debug('OS %o', doc, module)
-            //   process.exit(1)
-            // }
+
 
             let memdoc = {data: {}, metadata: {host: host, path: module+'.memory', tag: ['os']}}
             Object.each(doc, function(_doc, key){
@@ -282,12 +289,38 @@ module.exports = function(http, out){
                 memdoc.metadata.tag.push(key)
                 memdoc.data[key] = _doc
               }
+              else if(key === 'cpus'){
+                cpus_filter(
+                  _doc,
+                  opts,
+                  next,
+                  pipeline
+                )
+              }
+              else if(key === 'loadavg'){
+                let _tmp = Array.clone(_doc)
+                _doc = {
+                  '1_min': _tmp[0],
+                  '5_min': _tmp[1],
+                  '15_min': _tmp[2]
+                }
+
+                next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
+              }
+              else if(key === 'uptime'){
+                let _tmp = _doc
+                _doc = {
+                  seconds: _tmp
+                }
+
+                next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
+              }
               else{
                 next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
               }
             })
 
-            if(Object.getLength(memdoc) > 0){
+            if(Object.getLength(memdoc.data) > 0){
               next(memdoc)
             }
             // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
