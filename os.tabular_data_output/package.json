@@ -1,0 +1,31 @@
+{
+  "name": "login",
+  "version": "0.0.1",
+  "description": "Login App",
+  "author": {
+    "name": "Luciano Bueno",
+    "email": "glamero@gmail.com"
+  },
+  "main": "./",
+  "engines": {
+    "node": ">= 0.10.21"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": [
+    "login",
+    "authentication"
+  ],
+  "dependencies": {
+    "js-caching": "git+https://github.com/colo/js-caching.git",
+    "mngr-ui-admin-charts": "git+https://github.com/colo/mngr-ui-admin-charts.git",
+    "node-mngr-docs": "git+https://github.com/colo/node-mngr-docs.git",
+    "node-tabular-data": "git+https://github.com/colo/node-tabular-data.git"
+  }
+}
