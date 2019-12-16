@@ -468,7 +468,7 @@ module.exports = function(http, out){
             size: -1, //-1
   					// expire: 0 //ms
             expire: 1000, //ms
-            periodical: 999 //how often will check if buffer timestamp has expire
+            periodical: 100 //how often will check if buffer timestamp has expire
   				}
   			}
   		}
