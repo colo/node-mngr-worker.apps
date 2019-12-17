@@ -106,25 +106,72 @@ module.exports = function(val, opts, next, pipeline){
 			/**
 			* one per messure per iface
 			**/
+			// Object.each(networkInterfaces, function(data, iface){
+			// 	if((iface_filter && iface_filter.test(iface)) || !iface_filter){
+			// 		Object.each(data, function(value, messure){
+			// 			if((messure_filter && messure_filter.test(messure)) || !messure_filter){
+			// 				let doc = Object.clone(networkInterfaces_stats_doc)
+			// 				doc.metadata.path += '.'+iface+'.'+messure
+			// 				doc.metadata.tag.combine([iface, messure])
+			// 				doc.metadata.tag.combine(Object.keys(data))
+			// 				doc.data = value
+			//
+			// 				next(doc, opts, next, pipeline)
+			// 			}
+			//
+			// 		})
+			// 	}
+			//
+			//
+			//
+			// })
+
+			/**
+			* one doc per packets and one per bytes per iface
+			**/
+
 			Object.each(networkInterfaces, function(data, iface){
 				if((iface_filter && iface_filter.test(iface)) || !iface_filter){
+					let bytes_doc = Object.clone(networkInterfaces_stats_doc)
+					bytes_doc.metadata.tag.combine([iface, 'bytes'])
+					bytes_doc.metadata.path += '.'+iface+'.bytes'
+
+					let packets_doc = Object.clone(networkInterfaces_stats_doc)
+					packets_doc.metadata.tag.combine([iface, 'packets'])
+					packets_doc.metadata.path += '.'+iface+'.packets'
+
 					Object.each(data, function(value, messure){
 						if((messure_filter && messure_filter.test(messure)) || !messure_filter){
-							let doc = Object.clone(networkInterfaces_stats_doc)
-							doc.metadata.path += '.'+iface+'.'+messure
-							doc.metadata.tag.combine([iface, messure])
-							doc.metadata.tag.combine(Object.keys(data))
-							doc.data = value
+							if(messure === 'packets' || messure === 'errs' || messure === 'drop'){
+								packets_doc.metadata.tag.combine([messure])
 
-							next(doc, opts, next, pipeline)
+								Object.each(value, function(val, property){
+									packets_doc.metadata.tag.combine([property])
+									packets_doc.data[messure+'_'+property] = val
+								})
+								// packets_doc.metadata.tag.combine(Object.keys(data))
+							}
+							else{
+
+								bytes_doc.metadata.tag.combine(Object.keys(data))
+								bytes_doc.data = value
+							}
+
+
 						}
 
 					})
+
+					next(bytes_doc, opts, next, pipeline)
+					next(packets_doc, opts, next, pipeline)
 				}
 
 
 
 			})
+
+
+
 
       // let networkInterfaces_stats_doc = {
       //   data: networkInterfaces,

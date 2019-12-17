@@ -12,13 +12,15 @@ module.exports = function(val, opts, next, pipeline){
 			val !== null
 		){
 
+			let used_doc_data = {}
+			let used_doc_data_info = {}
 			Array.each(val, function(_doc){
 
 				if((type_filter && type_filter.test(_doc.type)) || !type_filter){
 					let mount_point = _doc.mount_point
-					let used = {
-						percentage: _doc.percentage *1
-					}
+					// let used = {
+					// 	percentage: _doc.percentage *1
+					// }
 
 					let blocks = {
 						availabe : _doc.availabe *1,
@@ -31,9 +33,17 @@ module.exports = function(val, opts, next, pipeline){
 						type: _doc.type
 					}
 
+					/**
+					* one doc per mount for blocks
+					**/
 					next({data: blocks, metadata: {host: host, path: module+'.['+mount_point+'].blocks', tag: ['os', 'mounts', mount_point, 'blocks'].combine(Object.values(info).combine(Object.keys(blocks)))}})
-					next({data: used, metadata: {host: host, path: module+'.['+mount_point+'].used', tag: ['os', 'mounts', mount_point, 'used', 'percentage'].combine(Object.values(info))}})
 
+					/**
+					* moved to one doc for all mount points percentage
+					**/
+					// next({data: used, metadata: {host: host, path: module+'.['+mount_point+'].used', tag: ['os', 'mounts', mount_point, 'used', 'percentage'].combine(Object.values(info))}})
+					used_doc_data[mount_point] = _doc.percentage *1
+					used_doc_data_info = Object.merge(used_doc_data_info, info)
 					// if(_doc.stats){
 					// 	Object.each(_doc.stats, function(value, prop){
 					// 		_doc.stats[prop] = value * 1
@@ -50,6 +60,10 @@ module.exports = function(val, opts, next, pipeline){
 					// }
 				}
 			})
+
+			if(Object.getLength(used_doc_data) > 0){
+				next({data: used_doc_data, metadata: {host: host, path: module+'.used', tag: ['os', 'mounts', 'used', 'percentage'].combine(Object.values(used_doc_data_info)).combine(Object.values(used_doc_data))}})
+			}
 
 			// next(networkInterfaces_doc, opts, next, pipeline)
 
