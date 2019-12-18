@@ -4,7 +4,7 @@ const HOST = 'elk'
 const PORT = 28015
 const DATABASES = ['devel', 'production']
 // const TABLES = ['periodical', 'historical']
-const TABLES = ['munin_historical', 'os_historical', 'logs_historical']
+const TABLES = ['munin_historical', 'os_historical', 'logs_historical', 'os_tabular']
 
 
 // const DATABASE = 'historical'
