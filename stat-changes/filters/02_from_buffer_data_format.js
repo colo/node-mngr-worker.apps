@@ -52,18 +52,21 @@ module.exports = function(payload){
 
     if(buffer && buffer.length > 0){
       Array.each(buffer, function(buffered_doc){
-        debug('3rd filter %o', buffered_doc, format)
+        // debug('3rd filter %o', buffered_doc, format)
         // process.exit(1)
         if(buffered_doc && buffered_doc.id === 'changes' && buffered_doc.metadata && buffered_doc.metadata.from === table && buffered_doc.data){
           Array.each(buffered_doc.data, function(real_data){
 
-            data_formater_filter(real_data, format, process.cwd()+'/apps/stat-changes/libs/', function(data){
+            data_formater_filter(real_data, format, process.cwd()+'/apps/stat-changes/libs/data_formater/', function(data){
+              debug('result %o', data)
+              // process.exit(1)
               let doc = Object.clone(real_data)
-              // debug('result %o', data)
+
               let key = Object.keys(data)[0]
               doc.data = data[key]
               doc.metadata.format = format
               // next(doc, opts, next, pipeline)
+
               sanitize_filter(
                 doc,
                 opts,
