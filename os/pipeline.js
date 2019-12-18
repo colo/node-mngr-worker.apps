@@ -12,6 +12,7 @@ let procs_filter = require('./filters/proc'),
     blockdevices_filter = require('./filters/blockdevices'),
     cpus_filter = require('./filters/cpus'),
     mounts_filter = require('./filters/mounts'),
+    // data_formater_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.data_formater')),
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
 
@@ -337,6 +338,34 @@ module.exports = function(http, out){
       /**
       * not merge
       **/
+      /**
+      * not merge
+      **/
+      // function(doc, opts, next, pipeline){
+      //   let { type, input, input_type, app } = opts
+      //
+      //
+      //
+      //   let timestamp = roundMilliseconds(Date.now())
+      //   doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
+      //   doc.metadata.timestamp = timestamp
+      //
+      //   debug('last filter %o', doc)
+      //   data_formater_filter(doc, 'tabular', process.cwd()+'/apps/os/libs/', function(data){
+      //     debug('result %o', data)
+      //     let key = Object.keys(data)[0]
+      //     doc.data = data[key]
+      //     doc.metadata.format = 'tabular'
+      //     sanitize_filter(
+      //       doc,
+      //       opts,
+      //       pipeline.output.bind(pipeline),
+      //       pipeline
+      //     )
+      //     // process.exit(1)
+      //   })
+      //
+      // },
       function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
 
@@ -354,34 +383,6 @@ module.exports = function(http, out){
           pipeline.output.bind(pipeline),
           pipeline
         )
-
-        // if(!modules[host]) modules[host] = Object.clone(all_modules)
-        //
-        // modules[host][module] = true
-        //
-        // debug_internals('merge', host, module, modules[host])
-        //
-        // if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
-        //
-        // meta_docs[host].data.push(doc)
-        // meta_docs[host].id = host+'.os.merged@'+Date.now()
-        // meta_docs[host].metadata['host'] = host
-        //
-        // if(Object.every(modules[host], function(val, mod){ return val })){
-        //   // debug_internals('META %o', meta_docs[host])
-        //   // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
-        //   sanitize_filter(
-        //     Object.clone(meta_docs[host]),
-        //     opts,
-        //     pipeline.output.bind(pipeline),
-        //     pipeline
-        //   )
-        //
-        //   meta_docs[host].data = []
-        //   Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
-        //
-        // }
-
 
       },
 
