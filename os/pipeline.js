@@ -94,43 +94,43 @@ module.exports = function(http, out){
   		},
   	},
 
-    {
-  		poll: {
-  			id: "input.localhost.os.procs.http",
-  			conn: [
-          Object.merge(
-            Object.clone(http),
-            {
-              module: ProcsPollHttp,
-              load: ['apps/os/input/procs']
-            },
-          )
-  				// {
-  				// 	scheme: 'http',
-  				// 	host:'elk',
-  				// 	port: 8081,
-  				// 	module: ProcsPollHttp,
-          //   load: ['apps/os/input/procs']
-  				// },
-          // {
-  				// 	scheme: 'http',
-  				// 	host:'dev',
-  				// 	port: 8081,
-  				// 	module: ProcsPollHttp,
-          //   load: ['apps/os/input/procs']
-  				// }
-  			],
-        connect_retry_count: -1,
-        connect_retry_periodical: 1000,
-  			requests: {
-  				periodical: 250,//ms
-          // periodical: function(dispatch){
-          //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-          //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
-          // },
-  			},
-  		},
-  	},
+    // {
+  	// 	poll: {
+  	// 		id: "input.localhost.os.procs.http",
+  	// 		conn: [
+    //       Object.merge(
+    //         Object.clone(http),
+    //         {
+    //           module: ProcsPollHttp,
+    //           load: ['apps/os/input/procs']
+    //         },
+    //       )
+  	// 			// {
+  	// 			// 	scheme: 'http',
+  	// 			// 	host:'elk',
+  	// 			// 	port: 8081,
+  	// 			// 	module: ProcsPollHttp,
+    //       //   load: ['apps/os/input/procs']
+  	// 			// },
+    //       // {
+  	// 			// 	scheme: 'http',
+  	// 			// 	host:'dev',
+  	// 			// 	port: 8081,
+  	// 			// 	module: ProcsPollHttp,
+    //       //   load: ['apps/os/input/procs']
+  	// 			// }
+  	// 		],
+    //     connect_retry_count: -1,
+    //     connect_retry_periodical: 1000,
+  	// 		requests: {
+  	// 			periodical: 250,//ms
+    //       // periodical: function(dispatch){
+    //       //   // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+    //       //   return cron.schedule('* * * * * *', dispatch);//every 20 secs
+    //       // },
+  	// 		},
+  	// 	},
+  	// },
     // {
   	// 	poll: {
   	// 		id: "input.elk.os.http",
@@ -339,7 +339,7 @@ module.exports = function(http, out){
       * not merge
       **/
       /**
-      * not merge
+      * convert to tabular data
       **/
       // function(doc, opts, next, pipeline){
       //   let { type, input, input_type, app } = opts
@@ -468,8 +468,8 @@ module.exports = function(http, out){
   					// expire: 1001,
             size: -1, //-1
   					// expire: 0 //ms
-            expire: 1000, //ms
-            periodical: 999 //how often will check if buffer timestamp has expire
+            expire: 999, //ms
+            periodical: 500 //how often will check if buffer timestamp has expire
   				}
   			}
   		}

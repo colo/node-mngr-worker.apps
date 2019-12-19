@@ -87,7 +87,10 @@ module.exports = function(payload){
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
     // process.exit(1)
-    if(expire === undefined && type === 'second'){
+    if(expire === undefined && type === 'inmediate'){
+      expire = 0
+    }
+    else if(expire === undefined && type === 'second'){
       expire = roundMilliseconds(Date.now() + SECOND)
     }
     else if(expire === undefined && type === 'minute'){

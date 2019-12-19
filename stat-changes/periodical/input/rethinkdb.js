@@ -245,7 +245,7 @@ module.exports = new Class({
             else if(app.options.type === 'hour'){
               "r.row('metadata')('type').eq('minute')"
             }
-            
+
             req.query.register = 'changes'
 
 
