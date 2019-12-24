@@ -39,10 +39,6 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 
 const stat = require('../libs/stat')
 
-const { fork } = require('child_process');
-
-let forks = {}
-
 module.exports = function(payload){
   let {input, output, type, format } = payload
   let table = input.table
@@ -61,64 +57,24 @@ module.exports = function(payload){
         if(buffered_doc && buffered_doc.id === 'changes' && buffered_doc.metadata && buffered_doc.metadata.from === table && buffered_doc.data){
           Array.each(buffered_doc.data, function(real_data){
             if(__white_black_lists_filter(paths_whitelist, paths_blacklist, real_data.metadata.path)){
+              data_formater_filter(real_data, format, process.cwd()+'/apps/stat-changes/libs/data_formater/', function(data){
+                debug('result %o', data)
+                // process.exit(1)
+                let doc = Object.clone(real_data)
 
-              // let doc = Object.clone(real_data)
+                let key = Object.keys(data)[0]
+                doc.data = data[key]
+                doc.metadata.format = format
+                // next(doc, opts, next, pipeline)
 
-              if(!forks[real_data.metadata.host]){
-                forks[real_data.metadata.host] = fork(process.cwd()+'/apps/stat-changes/libs/fork_filter', [
-                  path.join(process.cwd(), '/devel/etc/snippets/filter.data_formater'),
-                ])
-
-                forks[real_data.metadata.host].on('message', function(msg){
-                  let data = msg.result
-                  let doc = msg.doc
-                  debug('result %o %o', data, doc)
-                  // process.exit(1)
-                  // let doc = Object.clone(real_data)
-
-                  let key = Object.keys(data)[0]
-                  doc.data = data[key]
-                  doc.metadata.format = format
-                  // next(doc, opts, next, pipeline)
-
-                  sanitize_filter(
-                    doc,
-                    opts,
-                    pipeline.output.bind(pipeline),
-                    pipeline
-                  )
-
-                  // // process.exit(1)
-                })
-
-              }
-
-
-
-              forks[real_data.metadata.host].send({
-                params: [real_data, format, process.cwd()+'/apps/stat-changes/libs/data_formater/'],
-                doc:  Object.clone(real_data)
+                sanitize_filter(
+                  doc,
+                  opts,
+                  pipeline.output.bind(pipeline),
+                  pipeline
+                )
+                // // process.exit(1)
               })
-
-
-              // data_formater_filter(real_data, format, process.cwd()+'/apps/stat-changes/libs/data_formater/', function(data){
-              //   debug('result %o', data)
-              //   // process.exit(1)
-              //   let doc = Object.clone(real_data)
-              //
-              //   let key = Object.keys(data)[0]
-              //   doc.data = data[key]
-              //   doc.metadata.format = format
-              //   // next(doc, opts, next, pipeline)
-              //
-              //   sanitize_filter(
-              //     doc,
-              //     opts,
-              //     pipeline.output.bind(pipeline),
-              //     pipeline
-              //   )
-              //   // // process.exit(1)
-              // })
             }
         //     // let timestamp = real_data.metadata.timestamp
         //     let host = real_data.metadata.host
