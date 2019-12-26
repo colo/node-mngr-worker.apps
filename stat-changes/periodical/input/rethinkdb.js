@@ -297,7 +297,7 @@ module.exports = new Class({
                 * changes (feed)
                 **/
                 if(req.query.register === 'changes')
-                  query = query.changes({includeTypes: true, squash: 1})
+                  query = query.changes({includeTypes: true, squash: false})
 
                 if(req.query && req.query.transformation)
                   query = app.query_with_transformation(query, req.query.transformation)
