@@ -1,6 +1,8 @@
 var debug = require('debug')('filter:os-blockdevices');
 var debug_internals = require('debug')('filter:os-blockdevices:Internals');
 
+let conf = require('../etc/blockdevices')()
+
 /**
 stats_info: {
 	read_ios: null,        //requests      number of read I/Os processed
@@ -70,9 +72,10 @@ module.exports = function(val, opts, next, pipeline){
 				// }
 			}
 			Object.each(val, function(_doc, device){
-				process_device(_doc, device)
+				if(conf.per_device === true)
+					process_device(_doc, device)
 
-				if(_doc.partitions){
+				if(_doc.partitions && conf.per_partition === true){
 					Object.each(_doc.partitions, function(data, partition){
 						process_device(data, partition)
 					})

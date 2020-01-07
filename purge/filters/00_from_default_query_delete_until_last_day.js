@@ -129,7 +129,10 @@ module.exports = function(payload){
       // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
     }
     else{
-      pipeline.fireEvent('onResume')
+      if(doc && doc.id === 'range'){
+        pipeline.fireEvent('onResume')
+      }
+      
       next(doc, opts, next, pipeline)
     }
 

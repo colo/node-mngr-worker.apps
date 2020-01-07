@@ -1,6 +1,8 @@
 var debug = require('debug')('filter:os-cpus');
 var debug_internals = require('debug')('filter:os-cpus:Internals');
 
+let conf = require('../etc/cpus')()
+
 module.exports = function(val, opts, next, pipeline){
 	let { type, input, input_type, app } = opts
 	let host = input_type.options.id
@@ -22,7 +24,8 @@ module.exports = function(val, opts, next, pipeline){
 
 				}
 
-				next({data: _doc.times, metadata: {host: host, path: module+'.cpus.'+index, tag: ['os', 'cpus'].combine(Object.keys(_doc.times))}})
+				if(conf.per_core === true)
+					next({data: _doc.times, metadata: {host: host, path: module+'.cpus.'+index, tag: ['os', 'cpus'].combine(Object.keys(_doc.times))}})
 
 
 				/**
@@ -32,7 +35,8 @@ module.exports = function(val, opts, next, pipeline){
 				// }
 			})
 
-			next({data: cpus_merged, metadata: {host: host, path: module+'.cpus', tag: ['os', 'cpus'].combine(Object.keys(cpus_merged))}})
+			if(conf.merged === true)
+				next({data: cpus_merged, metadata: {host: host, path: module+'.cpus', tag: ['os', 'cpus'].combine(Object.keys(cpus_merged))}})
 
 			/**
 			* @todo - move to "info" docs

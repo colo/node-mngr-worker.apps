@@ -7,8 +7,10 @@ var debug_internals = require('debug')('filter:os-networkInterfaces:Internals');
 * good read -> https://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
 **/
 
-const messure_filter = /^((?!multicast|frame|compressed|fifo).)*$/ //this RegExp is negated
-const iface_filter = /^((?!tap).)*$/ //this RegExp is negated
+// const messure_filter = /^((?!multicast|frame|compressed|fifo).)*$/ //this RegExp is negated
+// const iface_filter = /^((?!tap).)*$/ //this RegExp is negated
+
+let conf = require('../etc/networkInterfaces')()
 
 module.exports = function(val, opts, next, pipeline){
 	let { type, input, input_type, app } = opts
@@ -107,9 +109,9 @@ module.exports = function(val, opts, next, pipeline){
 			* one per messure per iface
 			**/
 			// Object.each(networkInterfaces, function(data, iface){
-			// 	if((iface_filter && iface_filter.test(iface)) || !iface_filter){
+			// 	if((conf.iface_filter && conf.iface_filter.test(iface)) || !conf.iface_filter){
 			// 		Object.each(data, function(value, messure){
-			// 			if((messure_filter && messure_filter.test(messure)) || !messure_filter){
+			// 			if((conf.messure_filter && conf.messure_filter.test(messure)) || !conf.messure_filter){
 			// 				let doc = Object.clone(networkInterfaces_stats_doc)
 			// 				doc.metadata.path += '.'+iface+'.'+messure
 			// 				doc.metadata.tag.combine([iface, messure])
@@ -131,7 +133,7 @@ module.exports = function(val, opts, next, pipeline){
 			**/
 
 			Object.each(networkInterfaces, function(data, iface){
-				if((iface_filter && iface_filter.test(iface)) || !iface_filter){
+				if((conf.iface_filter && conf.iface_filter.test(iface)) || !conf.iface_filter){
 					let bytes_doc = Object.clone(networkInterfaces_stats_doc)
 					bytes_doc.metadata.tag.combine([iface, 'bytes'])
 					bytes_doc.metadata.path += '.'+iface+'.bytes'
@@ -141,7 +143,7 @@ module.exports = function(val, opts, next, pipeline){
 					packets_doc.metadata.path += '.'+iface+'.packets'
 
 					Object.each(data, function(value, messure){
-						if((messure_filter && messure_filter.test(messure)) || !messure_filter){
+						if((conf.messure_filter && conf.messure_filter.test(messure)) || !conf.messure_filter){
 							if(messure === 'packets' || messure === 'errs' || messure === 'drop'){
 								packets_doc.metadata.tag.combine([messure])
 

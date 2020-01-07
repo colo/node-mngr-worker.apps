@@ -1,7 +1,8 @@
 var debug = require('debug')('filter:os-mounts');
 var debug_internals = require('debug')('filter:os-mounts:Internals');
 
-const type_filter = /^ext|^xfs/
+let conf = require('../etc/mounts')()
+// const type_filter = /^ext|^xfs/
 
 module.exports = function(val, opts, next, pipeline){
 	let { type, input, input_type, app } = opts
@@ -16,7 +17,7 @@ module.exports = function(val, opts, next, pipeline){
 			let used_doc_data_info = {}
 			Array.each(val, function(_doc){
 
-				if((type_filter && type_filter.test(_doc.type)) || !type_filter){
+				if((conf.type_filter && conf.type_filter.test(_doc.type)) || !conf.type_filter){
 					let mount_point = _doc.mount_point
 					// let used = {
 					// 	percentage: _doc.percentage *1

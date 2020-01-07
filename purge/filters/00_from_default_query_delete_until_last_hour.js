@@ -29,7 +29,7 @@ const roundMinutes = function(timestamp){
 const SECOND = 1000
 const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
-// const HOUR = 30 * MINUTE//devel
+// const HOUR = 10 * MINUTE//devel
 const DAY = HOUR * 24
 module.exports = function(payload){
   let {input, output, type } = payload
@@ -51,44 +51,45 @@ module.exports = function(payload){
       // pipeline.current[doc.metadata.from] = doc
 
       // debug('PIPELINE %o', pipeline)
-      let end = roundSeconds(Date.now() - HOUR)
-
       pipeline.fireEvent('onSuspend')
+
+      let end = roundSeconds(Date.now() - HOUR)
 
       debug('1st filter END RANGE %s', new Date(end))
 
       Array.each(doc.data, function(group, index){
         debug('1st filter GROUP %o', group)
 
+
         // Array.each(group, function(data){
-          pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
-            id: "range",
-            Range: "posix "+group.metadata.timestamp+"-"+end+"/*",
-            query: {
-              "q": [
-                "id",
-                // "data",
-                // // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-                // "metadata"
-              ],
-              "transformation": [
-                // {
-                // "orderBy": {"index": "r.desc(asc)"}
-                // },
-                // {
-                //   "slice": [0, 1]
-                // }
+        pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
+          id: "range",
+          Range: "posix "+group.metadata.timestamp+"-"+end+"/*",
+          query: {
+            "q": [
+              "id",
+              // "data",
+              // // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+              // "metadata"
+            ],
+            "transformation": [
+              // {
+              // "orderBy": {"index": "r.desc(asc)"}
+              // },
+              // {
+              //   "slice": [0, 1]
+              // }
 
 
-              ],
-              // "filter": [
-              //   "r.row('metadata')('path').eq('"+group.path+"')",
-              //   "r.row('metadata')('host').eq('"+host+"')",
-              //   "r.row('metadata')('type').eq('"+type+"')"
-              // ]
-            },
-            params: {},
-          })
+            ],
+            // "filter": [
+            //   "r.row('metadata')('path').eq('"+group.path+"')",
+            //   "r.row('metadata')('host').eq('"+host+"')",
+            //   "r.row('metadata')('type').eq('"+type+"')"
+            // ]
+          },
+          params: {},
+        })
         // })
 
         // Array.each(group.hosts, function(host){
@@ -132,7 +133,11 @@ module.exports = function(payload){
       // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
     }
     else{
-      pipeline.fireEvent('onResume')
+      // process.exit(1)
+      if(doc && doc.id === 'range'){
+        pipeline.fireEvent('onResume')
+      }
+
       next(doc, opts, next, pipeline)
     }
 
