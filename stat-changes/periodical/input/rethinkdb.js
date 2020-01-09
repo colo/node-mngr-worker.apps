@@ -235,7 +235,11 @@ module.exports = new Class({
 
         {
 					register: function(req, next, app){
-            req = (req) ? Object.clone(req) : { id: 'changes', params: {}, query: {} }
+            req = (req)
+            ? Object.clone(req)
+            : (app.options && app.options.register && app.options.register.req)
+              ? Object.merge({ id: 'changes', params: {}, query: {}}, Object.clone(app.options.register.req))
+              : { id: 'changes', params: {}, query: {} }
 
             if(app.options.type === 'minute'){
               req.query.filter = [
@@ -252,7 +256,7 @@ module.exports = new Class({
             // if(req.query.register || req.query.unregister){
               // process.exit(1)
 
-              debug_internals('register %o %s', req, app.options.type);
+              debug_internals('register %o %o', req, app.options);
               // process.exit(1)
               req.params = req.params || {}
 
@@ -292,6 +296,9 @@ module.exports = new Class({
 
                   query = query.getAll(app.r.args(req.params.value) , {index: pluralize(req.params.prop, 1)})
                 }
+
+                if(req.query && req.query.filter)
+                  query = app.query_with_filter(query, req.query.filter)
 
                 /**
                 * changes (feed)
@@ -350,7 +357,7 @@ module.exports = new Class({
                   }
                 }
 
-                debug('CONNECTED? %o', app.connected)
+                debug('CONNECTED? %o %s', app.connected, app.options.db)
                 if(app.connected === false){
                   app.addEvent(app.ON_CONNECT, function(){
                     app.register(
