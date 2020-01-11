@@ -37,6 +37,62 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 
 const stat = require('../libs/stat')
 
+let traversed_path_require = {}
+
+const __traverse_path_require = function(type, require_path, path, stat, original_path){
+  original_path = original_path || path
+  path = path.replace(/_/g, '.')
+  original_path = original_path.replace(/_/g, '.')
+
+  debug_internals('__traverse_path_require %s',  require_path+'/'+type+'/'+path)
+
+  if(traversed_path_require[require_path+'/'+type+'/'+path] && traversed_path_require[require_path+'/'+type+'/'+path] !== undefined){
+    return traversed_path_require[require_path+'/'+type+'/'+path]
+  }
+  else if(traversed_path_require[require_path+'/'+type+'/'+path] && traversed_path_require[require_path+'/'+type+'/'+path] === undefined){
+    if(path.indexOf('.') > -1){
+      let pre_path = path.substring(0, path.lastIndexOf('.'))
+      if(traversed_path_require[require_path+'/'+type+'/'+pre_path] !== undefined){
+        let chart = __traverse_path_require(type, pre_path, stat, original_path)
+        traversed_path_require[require_path+'/'+type+'/'+pre_path] = chart
+        return chart
+      }
+    }
+    return undefined
+  }
+  else{
+
+    debug_internals('__traverse_path_require %s',  require_path+'/'+type+'/'+path)
+
+    try{
+      let chart = require(require_path+'/'+type+'/'+path)(stat, original_path)
+      traversed_path_require[require_path+'/'+type+'/'+path] = chart
+      return chart
+    }
+    catch(e){
+      debug_internals('__traverse_path_require error %o',  e)
+
+      traversed_path_require[require_path+'/'+type+'/'+path] = undefined
+      if(path.indexOf('.') > -1){
+        let pre_path = path.substring(0, path.lastIndexOf('.'))
+        let chart = __traverse_path_require(type, require_path, pre_path, stat, original_path)
+        traversed_path_require[require_path+'/'+type+'/'+pre_path] = chart
+        return chart
+      }
+
+      return undefined
+    }
+
+  }
+
+
+  // let path = path.split('.')
+  // if(!Array.isArray(path))
+  //   path = [path]
+  //
+  // Array.each()
+}
+
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
@@ -118,18 +174,19 @@ module.exports = function(payload){
               if(!values[host]) values[host] = {};
               if(!values[host][path]) values[host][path] = {};
 
-              try{
-                //debug_internals('HOOK path %s', path)
-                let _require = require('../hooks/'+type+'/'+path)
-                if(_require)
-                  hooks[path] = _require
-              }
-              catch(e){
-                debug_internals('no hook file for %s %o', path, e)
-              }
+              let _require = __traverse_path_require(type, '../hooks/', path)
+              // try{
+              //   //debug_internals('HOOK path %s', path)
+              //   let _require = require('../hooks/'+type+'/'+path)
+              if(_require)
+                hooks[path] = _require
+              // }
+              // catch(e){
+              //   debug_internals('no hook file for %s %o', path, e)
+              // }
               // if(path === 'os.cpus'){
-              //   debug_internals('HOOKs', hooks)
-              //   process.exit(1)
+              debug_internals('HOOKs', path, _require)
+                // process.exit(1)
               // }
 
 
@@ -175,10 +232,7 @@ module.exports = function(payload){
                 }
 
 
-                // if(path === 'os.loadavg'){
-                //   debug_internals('os.loadavg ', values[host][path])
-                //   process.exit(1)
-                // }
+
 
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
                   values[host][path] = hooks[path][_key].value(values[host][path], timestamp, value, key)
@@ -208,7 +262,14 @@ module.exports = function(payload){
               // }
               if(group_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
                 values[host][path] = hooks[path].post_values(values[host][path])
+
+                // if(/^os\.blockdevices/.test(path)){
+                //   debug_internals('os.blockdevices ', values[host][path])
+                //   process.exit(1)
+                // }
               }
+
+
             }//__white_black_lists_filter
 
 
