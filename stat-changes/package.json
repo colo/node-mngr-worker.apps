@@ -11,7 +11,9 @@
     "node": ">= 0.10.21"
   },
   "devDependencies": {},
-  "optionalDependencies": {},
+  "optionalDependencies": {
+    "brain.js": "^2.0.0-alpha.11"
+  },
   "licenses": [
     {
       "type": "MIT",

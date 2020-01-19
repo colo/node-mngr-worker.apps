@@ -93,6 +93,36 @@ const __traverse_path_require = function(type, require_path, path, stat, origina
   // Array.each()
 }
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  return d.getTime()
+}
+
+const roundSeconds = function(timestamp){
+  timestamp = roundMilliseconds(timestamp)
+  let d = new Date(timestamp)
+  d.setSeconds(0)
+
+  return d.getTime()
+}
+
+const roundMinutes = function(timestamp){
+  timestamp = roundSeconds(timestamp)
+  let d = new Date(timestamp)
+  d.setMinutes(0)
+
+  return d.getTime()
+}
+const roundHours = function(timestamp){
+  timestamp = roundMinutes(timestamp)
+  let d = new Date(timestamp)
+  d.setHours(0)
+
+  return d.getTime()
+}
+
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
@@ -349,7 +379,18 @@ module.exports = function(payload){
 
               delete new_doc['metadata'].id
 
-              new_doc['metadata'].timestamp = new_doc.metadata.range.end
+              let round
+              if(type === 'second'){
+                round = roundMilliseconds
+              }
+              else if(type === 'minute'){
+                round = roundSeconds
+              }
+              else if(type === 'hour'){
+                round = roundMinutes
+              }
+
+              new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
 
               new_doc.id = new_doc.metadata.host+
                 // '.historical.minute.'+
