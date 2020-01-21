@@ -51,9 +51,9 @@ const roundMilliseconds = function(timestamp){
   return d.getTime()
 }
 
-const CONF = process.env.NODE_ENV === 'production'
-      ? require('./etc/http/prod.conf')
-      : require('./etc/http/dev.conf');
+// const CONF = process.env.NODE_ENV === 'production'
+//       ? require('./etc/http/prod.conf')
+//       : require('./etc/http/dev.conf');
 
 module.exports = function(http, out){
   let conf = {
@@ -68,7 +68,6 @@ module.exports = function(http, out){
               module: OSPollHttp,
               load: ['apps/os/input/os']
             },
-            CONF
           )
   				// {
   				// 	scheme: 'http',
@@ -109,7 +108,6 @@ module.exports = function(http, out){
     //           module: ProcsPollHttp,
     //           load: ['apps/os/input/procs']
     //         },
-    //         CONF
     //       )
   	// 			// {
   	// 			// 	scheme: 'http',
@@ -137,7 +135,7 @@ module.exports = function(http, out){
   	// 		},
   	// 	},
   	// },
-    
+
     // {
   	// 	poll: {
   	// 		id: "input.elk.os.http",
@@ -149,7 +147,6 @@ module.exports = function(http, out){
     //           module: OSPollHttp,
     //           load: ['apps/os/input/os']
     //         },
-    //         CONF
     //       )
   	// 			// {
   	// 			// 	scheme: 'http',
@@ -191,7 +188,6 @@ module.exports = function(http, out){
     //           module: ProcsPollHttp,
     //           load: ['apps/os/input/procs']
     //         },
-    //         CONF
     //       )
   	// 			// {
   	// 			// 	scheme: 'http',
