@@ -26,6 +26,8 @@ let PollHttp = require('js-pipeline.input.httpclient')
 let OSPollHttp = require('node-app-http-client/load')(PollHttp)
 let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
 
+/**
+* for merged docs
 let modules = {}
 let all_modules = {
   'os': false,
@@ -43,6 +45,7 @@ let all_modules = {
 
 let meta_doc = { id: '', data: [], metadata: { path: 'os.merged', type: 'periodical', merged: true }}
 let meta_docs = {}
+**/
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)
