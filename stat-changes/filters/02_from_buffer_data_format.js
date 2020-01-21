@@ -11,7 +11,6 @@ const path = require('path')
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
     data_formater_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.data_formater'))
 
-
 let paths_blacklist
 // let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
@@ -67,6 +66,10 @@ module.exports = function(payload){
               if(!forks[real_data.metadata.host]){
                 forks[real_data.metadata.host] = fork(process.cwd()+'/apps/stat-changes/libs/fork_filter', [
                   path.join(process.cwd(), '/devel/etc/snippets/filter.data_formater'),
+                  // path.join(process.cwd(), '/node_modules/node-tabular-data'),
+                  JSON.stringify({
+                    require_path : process.cwd()+'/apps/stat-changes/libs/data_formater/'
+                  })
                 ])
 
                 forks[real_data.metadata.host].on('message', function(msg){
@@ -96,7 +99,10 @@ module.exports = function(payload){
 
 
               forks[real_data.metadata.host].send({
-                params: [real_data, format, process.cwd()+'/apps/stat-changes/libs/data_formater/'],
+                /**
+                * added false as new param data_formater param (data, format, full, cb)
+                **/
+                params: [real_data, format, false], //process.cwd()+'/apps/stat-changes/libs/data_formater/' -> moved to module param
                 doc:  Object.clone(real_data)
               })
 
