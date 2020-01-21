@@ -344,7 +344,7 @@ module.exports = function(payload){
   				conn: [
             output
   				],
-  				module: require('js-pipeline/output/rethinkdb'),
+  				module: require('js-pipeline.output.rethinkdb'),
           buffer:{
   					size: 0,
   					expire:0

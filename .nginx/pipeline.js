@@ -445,7 +445,7 @@ module.exports = {
             table: 'periodical',
 					},
 				],
-				// module: require('js-pipeline/output/rethinkdb'),
+				// module: require('js-pipeline.output.rethinkdb'),
         module: require('./output/rethinkdb.geospatial'),
         buffer:{
 					// size: 1, //-1

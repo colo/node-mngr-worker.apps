@@ -274,7 +274,7 @@ module.exports = function(payload){
             output
   				],
           message: {parse_mode: 'Markdown'},
-  				module: require('js-pipeline/output/telegram'),
+  				module: require('js-pipeline.output.telegram'),
           buffer:{
   					size: -1,
   					expire:0

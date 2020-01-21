@@ -23,6 +23,7 @@
     "authentication"
   ],
   "dependencies": {
-    "async": "^3.1.0"
+    "async": "^3.1.0",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
   }
 }

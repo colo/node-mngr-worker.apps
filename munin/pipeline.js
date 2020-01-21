@@ -232,7 +232,7 @@ module.exports = function(munin, out){
               {table: 'munin'}
             )
   				],
-  				module: require('js-pipeline/output/rethinkdb'),
+  				module: require('js-pipeline.output.rethinkdb'),
           buffer:{
   					size: -1, //-1
   					// expire: 0 //ms

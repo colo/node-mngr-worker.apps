@@ -488,7 +488,7 @@ module.exports = function(http, out){
               {table: 'os'}
             )
   				],
-  				module: require('js-pipeline/output/rethinkdb'),
+  				module: require('js-pipeline.output.rethinkdb'),
           buffer:{
   					// size: 1, //-1
   					// expire:0

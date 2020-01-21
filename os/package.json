@@ -21,5 +21,9 @@
   "keywords": [
     "login",
     "authentication"
-  ]
+  ],
+  "dependencies": {
+    "js-pipeline.input.httpclient": "git+https://github.com/colo/js-pipeline.input.http-client.git",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
+  }
 }

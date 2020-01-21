@@ -487,7 +487,7 @@ module.exports = function(file, domain, out){
               {table: 'logs'}
             ),
   				],
-  				// module: require('js-pipeline/output/rethinkdb'),
+  				// module: require('js-pipeline.output.rethinkdb'),
           module: require('./output/rethinkdb.geospatial'),
           buffer:{
   					size: -1, //-1

@@ -21,7 +21,7 @@ let procs_filter = require('./filters/proc'),
     // lzstring_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzstring.compress'))
 
 
-let PollHttp = require('js-pipeline/input/poller/poll/http')
+let PollHttp = require('js-pipeline.input.httpclient')
 
 let OSPollHttp = require('node-app-http-client/load')(PollHttp)
 let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
@@ -51,6 +51,10 @@ const roundMilliseconds = function(timestamp){
   return d.getTime()
 }
 
+const CONF = process.env.NODE_ENV === 'production'
+      ? require('./etc/http/prod.conf')
+      : require('./etc/http/dev.conf');
+
 module.exports = function(http, out){
   let conf = {
    input: [
@@ -64,6 +68,7 @@ module.exports = function(http, out){
               module: OSPollHttp,
               load: ['apps/os/input/os']
             },
+            CONF
           )
   				// {
   				// 	scheme: 'http',
@@ -104,6 +109,7 @@ module.exports = function(http, out){
     //           module: ProcsPollHttp,
     //           load: ['apps/os/input/procs']
     //         },
+    //         CONF
     //       )
   	// 			// {
   	// 			// 	scheme: 'http',
@@ -131,46 +137,47 @@ module.exports = function(http, out){
   	// 		},
   	// 	},
   	// },
-    // {
-  	// 	poll: {
-  	// 		id: "input.elk.os.http",
-  	// 		conn: [
-    //       Object.merge(
-    //         Object.clone(http),
-    //         {
-    //           host: 'elk',
-    //           module: OSPollHttp,
-    //           load: ['apps/os/input/os']
-    //         },
-    //       )
-  	// 			// {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'elk',
-  	// 			// 	port: 8081,
-  	// 			// 	module: OSPollHttp,
-  	// 			// 	// load: ['apps/info/os/']
-    //       //   load: ['apps/os/input/os']
-  	// 			// },
-    //       // {
-  	// 			// 	scheme: 'http',
-  	// 			// 	host:'dev',
-  	// 			// 	port: 8081,
-  	// 			// 	module: OSPollHttp,
-  	// 			// 	// load: ['apps/info/os/']
-    //       //   load: ['apps/os/input/os']
-  	// 			// }
-  	// 		],
-    //     connect_retry_count: -1,
-    //     connect_retry_periodical: 1000,
-  	// 		requests: {
-  	// 			// periodical: 1000,
-    //       periodical: function(dispatch){
-    //         // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-    //         return cron.schedule('* * * * * *', dispatch);//every 20 secs
-    //       },
-  	// 		},
-  	// 	},
-  	// },
+    {
+  		poll: {
+  			id: "input.elk.os.http",
+  			conn: [
+          Object.merge(
+            Object.clone(http),
+            {
+              host: 'elk',
+              module: OSPollHttp,
+              load: ['apps/os/input/os']
+            },
+            CONF
+          )
+  				// {
+  				// 	scheme: 'http',
+  				// 	host:'elk',
+  				// 	port: 8081,
+  				// 	module: OSPollHttp,
+  				// 	// load: ['apps/info/os/']
+          //   load: ['apps/os/input/os']
+  				// },
+          // {
+  				// 	scheme: 'http',
+  				// 	host:'dev',
+  				// 	port: 8081,
+  				// 	module: OSPollHttp,
+  				// 	// load: ['apps/info/os/']
+          //   load: ['apps/os/input/os']
+  				// }
+  			],
+        connect_retry_count: -1,
+        connect_retry_periodical: 1000,
+  			requests: {
+  				// periodical: 1000,
+          periodical: function(dispatch){
+            // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+            return cron.schedule('* * * * * *', dispatch);//every 20 secs
+          },
+  			},
+  		},
+  	},
 
     // {
   	// 	poll: {
@@ -183,6 +190,7 @@ module.exports = function(http, out){
     //           module: ProcsPollHttp,
     //           load: ['apps/os/input/procs']
     //         },
+    //         CONF
     //       )
   	// 			// {
   	// 			// 	scheme: 'http',
@@ -462,7 +470,7 @@ module.exports = function(http, out){
               {table: 'os'}
             )
   				],
-  				module: require('js-pipeline/output/rethinkdb'),
+  				module: require('js-pipeline.output.rethinkdb'),
           buffer:{
   					// // size: 1, //-1
   					// expire: 1001,

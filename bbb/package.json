@@ -9,6 +9,7 @@
   "author": "Luciano Bueno",
   "license": "ISC",
   "dependencies": {
-    "bbb-promise": "^1.1.0"
+    "bbb-promise": "^1.1.0",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
   }
 }

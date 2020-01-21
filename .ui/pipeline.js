@@ -786,7 +786,7 @@ module.exports = function(conn){
       //         table: 'ui',
   		// 			},
   		// 		],
-  		// 		module: require('js-pipeline/output/rethinkdb'),
+  		// 		module: require('js-pipeline.output.rethinkdb'),
       //     buffer:{
       //       size: -1,
   		// 			// expire: 0,
