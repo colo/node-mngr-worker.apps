@@ -1,6 +1,6 @@
 'use strict'
 
-let App = require('js-pipeline/output/rethinkdb')
+let App = require('js-pipeline.output.rethinkdb')
 
 var debug = require('debug')('Server:Apps:Logs:Nginx:Output:RethinkDBGeoSpatial');
 var debug_events = require('debug')('Server:Apps:Logs:Nginx:Output:RethinkDBGeoSpatial:Events');

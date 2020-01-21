@@ -11,7 +11,7 @@ let cron = require('node-cron');
 
 const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
-const request = require('request')
+// const request = require('request')
 
 
 let moment = require('moment')

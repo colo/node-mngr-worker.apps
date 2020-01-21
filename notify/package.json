@@ -28,6 +28,6 @@
     "pluralize": "^8.0.0",
     "uuid": "^3.3.3",
     "js-pipeline.inputs.rethinkdb-rest": "git+https://github.com/colo/js-pipeline.inputs.rethinkdb-rest.git",
-    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.telegram.git"
+    "js-pipeline.output.telegram": "git+https://github.com/colo/js-pipeline.output.telegram.git"
   }
 }

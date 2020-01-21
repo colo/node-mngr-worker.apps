@@ -16,8 +16,12 @@ let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filt
     // lzutf8_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzutf8.compress'))
     // lzstring_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.lzstring.compress'))
 
+const CONF = process.env.NODE_ENV === 'production'
+      ? require('./etc/http/prod.conf')
+      : require('./etc/http/dev.conf');
 
-let PollHttp = require('js-pipeline/input/poller/poll/http')
+
+let PollHttp = require('js-pipeline.input.httpclient')
 
 let NginxPollHttp = require('node-app-http-client/load')(PollHttp)
 // let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
@@ -60,6 +64,7 @@ module.exports = function(http, out){
               module: NginxPollHttp,
               load: ['apps/vhosts/input/nginx']
             },
+            CONF
           )
 
   			],

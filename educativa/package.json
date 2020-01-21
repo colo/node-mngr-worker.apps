@@ -24,10 +24,11 @@
   ],
   "dependencies": {
     "async": "^3.1.0",
+    "js-pipeline.inputs.rethinkdb-rest": "git+https://github.com/colo/js-pipeline.inputs.rethinkdb-rest.git",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git",
     "moment": "^2.24.0",
     "pluralize": "^8.0.0",
-    "uuid": "^3.3.3",
-    "js-pipeline.inputs.rethinkdb-rest": "git+https://github.com/colo/js-pipeline.inputs.rethinkdb-rest.git",
-    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
+    "request": "^2.88.0",
+    "uuid": "^3.3.3"
   }
 }

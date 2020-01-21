@@ -184,7 +184,7 @@ module.exports = function(payload){
           let docs = []
           Object.each(hosts_urls, function(urls, host){
 
-            async.eachLimit(urls, 5, function(url, callback){//current nginx limit 5r/s
+            async.eachLimit(urls, 1, function(url, callback){//current nginx limit 5r/s
 
               request.head({uri: url}, function(error, response, body){
                 if(response && response.statusCode)
@@ -210,7 +210,7 @@ module.exports = function(payload){
                 let id = url.replace('://', '.').replace(':', '.')
                 doc.id = doc.metadata.host+'.'+doc.metadata.path+'.'+id+'@'+doc.metadata.timestamp
                 doc.metadata.id = doc.id
-                
+
                 if(response){
                   doc.data = {
                     headers: response.headers,
