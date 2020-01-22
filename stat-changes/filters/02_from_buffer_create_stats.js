@@ -34,64 +34,66 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
   return filtered
 }
 
+const traverse_path_require = require('node-tabular-data').traverse_path_require
+const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
 
 const stat = require('../libs/stat')
 
-let traversed_path_require = {}
-
-const __traverse_path_require = function(type, require_path, path, stat, original_path){
-  original_path = original_path || path
-  path = path.replace(/_/g, '.')
-  original_path = original_path.replace(/_/g, '.')
-
-  debug_internals('__traverse_path_require %s',  require_path+'/'+type+'/'+path)
-
-  if(traversed_path_require[require_path+'/'+type+'/'+path] && traversed_path_require[require_path+'/'+type+'/'+path] !== undefined){
-    return traversed_path_require[require_path+'/'+type+'/'+path]
-  }
-  else if(traversed_path_require[require_path+'/'+type+'/'+path] && traversed_path_require[require_path+'/'+type+'/'+path] === undefined){
-    if(path.indexOf('.') > -1){
-      let pre_path = path.substring(0, path.lastIndexOf('.'))
-      if(traversed_path_require[require_path+'/'+type+'/'+pre_path] !== undefined){
-        let chart = __traverse_path_require(type, pre_path, stat, original_path)
-        traversed_path_require[require_path+'/'+type+'/'+pre_path] = chart
-        return chart
-      }
-    }
-    return undefined
-  }
-  else{
-
-    debug_internals('__traverse_path_require %s',  require_path+'/'+type+'/'+path)
-
-    try{
-      let chart = require(require_path+'/'+type+'/'+path)(stat, original_path)
-      traversed_path_require[require_path+'/'+type+'/'+path] = chart
-      return chart
-    }
-    catch(e){
-      debug_internals('__traverse_path_require error %o',  e)
-
-      traversed_path_require[require_path+'/'+type+'/'+path] = undefined
-      if(path.indexOf('.') > -1){
-        let pre_path = path.substring(0, path.lastIndexOf('.'))
-        let chart = __traverse_path_require(type, require_path, pre_path, stat, original_path)
-        traversed_path_require[require_path+'/'+type+'/'+pre_path] = chart
-        return chart
-      }
-
-      return undefined
-    }
-
-  }
-
-
-  // let path = path.split('.')
-  // if(!Array.isArray(path))
-  //   path = [path]
-  //
-  // Array.each()
-}
+// let traversed_path_require = {}
+//
+// const __traverse_path_require = function(type, require_path, path, stat, original_path){
+//   original_path = original_path || path
+//   path = path.replace(/_/g, '.')
+//   original_path = original_path.replace(/_/g, '.')
+//
+//   debug_internals('__traverse_path_require %s',  require_path+'/'+type+'/'+path)
+//
+//   if(traversed_path_require[require_path+'/'+type+'/'+path] && traversed_path_require[require_path+'/'+type+'/'+path] !== undefined){
+//     return traversed_path_require[require_path+'/'+type+'/'+path]
+//   }
+//   else if(traversed_path_require[require_path+'/'+type+'/'+path] && traversed_path_require[require_path+'/'+type+'/'+path] === undefined){
+//     if(path.indexOf('.') > -1){
+//       let pre_path = path.substring(0, path.lastIndexOf('.'))
+//       if(traversed_path_require[require_path+'/'+type+'/'+pre_path] !== undefined){
+//         let chart = __traverse_path_require(type, pre_path, stat, original_path)
+//         traversed_path_require[require_path+'/'+type+'/'+pre_path] = chart
+//         return chart
+//       }
+//     }
+//     return undefined
+//   }
+//   else{
+//
+//     debug_internals('__traverse_path_require %s',  require_path+'/'+type+'/'+path)
+//
+//     try{
+//       let chart = require(require_path+'/'+type+'/'+path)(stat, original_path)
+//       traversed_path_require[require_path+'/'+type+'/'+path] = chart
+//       return chart
+//     }
+//     catch(e){
+//       debug_internals('__traverse_path_require error %o',  e)
+//
+//       traversed_path_require[require_path+'/'+type+'/'+path] = undefined
+//       if(path.indexOf('.') > -1){
+//         let pre_path = path.substring(0, path.lastIndexOf('.'))
+//         let chart = __traverse_path_require(type, require_path, pre_path, stat, original_path)
+//         traversed_path_require[require_path+'/'+type+'/'+pre_path] = chart
+//         return chart
+//       }
+//
+//       return undefined
+//     }
+//
+//   }
+//
+//
+//   // let path = path.split('.')
+//   // if(!Array.isArray(path))
+//   //   path = [path]
+//   //
+//   // Array.each()
+// }
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)
@@ -204,7 +206,7 @@ module.exports = function(payload){
               if(!values[host]) values[host] = {};
               if(!values[host][path]) values[host][path] = {};
 
-              let _require = __traverse_path_require(type, '../hooks/', path)
+              let _require = traverse_path_require(type, hooks_path, path)
               // try{
               //   //debug_internals('HOOK path %s', path)
               //   let _require = require('../hooks/'+type+'/'+path)

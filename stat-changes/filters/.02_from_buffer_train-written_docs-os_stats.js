@@ -14,13 +14,13 @@ const brain = require('brain.js');
 
 
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
-const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
+const hooks_path = path.join(process.cwd(), '../hooks/')
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 // let paths_blacklist = /^[a-zA-Z0-9_\[\.]+$/
 let paths_blacklist = /^.+$/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
-let paths_whitelist = /^os\.cpus|^os\.rethinkdb\.server\.read_docs|^os\.cpus|^os\.rethinkdb\.server\.written_docs|^os\.blockdevices\.vda3\.sectors|^os\.blockdevices\.vda3\.time/
+let paths_whitelist = /^os\.cpus|^os\.rethinkdb\.server\.written_docs|^os\.blockdevices\.vda3\.sectors|^os\.blockdevices\.vda3\.time/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
 let hosts_blacklist = /^.+$/
@@ -162,9 +162,6 @@ const denormalize = function (value, min, max) {
   return (value * (max - min)) + min
 }
 
-const new_doc_template = {data: {}, metadata: {path: 'brainjs[rethinkdb.docs][server.performance]', tag: ['brainjs', 'ml'], range: {start: null, end: null}}};
-
-
 module.exports = function(payload){
   let {input, output, type } = payload
   let table = input.table
@@ -174,10 +171,6 @@ module.exports = function(payload){
   let trainData = []
   let testData = []
   let final_docs = []
-  let new_doc = Object.clone(new_doc_template)
-  new_doc.metadata.type = type
-
-  let read = {min: undefined, max: undefined}
   let written = {min: undefined, max: undefined}
   let sectors = {min: undefined, max: undefined}
   let queue = {min: undefined, max: undefined}
@@ -186,11 +179,10 @@ module.exports = function(payload){
   const netOptions = {
     activation: 'sigmoid', // activation function
     hiddenLayers: [4],
-    // learningRate: 0.01, // global learning rate, useful when training using streams
+    learningRate: 0.1, // global learning rate, useful when training using streams
     outputSize: 3,
   }
-
-  let net = new brain.NeuralNetwork(netOptions)
+  const net = new brain.NeuralNetwork(netOptions)
 
   const readInputs = function (stream, data) {
     // debug('readInputs', data)
@@ -224,8 +216,7 @@ module.exports = function(payload){
       errorThresh: 0.001, // the acceptable error percentage from training data --> number between 0 and 1
       // log: true, // true to use console.log, when a function is supplied it is used --> Either true or a function
       // logPeriod: 100, // iterations between logging out --> number greater than 0
-      // learningRate: 0.5, // scales with delta to effect training rate --> number between 0 and 1
-      // learningRate: 0.01,
+      learningRate: 0.5, // scales with delta to effect training rate --> number between 0 and 1
 
       neuralNetwork: net,
       /**
@@ -241,13 +232,11 @@ module.exports = function(payload){
        * Called when the network is done training.
        */
       doneTrainingCallback: function(obj) {
-        let _accuracy = accuracy(net, testData)
+        debug('doneTrainingCallback %o - net %o - testData %o - accuracy %d', obj, net.toJSON(), testData, accuracy(net, testData)) //,
 
-        debug('doneTrainingCallback %o - net %o - testData %o - accuracy %d', obj, net.toJSON(), testData, _accuracy) //,
-
-        let forecast = [[1, 2000], [140000, 1], [140000, 2000]] // normal delete - this read - this read + normal delete
+        let forecast = [[2000]]
         let forecastData = forecast.map(d => {
-          return [normalize(d[0], read.min, read.max), normalize(d[1], written.min, written.max)]
+          return [normalize(d[0], written.min, written.max)]
         })
 
         forecastData.forEach((datapoint) => {
@@ -255,72 +244,6 @@ module.exports = function(payload){
           let output = net.run(datapoint)
           debug('RUN forecast %o - sectors %d - queue %d - idle %d', output, denormalize(output[0], sectors.min, sectors.max), denormalize(output[1], queue.min, queue.max), denormalize(output[2], idle.min, idle.max))
         })
-
-
-        // let forecast = [[2000]]
-        // let forecastData = forecast.map(d => {
-        //   return [normalize(d[0], written.min, written.max)]
-        // })
-
-        // forecastData.forEach((datapoint) => {
-        //   debug('RUN datapoint', datapoint)
-        //   let output = net.run(datapoint)
-        //   debug('RUN forecast %o - sectors %d - queue %d - idle %d', output, denormalize(output[0], sectors.min, sectors.max), denormalize(output[1], queue.min, queue.max), denormalize(output[2], idle.min, idle.max))
-        // })
-
-        new_doc.data.inputs = [read, written]
-        new_doc.data.outputs = [sectors, queue, idle]
-        new_doc.data.accuracy = _accuracy
-        new_doc.data.net = net.toJSON()
-        net = net.fromJSON(new_doc.data.net)
-
-        // let new_doc = {data: {}, metadata: {tag: ['brainjs', 'ml'], range: {start: null, end: null}}};
-
-        /**
-        * add other metadata fields like "domain" for logs
-        */
-        // new_doc['metadata'] = Object.merge(new_doc['metadata'], {
-        //   type: type,
-        //   host: host,
-        //   path: path,
-        //   range: {
-        //     start: first,
-        //     end: last
-        //   }
-        // })
-
-        // delete new_doc['metadata'].id
-
-        let round
-        if(type === 'second'){
-          round = roundMilliseconds
-        }
-        else if(type === 'minute'){
-          round = roundSeconds
-        }
-        else if(type === 'hour'){
-          round = roundMinutes
-        }
-
-        new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
-
-        new_doc.id = new_doc.metadata.host+
-          '.'+new_doc.metadata.type+'.'+
-          new_doc.metadata.path
-          // +'@'+
-          // new_doc.metadata.range.start+'-'+
-          // new_doc.metadata.range.end
-
-        new_doc['metadata'].id = new_doc.id
-
-        debug('NEW DOC', new_doc)
-
-        sanitize_filter(
-          new_doc,
-          opts,
-          pipeline.output.bind(pipeline),
-          pipeline
-        )
 
         // process.exit(1)
         // console.log(`trained in ${ obj.iterations } iterations with error: ${ obj.error }`);
@@ -371,8 +294,6 @@ module.exports = function(payload){
       let values = {};
       if(__white_black_lists_filter(hosts_whitelist, hosts_blacklist, host)){
 
-        new_doc.metadata.host = host
-
         Object.each(host_data, function(real_data, path){
 
           let first, last
@@ -406,8 +327,7 @@ module.exports = function(payload){
               let path = group.metadata.path
 
 
-              debug_internals('PATH', path, hooks_path)
-              // process.exit(1)
+              debug_internals('PATH', path)
 
               if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
@@ -523,6 +443,116 @@ module.exports = function(payload){
 
             })
 
+          // })
+
+
+
+
+
+    //
+    //
+          // if(values.elk && values.elk['os.rethinkdb.server.written_docs']){
+          //   debug_internals('values %o', values.elk['os.cpus'], values.elk['os.rethinkdb.server.written_docs'])
+          //   process.exit(1)
+          // }
+
+          // if(Object.getLength(values) > 0){
+          //   Object.each(values, function(host_data, host){
+          //
+          //
+          //
+          //     Object.each(host_data, function(data, path){
+          //
+          //       let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
+          //
+          //       Object.each(data, function(value, key){
+          //         let _key = key
+          //         if(hooks[path]){
+          //           Object.each(hooks[path], function(data, hook_key){
+          //             if(data[hook_key] && data[hook_key] instanceof RegExp){
+          //               if(data[hook_key].test(key))//if regexp match
+          //
+          //                 _key = hook_key
+          //             }
+          //             // else{
+          //             //
+          //             // }
+          //           })
+          //
+          //         }
+          //
+          //         debug_internals('HOOK DOC KEY %s %s', key, _key)
+          //         // process.exit(1)
+          //
+          //         if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
+          //           new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
+          //
+          //         }
+          //         else{
+          //           new_doc['data'][key] = stat(value)
+          //         }
+          //
+          //
+          //
+          //
+          //
+          //       });
+          //
+          //       /**
+          //       * add other metadata fields like "domain" for logs
+          //       */
+          //       new_doc['metadata'] = Object.merge(metadata, {
+          //         tag: tag,
+          //         type: type,
+          //         host: host,
+          //         // path: 'historical.'+path,
+          //         path: path,
+          //         range: {
+          //           start: first,
+          //           end: last
+          //         }
+          //       })
+          //
+          //       delete new_doc['metadata'].id
+          //
+          //       let round
+          //       if(type === 'second'){
+          //         round = roundMilliseconds
+          //       }
+          //       else if(type === 'minute'){
+          //         round = roundSeconds
+          //       }
+          //       else if(type === 'hour'){
+          //         round = roundMinutes
+          //       }
+          //
+          //       new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
+          //
+          //       new_doc.id = new_doc.metadata.host+
+          //         // '.historical.minute.'+
+          //         '.'+type+'.'+
+          //         new_doc.metadata.path+'@'+
+          //         new_doc.metadata.range.start+'-'+
+          //         new_doc.metadata.range.end
+          //         // +'@'+Date.now()
+          //
+          //       // if(path !== 'os.procs'){
+          //       // debug('NEW DOC %o', new_doc)
+          //       // process.exit(1)
+          //       // }
+          //       new_doc['metadata'].id = new_doc.id
+          //
+          //       sanitize_filter(
+          //         new_doc,
+          //         opts,
+          //         pipeline.output.bind(pipeline),
+          //         pipeline
+          //       )
+          //
+          //     })//host_data
+          //   });
+          //
+          // }//if(Object.getLength(values) > 0)
         })
 
       }
@@ -535,9 +565,6 @@ module.exports = function(payload){
               if (!docs[ts]) docs[ts] = { idle: undefined, written: undefined, sectors: undefined, queue: undefined }
                 if(path === 'os.cpus' && key === 'idle'){
                   docs[ts].idle = data
-                }
-                else if(path === 'os.rethinkdb.server.read_docs' && key === 'per_sec'){
-                  docs[ts].read = data
                 }
                 else if(path === 'os.rethinkdb.server.written_docs' && key === 'per_sec'){
                   docs[ts].written = data
@@ -556,29 +583,17 @@ module.exports = function(payload){
       let arr_docs = []
       let tss = Object.keys(docs)
       tss.sort(function (a, b) { return (a > b) ? 1 : ((b > a) ? -1 : 0) }) // sort by timestamp
-
-      new_doc.metadata.range.start = tss[0] * 1
-      new_doc.metadata.range.end = tss[tss.length - 1] * 1
-
-      new_doc.metadata.inputs = ['os.rethinkdb.server.read_docs.per_sec', 'os.rethinkdb.server.written_docs.per_sec']
-      new_doc.metadata.outputs = ['os.blockdevices.vda3.sectors.write_sectors','os.blockdevices.vda3.time.time_in_queue','os.cpus.idle']
-
       Array.each(tss, function (ts) {
         ts *= 1
         // arr_docs.push([ts, docs[ts].per_sec, docs[ts].idle])
-        arr_docs.push([docs[ts].read, docs[ts].written, docs[ts].sectors, docs[ts].queue, docs[ts].idle])
+        arr_docs.push([docs[ts].written, docs[ts].sectors, docs[ts].queue, docs[ts].idle])
       })
 
-      debug('arr_docs', arr_docs)
-
-      // arr_docs = arr_docs.filter(doc => (doc[0] !== undefined && doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined))
-      final_docs = arr_docs.filter(doc => (doc[0] !== undefined && doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined && doc[4] !== undefined))
-
-      debug('final_docs first', final_docs)
+      arr_docs = arr_docs.filter(doc => (doc[0] !== undefined && doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined))
 
       const LENGTH = 2
 
-      let current_row = [[], [], [], [], []]
+      let current_row = [[], [], [], []]
       for (let i = 0; i < arr_docs.length; i++) {
         let row = arr_docs[i]
         // debug('CALLBACK ROW %o', current_row, i, i % LENGTH)
@@ -587,37 +602,30 @@ module.exports = function(payload){
           current_row[1].push(row[1])
           current_row[2].push(row[2])
           current_row[3].push(row[3])
-          current_row[4].push(row[4])
         } else {
           current_row[0] = ss.median(current_row[0])
           current_row[1] = ss.median(current_row[1])
           current_row[2] = ss.median(current_row[2])
           current_row[3] = ss.median(current_row[3])
-          current_row[4] = ss.median(current_row[4])
-
           final_docs.push(Array.clone(current_row))
 
-          current_row = [[], [], [], [], []]
+          current_row = [[], [], [], []]
           current_row[0].push(row[0])
           current_row[1].push(row[1])
           current_row[2].push(row[2])
           current_row[3].push(row[3])
-          current_row[4].push(row[4])
         }
       }
 
-      debug('final_docs', final_docs)
-
-      if(final_docs.length >= 20){
+      if(final_docs.length >= 10){
         final_docs = shuffle(final_docs)
 
-        read = min_max(final_docs, 0)
-        written = min_max(final_docs, 1)
-        sectors = min_max(final_docs, 2)
-        queue = min_max(final_docs, 3)
-        idle = min_max(final_docs, 4)
+        written = min_max(final_docs, 0)
+        sectors = min_max(final_docs, 1)
+        queue = min_max(final_docs, 2)
+        idle = min_max(final_docs, 3)
 
-        debug('sectors queue idle ', read, written, sectors, queue, idle)
+        debug('sectors queue idle ', final_docs, written, sectors, queue, idle)
 
 
         const SPLIT = final_docs.length * 0.8 // 80%
@@ -628,14 +636,11 @@ module.exports = function(payload){
 
         trainData = train.map(d => {
           return {
-            input: [
-              normalize(d[0], read.min, read.max),
-              normalize(d[1], written.min, written.max)
-            ],
+            input: [normalize(d[0], written.min, written.max)],
             output: [
-              normalize(d[2], sectors.min, sectors.max),
-              normalize(d[3], queue.min, queue.max),
-              normalize(d[4], idle.min, idle.max)
+              normalize(d[1], sectors.min, sectors.max),
+              normalize(d[2], queue.min, queue.max),
+              normalize(d[3], idle.min, idle.max)
             ]
           }
 
@@ -643,14 +648,11 @@ module.exports = function(payload){
 
         testData = test.map(d => {
           return {
-            input: [
-              normalize(d[0], read.min, read.max),
-              normalize(d[1], written.min, written.max)
-            ],
+            input: [normalize(d[0], written.min, written.max)],
             output: [
-              normalize(d[2], sectors.min, sectors.max),
-              normalize(d[3], queue.min, queue.max),
-              normalize(d[4], idle.min, idle.max)
+              normalize(d[1], sectors.min, sectors.max),
+              normalize(d[2], queue.min, queue.max),
+              normalize(d[3], idle.min, idle.max)
             ]
           }
         })
