@@ -313,7 +313,7 @@ module.exports = function(payload){
 
         new_doc['metadata'].id = new_doc.id
 
-        // debug('NEW DOC', new_doc)
+        debug('NEW DOC', new_doc)
 
         sanitize_filter(
           new_doc,
@@ -322,7 +322,7 @@ module.exports = function(payload){
           pipeline
         )
 
-        process.exit(1)
+        // process.exit(1)
         // console.log(`trained in ${ obj.iterations } iterations with error: ${ obj.error }`);
         //
         // const result01 = net.run([0, 1]);
@@ -572,7 +572,7 @@ module.exports = function(payload){
       debug('arr_docs', arr_docs)
 
       // arr_docs = arr_docs.filter(doc => (doc[0] !== undefined && doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined))
-      final_docs = final_docs.combine(arr_docs.filter(doc => (doc[0] !== undefined && doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined && doc[4] !== undefined)))
+      final_docs = arr_docs.filter(doc => (doc[0] !== undefined && doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined && doc[4] !== undefined))
 
       // debug('final_docs first', final_docs)
       //
@@ -608,7 +608,7 @@ module.exports = function(payload){
       //
       // debug('final_docs', final_docs)
 
-      if(final_docs.length >= 300){
+      if(final_docs.length >= 20){
         final_docs = shuffle(final_docs)
 
         read = min_max(final_docs, 0)
