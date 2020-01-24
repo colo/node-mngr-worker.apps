@@ -8,14 +8,6 @@ let debug = require('debug')('Server:Apps:Stat:Periodical:Input'),
     debug_internals = require('debug')('Server:Apps:Stat:Periodical:Input:Internals');
 
 
-const roundMilliseconds = function(timestamp){
-  let d = new Date(timestamp)
-  d.setMilliseconds(0)
-
-  // console.log('roundMilliseconds', d.getTime())
-  return d.getTime()
-}
-
 const pluralize = require('pluralize')
 
 // const uuidv5 = require('uuid/v5')
@@ -25,6 +17,34 @@ const async = require('async')
 // const sleep = (milliseconds) => {
 //   return new Promise(resolve => setTimeout(resolve, milliseconds))
 // }
+
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  return d.getTime()
+}
+
+const roundSeconds = function(timestamp){
+  timestamp = roundMilliseconds(timestamp)
+  let d = new Date(timestamp)
+  d.setSeconds(0)
+
+  return d.getTime()
+}
+
+const roundMinutes = function(timestamp){
+  timestamp = roundSeconds(timestamp)
+  let d = new Date(timestamp)
+  d.setMinutes(0)
+
+  return d.getTime()
+}
+
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = HOUR * 24
 
 module.exports = new Class({
   Extends: App,
@@ -205,15 +225,15 @@ module.exports = new Class({
 
               }
               else{
-                if(req.query && req.query.q){
+                if(req.query && (req.query.q || req.query.filter)){
                   query = query
                     .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
-                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 10000000}, _result_callback)
@@ -387,6 +407,11 @@ module.exports = new Class({
       periodical: [
         {
           paths: function(req, next, app){
+            app.options.full_range = app.options.full_range || false
+            // debug('FULL RANGE %o', app.options.full_range)
+            // process.exit(1)
+
+
             app.fireEvent('onSuspend')
 
             req = (req) ? Object.clone(req) : { id: 'paths', params: {}, query: {} }
@@ -394,17 +419,38 @@ module.exports = new Class({
             let from = req.from || app.options.table
 
 
-            // let query = app.r
-            //   .db(app.options.db)
-            //   .table(from)
-            //   .distinct({index: 'path'})
+            let query = app.r
+              .db(app.options.db)
+              .table(from)
+
+            let distinct_query = query.distinct({index: 'path'})
+
+            if(app.options.full_range === false){
+              if(app.options.type === 'minute'){
+                query = query
+                  .between(
+                    roundSeconds(Date.now() - MINUTE),
+                    roundSeconds(Date.now()),
+                    {index: 'timestamp'}
+                  )
+              }
+              else{
+                query = query
+                  .between(
+                    roundMinutes(Date.now() - HOUR),
+                    roundMinutes(Date.now()),
+                    // Date.now(),
+                    {index: 'timestamp'}
+                  )
+              }
+
+            }
 
 
 
 
             let _result_callback = function(err, resp){
               debug_internals('run', err)//resp
-              // process.exit(1)
               app.fireEvent('onResume')
               app.process_default(
                 err,
@@ -423,99 +469,65 @@ module.exports = new Class({
               )
             }
 
-            let doc = {}
-            app.r.expr([
-              app.r
-              .db(app.options.db)
-              .table(from)
-              .pluck({'metadata' : ['path']})('metadata')('path')
-              .distinct(),
-              app.r
-              .db(app.options.db)
-              .table(from)
-              .pluck({'metadata' : ['host']})('metadata')('host')
-              .distinct(),
-              app.r
-              .db(app.options.db)
-              .table(from)
-              .pluck({'metadata' : ['timestamp']})('metadata')('timestamp')
-              .min(),
-              app.r
-              .db(app.options.db)
-              .table(from)
-              .pluck({'metadata' : ['timestamp']})('metadata')('timestamp')
-              .max(),
-            ]).run(app.conn, {arrayLimit: 1000000}, function(err, resp){
-              debug('EXPR RESULT %o %o', err, resp)
-              // process.exit(1)
-              if(resp && Array.isArray(resp)){
-                doc.paths = resp[0]
-                doc.hosts = resp[1]
-                doc.range =[ resp[2], resp[3] ]
+            distinct_query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
+              if(err){
+                _result_callback(err, undefined)
+              }
+              else{
+                let _groups = {}
+                resp.toArray(function(err, paths){
+                  if(err){
+                    _result_callback(err, undefined)
+                  }
+                  else{
+                    async.eachOf(paths, function (path, index, _async_callback) {
+                      if(!_groups[path]) _groups[path] = {}
+
+                      _groups[path].path = path
+
+                      try{
+                        app.r.expr([
+                          query
+                          .filter(app.r.row('metadata')('path').eq(path))('metadata')('host')
+                          .distinct(),
+                          query
+                          .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').min(),
+                          query
+                          .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').max(),
+
+                        ]).run(app.conn, {arrayLimit: 1000000}, function(err, resp){
+                          debug('EXPR RESULT %o %o', err, resp)
+                          // process.exit(1)
+                          if(resp && Array.isArray(resp)){
+                            _groups[path].range =[ resp[1], resp[2] ]
+                            _groups[path].hosts = resp[0]
+                          }
+                          // _async_callback(err, _groups)
+                          _async_callback(undefined, _groups)
+                          // rowFinished(err)
+                        })
+                      }
+                      catch(err){
+                        // _async_callback(err, _groups)
+                        _async_callback(undefined, _groups)
+                      }
+
+
+                    }, function (err) {
+                      debug('build_default_result ERR %o', err)
+                      // if(err){
+                      //   _result_callback(err, undefined)
+                      // }
+                      // else{
+                      _result_callback(err, _groups)
+                      // }
+                    // process.exit(1)
+                    })
+                  }
+                })
 
               }
-
-              _result_callback(err, doc)
             })
-
-            // query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
-            //   if(err){
-            //     _result_callback(err, undefined)
-            //   }
-            //   else{
-            //     let _groups = {}
-            //     resp.toArray(function(err, paths){
-            //       if(err){
-            //         _result_callback(err, undefined)
-            //       }
-            //       else{
-            //         async.eachOf(paths, function (path, index, _async_callback) {
-            //           if(!_groups[path]) _groups[path] = {}
-            //
-            //           _groups[path].path = path
-            //
-            //           app.r.expr([
-            //             app.r
-            //             .db(app.options.db)
-            //             .table(from)
-            //             .filter(app.r.row('metadata')('path').eq(path))('metadata')('host')
-            //             .distinct(),
-            //             app.r
-            //             .db(app.options.db)
-            //             .table(from)
-            //             .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').min(),
-            //             app.r
-            //             .db(app.options.db)
-            //             .table(from)
-            //             .filter(app.r.row('metadata')('path').eq(path))('metadata')('timestamp').max(),
-            //
-            //           ]).run(app.conn, {arrayLimit: 1000000}, function(err, resp){
-            //             debug('EXPR RESULT %o %o', err, resp)
-            //             // process.exit(1)
-            //             if(resp && Array.isArray(resp)){
-            //               _groups[path].range =[ resp[1], resp[2] ]
-            //               _groups[path].hosts = resp[0]
-            //             }
-            //             _async_callback(err, _groups)
-            //             // rowFinished(err)
-            //           })
-            //
-            //
-            //         }, function (err) {
-            //           debug('build_default_result ERR %o', err)
-            //           if(err){
-            //             _result_callback(err, undefined)
-            //           }
-            //           else{
-            //             _result_callback(err, _groups)
-            //           }
-            //         // process.exit(1)
-            //         })
-            //       }
-            //     })
-            //
-            //   }
-            // })
 					}
 				},
 

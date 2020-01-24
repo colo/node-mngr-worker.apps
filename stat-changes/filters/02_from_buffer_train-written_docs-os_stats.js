@@ -166,7 +166,9 @@ const new_doc_template = {data: {}, metadata: {path: 'brainjs[rethinkdb.docs][se
 
 
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
 
   // const stat = require('../libs/stat')[type]

@@ -29,7 +29,7 @@ const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 
 module.exports = function(payload){
-  let {input, output, filters, type} = payload
+  let {input, output, filters, type, full_range} = payload
 
   Array.each(filters, function(filter, i){
     filters[i] = filter(payload)
@@ -50,6 +50,8 @@ module.exports = function(payload){
               Object.clone(input),
               {
                 // path_key: 'os',
+                full_range: full_range,
+                type: type,
                 module: InputPollerRethinkDB,
               }
             )
@@ -139,7 +141,10 @@ module.exports = function(payload){
   				module: require('js-pipeline.output.rethinkdb'),
           buffer:{
   					// size: -1,
-  					expire:60001,
+  					// expire: 60001,
+            size: -1,//-1 =will add until expire | 0 = no buffer | N > 0 = limit buffer no more than N
+      			expire: 1000, //miliseconds until saving
+      			periodical: 10000 //how often will check if buffer timestamp has expire
   				}
   			}
   		}

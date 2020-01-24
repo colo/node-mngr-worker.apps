@@ -68,7 +68,9 @@ const roundHours = function(timestamp){
 }
 
 module.exports = function(payload){
-  let {input, output, type, full_range } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
   full_range = full_range || false
 

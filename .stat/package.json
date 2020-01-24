@@ -27,6 +27,7 @@
     "pluralize": "^8.0.0",
     "simple-statistics": "^7.0.2",
     "uuid": "^3.3.3",
-    "js-pipeline.inputs.rethinkdb-rest": "git+https://github.com/colo/js-pipeline.inputs.rethinkdb-rest.git"
+    "js-pipeline.inputs.rethinkdb-rest": "git+https://github.com/colo/js-pipeline.inputs.rethinkdb-rest.git",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
   }
 }

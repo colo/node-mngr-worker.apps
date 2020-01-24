@@ -3,9 +3,36 @@
 let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts');
 let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts:Internals');
 
+// paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
+let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
+let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
+// let paths_whitelist = /^munin/
+// let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
+
+const async = require ('async')
+
+let __white_black_lists_filter = function(whitelist, blacklist, str){
+  let filtered = false
+  if(!blacklist && !whitelist){
+    filtered = true
+  }
+  else if(blacklist && !blacklist.test(str)){
+    filtered = true
+  }
+  else if(blacklist && blacklist.test(str) && (whitelist && whitelist.test(str))){
+    filtered = true
+  }
+  else if(!blacklist && (whitelist && whitelist.test(str))){
+    filtered = true
+  }
+
+  return filtered
+}
+
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, type, full_range } = payload
   let table = input.table
+  full_range = full_range || false
 
   // throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
   // process.exit(1)
@@ -24,6 +51,7 @@ module.exports = function(payload){
     // process.exit(1)
 
     if(doc && doc.id === 'paths' && doc.data && doc.metadata && doc.metadata.from === table){
+      // process.exit(1)
       // let { type, input, input_type, app } = opts
 
       // let hosts = []
@@ -39,39 +67,70 @@ module.exports = function(payload){
       // let hosts = pipeline.current[doc.metadata.from].hosts //from first filter, attach hosts
 
       // debug('2nd filter %o', hosts)
-      Array.each(doc.data.paths, function(path){
+      let requests= []
+
+      Object.each(doc.data, function(path_data, path){
       //   // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
       //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
       //   // hosts.combine(group.hosts)
       //   // paths.push(group.path)
+        if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+          Array.each(path_data.hosts, function(host){
 
-        Array.each(doc.data.hosts, function(host){
+            requests.push({
+              id: "once",
+              query: {
+                index: false,
+                "q": [
+                  "data",
+                  // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
+                  "metadata"
+                ],
+                "transformation": [
+                  {
+                  "orderBy": {"index": "r.desc(timestamp)"}
+                  },
+                  {
+                    "slice": [0, 1]
+                  }
 
-          pipeline.get_input_by_id('input.historical').fireEvent('onOnce', {
-            id: "once",
-            query: {
-              "q": [
-                "data",
-                // {"metadata": ["host", "tag", "timestamp", "path", "range"]}
-                "metadata"
-              ],
-              "transformation": [
-                {
-                "orderBy": {"index": "r.desc(timestamp)"}
-                },
-                {
-                  "slice": [0, 1]
-                }
 
+                ],
+                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
+              },
+              params: {},
+            })
 
-              ],
-              "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
-            },
-            params: {},
           })
-        })
+        }
 
       })
+
+
+
+      async.eachLimit(
+        requests,
+        1,
+        function(request, callback){
+          // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+          // callback()
+          let wrapped = async.timeout(function(request){
+            pipeline.get_input_by_id('input.historical').fireEvent('onOnce', request)
+          }, 100)
+
+          // try{
+          wrapped(request, function(err, data) {
+            if(err){
+              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+              callback()
+            }
+          })
+          // }
+          // catch(e){
+          //   callback()
+          // }
+        }
+      )
       // }
       // else if(doc && doc.metadata && doc.metadata.from === 'logs_historical'){
       //

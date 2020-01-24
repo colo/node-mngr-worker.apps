@@ -61,13 +61,12 @@ module.exports = function(payload){
       if(pipeline.current[input.table] && pipeline.current[input.table].data){
         data = pipeline.current[input.table].data
 
-        end_range = (!end_range ||  roundSeconds(data.range[1]) > end_range) ? roundSeconds(data.range[1]) : end_range
-        // Object.each(data, function(group){
-        //   if(group.path === path){
-        //     end_range = (!end_range ||  roundSeconds(group.range[1]) > end_range) ? roundSeconds(group.range[1]) : end_range
-        //   }
-        //
-        // })
+        Object.each(data, function(group){
+          if(group.path === path){
+            end_range = (!end_range ||  roundSeconds(group.range[1] + (MINUTE - SECOND)) > end_range) ? roundSeconds(group.range[1] + (MINUTE - SECOND)) : end_range
+          }
+
+        })
       }
       /**
       * if no data (404)
@@ -75,36 +74,38 @@ module.exports = function(payload){
       if(doc.err && pipeline.current[input.table] && pipeline.current[input.table].data){
         data = pipeline.current[input.table].data
 
-        range[0] = (data.range[0] > Date.now() - HOUR || full_range === true ) ? data.range[0] : roundMinutes(Date.now() - HOUR)
-        range[1] = roundSeconds(range[0] + 60000)//limit on next minute
+        Object.each(data, function(group){
+          if(group.path === path){
+            // range[0] = group.range[0]
+            range[0] = (group.range[0] > Date.now() - HOUR || full_range === true ) ? group.range[0] : roundMinutes(Date.now() - HOUR)
+            range[1] = roundSeconds(range[0] + 60000)//limit on next minute
+            // end_range = group.range[1]
+          }
 
-        // Object.each(data, function(group){
-        //   if(group.path === path){
-        //     // range[0] = group.range[0]
-        //     range[0] = (group.range[0] > Date.now() - HOUR || full_range === true ) ? group.range[0] : roundMinutes(Date.now() - HOUR)
-        //     range[1] = roundSeconds(range[0] + 60000)//limit on next minute
-        //     // end_range = group.range[1]
-        //   }
-        //
-        // })
+        })
 
       }
       else if(doc.data){
+        debug('2nd filter %o %s', doc, new Date(end_range))
+        // process.exit(1)
+
         data = doc.data
-        debug('3rd filter %o', data)
+
+        // debug('3rd filter %o', data)
+        // process.exit(1)
         Array.each(data, function(group){
-          Array.each(group, function(group_item){
-            range[0] = group_item.metadata.range.end
+          // Array.each(group, function(group_item){
+            range[0] = (!range[0] || group.metadata.range.end < range[0]) ? group.metadata.range.end : range[0]
             range[1] = roundSeconds(range[0] + 60000)//limit on next minute
             // end_range = Date.now()
             // end_range =  pipeline.current[table].data
             end_range = (end_range) ? end_range : Date.now()
-          })
+          // })
         })
         // process.exit(1)
       }
 
-      debug('range %s %s %o %s', new Date(range[0]), new Date(range[1]), host, path, end_range)
+      debug('range %s %s %s %s %s', new Date(range[0]), new Date(range[1]), host, path, new Date(end_range))
       // process.exit(1)
 
       while(range[0] < end_range && range[1] <= roundSeconds(Date.now())){
@@ -116,6 +117,7 @@ module.exports = function(payload){
             id: "range",
             Range: "posix "+range[0]+"-"+range[1]+"/*",
             query: {
+              index: false,
               "q": [
                 "id",
                 "data",
@@ -161,7 +163,7 @@ module.exports = function(payload){
       // async.tryEach(ranges)
       async.eachLimit(
         ranges,
-        10,
+        1,
         function(range, callback){
           // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
           // callback()
@@ -175,7 +177,7 @@ module.exports = function(payload){
             pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
             // process.exit(1)
             // callback()
-          }, 10)
+          }, 100)
 
           // try{
           wrapped(range, function(err, data) {

@@ -29,7 +29,7 @@ const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 
 module.exports = function(payload){
-  let {input, output, filters, type, full_range} = payload
+  let {input, output, filters, opts} = payload
 
   Array.each(filters, function(filter, i){
     filters[i] = filter(payload)
@@ -45,13 +45,11 @@ module.exports = function(payload){
     		poll: {
 
     			id: "input.periodical",
+          suspended: (opts && opts.suspended) ? opts.suspended : false,
           conn: [
             Object.merge(
               Object.clone(input),
               {
-                // path_key: 'os',
-                full_range: full_range,
-                type: type,
                 module: InputPollerRethinkDB,
               }
             )
@@ -70,7 +68,10 @@ module.exports = function(payload){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              if(type === 'minute'){
+              if(input.type === 'second'){
+                return cron.schedule('* * * * * *', dispatch);//every minute
+              }
+              else if(input.type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
               }
               else{
@@ -111,12 +112,15 @@ module.exports = function(payload){
     				 * */
              periodical: function(dispatch){
      					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-               if(type === 'minute'){
-                 return cron.schedule('* * * * *', dispatch);//every minute
-               }
-               else{
-                 return cron.schedule('0 * * * *', dispatch);//every hour
-               }
+              if(input.type === 'second'){
+                return cron.schedule('* * * * * *', dispatch);//every minute
+              }
+              else if(input.type === 'minute'){
+                return cron.schedule('* * * * *', dispatch);//every minute
+              }
+              else{
+                return cron.schedule('0 * * * *', dispatch);//every hour
+              }
      				},
     				// periodical: 15000,
     				// periodical: 1000,//test

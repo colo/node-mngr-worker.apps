@@ -43,7 +43,10 @@ const { fork } = require('child_process');
 let forks = {}
 
 module.exports = function(payload){
-  let {input, output, type, format } = payload
+  let {input, output, opts } = payload
+  let format = opts.format
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
 
   // const stat = require('../libs/stat')[type]

@@ -79,7 +79,9 @@ const template_doc = {
   }
 }
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
   let host = input.host
   // const stat = require('../libs/stat')[type]

@@ -37,7 +37,7 @@ module.exports = function(payload){
   let table = output.table
 
   let filter = function(doc, opts, next, pipeline){
-    debug('2nd filter %o', doc, pipeline.current[input.table], doc.id, table, doc.metadata.from)
+    debug('2nd filter %o', doc, doc.id, table, doc.metadata.from)
     // process.exit(1)
 
     if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
@@ -60,13 +60,12 @@ module.exports = function(payload){
       if(pipeline.current[input.table] && pipeline.current[input.table].data){
         data = pipeline.current[input.table].data
 
-        end_range = (!end_range ||  roundMinutes(data.range[1]) > end_range) ? roundMinutes(data.range[1]) : end_range
-        // Object.each(data, function(group){
-        //   if(group.path === path){
-        //     end_range = (!end_range ||  roundMinutes(group.range[1]) > end_range) ? roundMinutes(group.range[1]) : end_range
-        //   }
-        //
-        // })
+        Object.each(data, function(group){
+          if(group.path === path){
+            end_range = (!end_range ||  roundMinutes(group.range[1]  + (HOUR - SECOND)) > end_range) ? roundMinutes(group.range[1] + (HOUR - SECOND)) : end_range
+          }
+
+        })
       }
       /**
       * if no data (404)
@@ -74,31 +73,28 @@ module.exports = function(payload){
       if(doc.err && pipeline.current[input.table] && pipeline.current[input.table].data){
         data = pipeline.current[input.table].data
 
-        range[0] = (data.range[0] > Date.now() - DAY || full_range === true ) ? data.range[0] : roundMinutes(Date.now() - DAY)
-        range[1] = roundMinutes(range[0] + 3660000)//limit on next hour
+        Object.each(data, function(group){
+          if(group.path === path){
+            // range[0] = group.range[0]
+            range[0] = (group.range[0] > Date.now() - DAY || full_range === true ) ? group.range[0] : roundMinutes(Date.now() - DAY)
+            range[1] = roundMinutes(range[0] + 3660000)//limit on next hour
+            // end_range = group.range[1]
+          }
 
-        // Object.each(data, function(group){
-        //   if(group.path === path){
-        //     // range[0] = group.range[0]
-        //     range[0] = (group.range[0] > Date.now() - DAY || full_range === true ) ? group.range[0] : roundMinutes(Date.now() - DAY)
-        //     range[1] = roundMinutes(range[0] + 3660000)//limit on next hour
-        //     // end_range = group.range[1]
-        //   }
-        //
-        // })
+        })
 
       }
       else if(doc.data){
         data = doc.data
         debug('2nd filter %o', data)
         Array.each(data, function(group){
-          Array.each(group, function(group_item){
-            range[0] = group_item.metadata.range.end
+          // Array.each(group, function(group_item){
+            range[0] = (!range[0] || group.metadata.range.end < range[0]) ? group.metadata.range.end : range[0]
             range[1] = roundMinutes(range[0] + 3660000)//limit on next hour
             // end_range = Date.now()
             // end_range =  pipeline.current[table].data
             end_range = (end_range) ? end_range : Date.now()
-          })
+          // })
         })
         // process.exit(1)
       }
@@ -115,6 +111,7 @@ module.exports = function(payload){
             id: "range",
             Range: "posix "+range[0]+"-"+range[1]+"/*",
             query: {
+              index: false,
               "q": [
                 "id",
                 "data",
@@ -160,7 +157,7 @@ module.exports = function(payload){
       // async.tryEach(ranges)
       async.eachLimit(
         ranges,
-        10,
+        1,
         function(range, callback){
           // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
           // callback()
@@ -174,7 +171,7 @@ module.exports = function(payload){
             pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
             // process.exit(1)
             // callback()
-          }, 10)
+          }, 100)
 
           // try{
           wrapped(range, function(err, data) {
