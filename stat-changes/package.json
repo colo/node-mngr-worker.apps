@@ -12,6 +12,9 @@
   },
   "devDependencies": {},
   "optionalDependencies": {
+    "@liquid-carrot/carrot": "^0.3.18",
+    "neataptic": "^1.4.7",
+    "kalmanjs": "^1.1.0",
     "brain.js": "^2.0.0-alpha.11"
   },
   "licenses": [
