@@ -76,7 +76,7 @@ module.exports = function(payload){
               }
               else{
                 return cron.schedule('0 * * * *', dispatch);//every hour
-                // return cron.schedule('*/10 * * * * *', dispatch);//testing ML 
+                // return cron.schedule('*/1 * * * * *', dispatch);//testing ML
               }
     				},
     				// periodical: 15000,

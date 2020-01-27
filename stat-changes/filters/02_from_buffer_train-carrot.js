@@ -9,8 +9,8 @@ const path = require('path')
 const traverse_path_require = require('node-tabular-data').traverse_path_require
 
 // const brain = require('brain.js');
-const carrot = require('@liquid-carrot/carrot')
-// const carrot = require('neataptic')
+// const carrot = require('@liquid-carrot/carrot')
+const carrot = require('neataptic')
 
 // const value_to_data = require('../../libs/value.data')
 
@@ -166,7 +166,7 @@ const denormalize = function (value, min, max) {
 
 let prev = []
 const transform = function (values, column) {
-  debug('transform %o', values, prev)
+  // debug('transform %o', values, prev)
   let transformed = JSON.parse(JSON.stringify(values))
   // if (prev.length === 0 || (transformed.length > 0 && transformed[0] !== null && prev[0] > values[0][0])) { // timestamp check
   prev = transformed.shift()
@@ -185,7 +185,7 @@ const transform = function (values, column) {
         if (index > 0 && (column === undefined || index === column || column.contains(index))) { // index == 0 == timestamp
           let __val = (col - prev[index]) / ((row[0] - prev[0]) / 1000) // DERIVE
 
-          row[index] = (index === 5 && __val > 40000) ? __val / 2 : __val
+          row[index] = (index === 5 && __val > 39000) ? __val / 2 : __val
         }
       }
       // })
@@ -222,6 +222,7 @@ module.exports = function(payload){
   let sectors = {min: undefined, max: undefined}
   let queue = {min: undefined, max: undefined}
   let idle = {min: undefined, max: undefined}
+  let usage = {min: undefined, max: undefined}
 
   // const netOptions = {
   //   activation: 'sigmoid', // activation function
@@ -448,7 +449,7 @@ module.exports = function(payload){
 
             // Array.each(doc_data, function(group, group_index){
             Array.each(real_data, function(group, group_index){
-              debug('GROUP', group)
+              // debug('GROUP', group)
               // process.exit(1)
 
               first = (group.metadata.timestamp < first) ? group.metadata.timestamp : first
@@ -457,7 +458,7 @@ module.exports = function(payload){
               let path = group.metadata.path
 
 
-              debug_internals('PATH', path, hooks_path)
+              // debug_internals('PATH', path, hooks_path)
               // process.exit(1)
 
               if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
@@ -490,7 +491,7 @@ module.exports = function(payload){
                 Object.each(group.data, function(value, key){//item real data
 
                   let _key = key
-                  debug('KEY', key)
+                  // debug('KEY', key)
 
 
                   if(hooks[path]){
@@ -589,6 +590,11 @@ module.exports = function(payload){
               if (!docs[ts]) docs[ts] = { idle: undefined, written: undefined, sectors: undefined, queue: undefined }
                 if(path === 'os.cpus' && key === 'idle'){
                   docs[ts].idle = data
+
+                }
+                else if(path === 'os.cpus'){
+                  if(!docs[ts].usage) docs[ts].usage = 0
+                  docs[ts].usage += data
                 }
                 else if(path === 'os.rethinkdb.server.read_docs' && key === 'per_sec'){
                   docs[ts].read = data
@@ -621,56 +627,71 @@ module.exports = function(payload){
       Array.each(tss, function (ts) {
         ts *= 1
         // arr_docs.push([ts, docs[ts].per_sec, docs[ts].idle])
-        arr_docs.push([ts, docs[ts].read, docs[ts].written, docs[ts].sectors, docs[ts].queue, docs[ts].idle])
+        arr_docs.push([ts, docs[ts].read, docs[ts].written, docs[ts].sectors, docs[ts].queue, docs[ts].idle, docs[ts].usage])
       })
 
-      debug('arr_docs', arr_docs)
+      // debug('arr_docs', arr_docs)
 
-      arr_docs = arr_docs.filter(doc => (doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined && doc[4] !== undefined && doc[5] !== undefined))
-      arr_docs = transform(arr_docs, [3, 4, 5])
+      arr_docs = arr_docs.filter(doc => (doc[1] !== undefined && doc[2] !== undefined && doc[3] !== undefined && doc[4] !== undefined && doc[5] !== undefined && doc[6] !== undefined))
+      arr_docs = transform(arr_docs, [3, 4, 5, 6])
+
+      read = min_max(arr_docs, 1)
+      written = min_max(arr_docs, 2)
+      sectors = min_max(arr_docs, 3)
+      queue = min_max(arr_docs, 4)
+      idle = min_max(arr_docs, 5)
+      usage = min_max(arr_docs, 6)
+
+
       // arr_docs = transform(arr_docs, [1, 2, 3])
 
       // arr_docs = arr_docs.filter(doc => (doc[1] > 0 && doc[2] > 0))
       // arr_docs = arr_docs.filter(doc => (doc[0] >= 0 && doc[1] >= 0 && doc[2] >= 0 && doc[3] >= 0 && doc[4] >= 0))
 
-      arr_docs = arr_docs.filter(doc => (doc[1] >= 0 && doc[2] >= 0 && doc[3] >= 0 && doc[4] >= 0 && doc[5] >= 0))
+      arr_docs = arr_docs.filter(doc => (doc[1] >= 0 && doc[2] >= 0 && doc[3] >= 0 && doc[4] >= 0 && doc[5] >= 0 && doc[6] >= 0))
 
-      // debug('final_docs first', final_docs)
-      //
-      // const LENGTH = 2
-      //
-      // let current_row = [[], [], [], [], []]
-      // for (let i = 0; i < arr_docs.length; i++) {
-      //   let row = arr_docs[i]
-      //   // debug('CALLBACK ROW %o', current_row, i, i % LENGTH)
-      //   if (i === 0 || (i % LENGTH !== 0)) {
-      //     current_row[0].push(row[0])
-      //     current_row[1].push(row[1])
-      //     current_row[2].push(row[2])
-      //     current_row[3].push(row[3])
-      //     current_row[4].push(row[4])
-      //   } else {
-      //     current_row[0] = ss.median(current_row[0])
-      //     current_row[1] = ss.median(current_row[1])
-      //     current_row[2] = ss.median(current_row[2])
-      //     current_row[3] = ss.median(current_row[3])
-      //     current_row[4] = ss.median(current_row[4])
-      //
-      //     final_docs.push(Array.clone(current_row))
-      //
-      //     current_row = [[], [], [], [], []]
-      //     current_row[0].push(row[0])
-      //     current_row[1].push(row[1])
-      //     current_row[2].push(row[2])
-      //     current_row[3].push(row[3])
-      //     current_row[4].push(row[4])
-      //   }
-      // }
-      //
-      // debug('final_docs', final_docs)
+
 
       if(arr_docs.length >= 300){
-        // let final_docs = []
+        // debug('final_docs first', final_docs)
+
+
+        // const LENGTH = 5
+        //
+        // let current_row = [[], [], [], [], [], []]
+        // for (let i = 0; i < arr_docs.length; i++) {
+        //   let row = arr_docs[i]
+        //   // debug('CALLBACK ROW %o', current_row, i, i % LENGTH)
+        //   if (i === 0 || (i % LENGTH !== 0)) {
+        //     current_row[0].push(row[1])
+        //     current_row[1].push(row[2])
+        //     current_row[2].push(row[3])
+        //     current_row[3].push(row[4])
+        //     current_row[4].push(row[5])
+        //     current_row[5].push(row[6])
+        //   } else {
+        //     current_row[0] = ss.median(current_row[0])
+        //     current_row[1] = ss.median(current_row[1])
+        //     current_row[2] = ss.median(current_row[2])
+        //     current_row[3] = ss.median(current_row[3])
+        //     current_row[4] = ss.median(current_row[4])
+        //     current_row[5] = ss.median(current_row[5])
+        //
+        //     final_docs.push(Array.clone(current_row))
+        //
+        //     current_row = [[], [], [], [], [], []]
+        //     current_row[0].push(row[1])
+        //     current_row[1].push(row[2])
+        //     current_row[2].push(row[3])
+        //     current_row[3].push(row[4])
+        //     current_row[4].push(row[5])
+        //     current_row[5].push(row[6])
+        //   }
+        // }
+
+        // debug('final_docs', final_docs)
+
+
         let current_row = []
         for (let i = 0; i < arr_docs.length; i++) {
           let row = JSON.parse(JSON.stringify(arr_docs[i]))
@@ -680,22 +701,25 @@ module.exports = function(payload){
           current_row[2] = row[3]
           current_row[3] = row[4]
           current_row[4] = row[5]
+          current_row[5] = row[6]
 
           final_docs.push(Array.clone(current_row))
           current_row = []
         }
+
         // debug('final_docs first', arr_docs.length, arr_docs[0], arr_docs[arr_docs.length - 1])
         // process.exit(1)
 
         final_docs = shuffle(final_docs)
 
-        read = min_max(final_docs, 0)
-        written = min_max(final_docs, 1)
-        sectors = min_max(final_docs, 2)
-        queue = min_max(final_docs, 3)
-        idle = min_max(final_docs, 4)
+        // read = min_max(final_docs, 0)
+        // written = min_max(final_docs, 1)
+        // sectors = min_max(final_docs, 2)
+        // queue = min_max(final_docs, 3)
+        // idle = min_max(final_docs, 4)
+        // usage = min_max(final_docs, 5)
 
-        debug('read %o - written %o - sectors %o - queue %o - idle %o', read, written, sectors, queue, idle)
+        debug('read %o - written %o - sectors %o - queue %o - idle %o', read, written, sectors, queue, idle, usage)
 
 
         const SPLIT = final_docs.length * 0.8 // 80%
@@ -714,7 +738,8 @@ module.exports = function(payload){
             output: [
               normalize(d[2], sectors.min, sectors.max),
               normalize(d[3], queue.min, queue.max),
-              normalize(d[4], idle.min, idle.max)
+              normalize(d[4], idle.min, idle.max),
+              normalize(d[5], usage.min, usage.max)
             ]
           }
 
@@ -729,7 +754,8 @@ module.exports = function(payload){
             output: [
               normalize(d[2], sectors.min, sectors.max),
               normalize(d[3], queue.min, queue.max),
-              normalize(d[4], idle.min, idle.max)
+              normalize(d[4], idle.min, idle.max),
+              normalize(d[5], usage.min, usage.max)
             ]
           }
         })
@@ -737,10 +763,11 @@ module.exports = function(payload){
 
         // debug('trainData %o - testData %o', trainData, testData)
 
-        debug('sectors queue idle ', read, written, sectors, queue, idle)
+        debug('sectors queue idle ', read, written, sectors, queue, idle, usage)
 
         if(trainData.length > 0){
-          let network = new carrot.architect.LSTM(2, 5, 3)
+          let network = new carrot.architect.LSTM(2, 5, 4)
+          // let network = new carrot.architect.Perceptron(2, 10,10,10,10, 4)
           // let network = new carrot.architect.NARX(2, 5, 3, 3, 3)
 
           network.train(trainData, {
@@ -751,20 +778,21 @@ module.exports = function(payload){
             // cost: carrot.methods.cost.MAPE, // bad
             // cost: carrot.methods.cost.MSLE, //bad
             // cost: carrot.methods.cost.HINGE, //bad
-            batch_size: 32,
+            // batch_size: 32,
             log: 100,
             iterations: 2000,
             error: 0.001,
             clear: true,
-            rate: 0.5,
+            // rate: 0.9,
+            rate: 0.05,
             crossValidate:
               {
-                testSize: 0.1,
+                testSize: 0.2,
                 testError: 0.02
               }
           })
 
-          let forecast = [[0, 2000], [4100, 0], [4100, 2000], [200000, 64]] // normal delete - this read - this read + normal delete
+          let forecast = [[0, 2400], [3800, 0], [3800, 2400], [140000, 80]] // normal delete - this read - this read + normal delete
           let forecastData = forecast.map(d => {
             return [normalize(d[0], read.min, read.max), normalize(d[1], written.min, written.max)]
           })
@@ -772,11 +800,12 @@ module.exports = function(payload){
           forecastData.forEach((datapoint) => {
             debug('RUN datapoint', datapoint)
             let output = network.activate([datapoint[0], datapoint[1]])
-            debug('RUN forecast %o - sectors %d - queue %d - idle %d',
+            debug('RUN forecast %o - sectors %d - queue %d - idle %d - usage %d',
               output,
               denormalize(output[0], sectors.min, sectors.max),
               denormalize(output[1], queue.min, queue.max),
-              denormalize(output[2], idle.min, idle.max)
+              denormalize(output[2], idle.min, idle.max),
+              denormalize(output[3], usage.min, usage.max)
             )
           })
 
