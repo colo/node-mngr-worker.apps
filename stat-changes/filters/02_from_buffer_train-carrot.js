@@ -736,8 +736,8 @@ module.exports = function(payload){
               normalize(d[1], written.min, written.max)
             ],
             output: [
-              normalize(d[2], sectors.min, sectors.max),
-              normalize(d[3], queue.min, queue.max),
+              // normalize(d[2], sectors.min, sectors.max),
+              // normalize(d[3], queue.min, queue.max),
               normalize(d[4], idle.min, idle.max),
               normalize(d[5], usage.min, usage.max)
             ]
@@ -752,8 +752,8 @@ module.exports = function(payload){
               normalize(d[1], written.min, written.max)
             ],
             output: [
-              normalize(d[2], sectors.min, sectors.max),
-              normalize(d[3], queue.min, queue.max),
+              // normalize(d[2], sectors.min, sectors.max),
+              // normalize(d[3], queue.min, queue.max),
               normalize(d[4], idle.min, idle.max),
               normalize(d[5], usage.min, usage.max)
             ]
@@ -766,7 +766,7 @@ module.exports = function(payload){
         debug('sectors queue idle ', read, written, sectors, queue, idle, usage)
 
         if(trainData.length > 0){
-          let network = new carrot.architect.LSTM(2, 5, 4)
+          let network = new carrot.architect.LSTM(2, 4,4,4, 2)
           // let network = new carrot.architect.Perceptron(2, 10,10,10,10, 4)
           // let network = new carrot.architect.NARX(2, 5, 3, 3, 3)
 
@@ -783,8 +783,8 @@ module.exports = function(payload){
             iterations: 2000,
             error: 0.001,
             clear: true,
-            // rate: 0.9,
-            rate: 0.05,
+            rate: 0.9,
+            // rate: 0.05,
             crossValidate:
               {
                 testSize: 0.2,
@@ -792,7 +792,7 @@ module.exports = function(payload){
               }
           })
 
-          let forecast = [[0, 2400], [3800, 0], [3800, 2400], [140000, 80]] // normal delete - this read - this read + normal delete
+          let forecast = [[1, 2400], [3800, 0], [3800, 2400], [140000, 80]] // normal delete - this read - this read + normal delete
           let forecastData = forecast.map(d => {
             return [normalize(d[0], read.min, read.max), normalize(d[1], written.min, written.max)]
           })
@@ -802,10 +802,12 @@ module.exports = function(payload){
             let output = network.activate([datapoint[0], datapoint[1]])
             debug('RUN forecast %o - sectors %d - queue %d - idle %d - usage %d',
               output,
-              denormalize(output[0], sectors.min, sectors.max),
-              denormalize(output[1], queue.min, queue.max),
-              denormalize(output[2], idle.min, idle.max),
-              denormalize(output[3], usage.min, usage.max)
+              // denormalize(output[0], sectors.min, sectors.max),
+              // denormalize(output[1], queue.min, queue.max),
+              // denormalize(output[2], idle.min, idle.max),
+              // denormalize(output[3], usage.min, usage.max)
+              denormalize(output[0], idle.min, idle.max),
+              denormalize(output[1], usage.min, usage.max)
             )
           })
 
