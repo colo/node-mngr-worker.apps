@@ -563,13 +563,13 @@ module.exports = new Class({
                   else{
                     query = query
                       .between(
-                        // roundMinutes(Date.now() - HOUR),
-                        // roundMinutes(Date.now()),
+                        roundMinutes(Date.now() - HOUR),
+                        roundMinutes(Date.now()),
                         /**
                         * testing ML
                         **/
-                        Date.now() - HOUR,
-                        Date.now(),
+                        // Date.now() - HOUR,
+                        // Date.now(),
                         // Date.now(),
                         {index: 'timestamp'}
                       )
