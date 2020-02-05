@@ -90,8 +90,9 @@ module.exports = function(payload){
     debug('3rd filter %o %o', buffer)
 
     if(buffer.id === 'changes' && buffer.data.length > 0){
-      Array.each(buffer.data, function(doc){
-        let ts = roundMilliseconds(Date.now())
+      Array.each(buffer.data, function(doc, _index){
+        // let ts = roundMilliseconds(Date.now())
+        const ts = buffer.metadata.timestamp + _index
         let new_doc = Object.clone(template_doc)
 
         new_doc.metadata.tag.push(doc.server)

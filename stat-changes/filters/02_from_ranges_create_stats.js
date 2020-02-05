@@ -267,6 +267,13 @@ module.exports = function(payload){
 
             new_doc['metadata'].timestamp = new_doc.metadata.range.end
 
+            if(type === 'hour'){
+              new_doc['metadata'].timestamp = roundMinutes(new_doc['metadata'].timestamp + MINUTE)
+            }
+            else{
+              new_doc['metadata'].timestamp = roundSeconds(new_doc['metadata'].timestamp + SECOND)
+            }
+
             new_doc.id = new_doc.metadata.host+
               // '.historical.minute.'+
               '.'+type+'.'+

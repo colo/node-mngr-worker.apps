@@ -65,6 +65,8 @@ module.exports = new Class({
   //
   // },
   options: {
+    changes: {includeTypes: true, squash: false},
+
     db: undefined,
     table: undefined,
     type: undefined,
@@ -315,8 +317,14 @@ module.exports = new Class({
                   /**
                   * changes (feed)
                   **/
-                  if(req.query.register === 'changes')
-                    query = query.changes({includeTypes: true, squash: false})
+                  if(req.query.register === 'changes'){
+                    delete app.options.changes.maxBatchSeconds
+                    debug('app.options.changes', req.query.opts, app.options.changes)
+                    // process.exit(1)
+                    query = query.changes(req.query.opts || app.options.changes)
+                    // query = query.changes({includeTypes: true, squash: false})
+                  }
+                    // query = query.changes({includeTypes: true, squash: false})
 
                   if(req.query && req.query.transformation)
                     query = app.query_with_transformation(query, req.query.transformation)
