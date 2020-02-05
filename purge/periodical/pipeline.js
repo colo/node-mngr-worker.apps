@@ -60,20 +60,18 @@ module.exports = function(payload){
     			// 	periodical: 1000,
     			// },
           requests: {
-    				/**
-    				 * runnign at 20 secs intervals
-    				 * needs 3 runs to start analyzing from last historical (or from begining)
-    				 * it takes 60 secs to complete, so it makes historical each minute
-    				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
-    				 * */
+  
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              // if(type === 'minute'){
+              if(type === 'periodical'){
+                return cron.schedule('* * * * * *', dispatch);//every minute
+              }
+              else if(type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
-              // }
-              // else{
-              //   return cron.schedule('0 * * * *', dispatch);//every hour
-              // }
+              }
+              else{
+                return cron.schedule('0 * * * *', dispatch);//every hour
+              }
     				},
     				// periodical: 15000,
     				// periodical: 1000,//test

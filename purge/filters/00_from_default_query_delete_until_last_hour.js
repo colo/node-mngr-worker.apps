@@ -53,7 +53,9 @@ module.exports = function(payload){
       // debug('PIPELINE %o', pipeline)
       pipeline.fireEvent('onSuspend')
 
-      let end = roundSeconds(Date.now() - HOUR)
+      // let end = roundSeconds(Date.now() - HOUR)
+      let end = roundMilliseconds(Date.now() - HOUR)
+      // let end = Date.now() - HOUR
 
       debug('1st filter END RANGE %s', new Date(end))
 
