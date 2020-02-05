@@ -91,15 +91,15 @@ module.exports = function(payload){
 
     if(buffer.id === 'changes' && buffer.data.length > 0){
       Array.each(buffer.data, function(doc, _index){
-        // let ts = roundMilliseconds(Date.now())
-        const ts = buffer.metadata.timestamp + _index
+        let ts = roundMilliseconds(Date.now())
+        // const ts = buffer.metadata.timestamp + _index
         let new_doc = Object.clone(template_doc)
 
         new_doc.metadata.tag.push(doc.server)
         new_doc.metadata.tag = new_doc.metadata.tag.combine(doc.id)
         new_doc.metadata.host = host
         new_doc.metadata.timestamp = ts
-        new_doc.metadata.id = host +'.'+new_doc.metadata.id
+        new_doc.metadata.id = host +'.'+new_doc.metadata.id + '.' + _index
 
         let clients_doc = Object.clone(new_doc)
 
