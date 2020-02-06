@@ -278,7 +278,18 @@ module.exports = function(http, out){
               next,
               pipeline
             )
-
+            /**
+            * HACK!
+            * nodejs (libuv) don't report IO time on CPU,
+            * so we use blockdevices.*ticks && blockdevices.time_in_queue as CPU.io
+            * (only if cpus_merged === true / not supported in per_core)
+            **/
+            cpus_filter(
+              doc,
+              opts,
+              next,
+              pipeline
+            )
             // debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
             // // process.exit(1)
             // Object.each(doc, function(_doc, device){
