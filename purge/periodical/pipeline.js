@@ -60,11 +60,11 @@ module.exports = function(payload){
     			// 	periodical: 1000,
     			// },
           requests: {
-  
+
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               if(type === 'periodical'){
-                return cron.schedule('* * * * * *', dispatch);//every minute
+                return cron.schedule('* * * * *', dispatch);//every minute
               }
               else if(type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
