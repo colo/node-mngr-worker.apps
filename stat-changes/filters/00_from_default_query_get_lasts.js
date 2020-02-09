@@ -30,8 +30,13 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 }
 
 module.exports = function(payload){
-  let {input, output, type, full_range } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
+
+  // let {input, output, type, full_range } = payload
+  // let table = input.table
   full_range = full_range || false
 
   // throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
@@ -50,7 +55,7 @@ module.exports = function(payload){
     debug('1st filter %o', doc, table)
     // process.exit(1)
 
-    if(doc && doc.id === 'paths' && doc.data && doc.metadata && doc.metadata.from === table){
+    if(doc && doc.id === 'once' && doc.data && doc.metadata && doc.metadata.from === table){
       // process.exit(1)
       // let { type, input, input_type, app } = opts
 
@@ -69,12 +74,29 @@ module.exports = function(payload){
       // debug('2nd filter %o', hosts)
       let requests= []
 
-      Object.each(doc.data, function(path_data, path){
+      // Object.each(doc.data, function(path_data, path){
+      Array.each(doc.data, function(path_data){
+        let path = path_data.path
+        debug('1st filter PATH %s %o', path, path_data.hosts)
+
       //   // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
       //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
       //   // hosts.combine(group.hosts)
       //   // paths.push(group.path)
         if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+
+          let req_type
+
+          if(type === 'minute'){
+            req_type = 'periodical'
+          }
+          else if(type === 'hour'){
+            req_type = 'minute'
+          }
+          else{
+            throw new Error('Not implemented type' + type)
+          }
+
           Array.each(path_data.hosts, function(host){
 
             requests.push({
@@ -96,7 +118,7 @@ module.exports = function(payload){
 
 
                 ],
-                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
+                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+req_type+"')"]
               },
               params: {},
             })
@@ -106,7 +128,8 @@ module.exports = function(payload){
 
       })
 
-
+      debug('1st filter %o', requests)
+      // process.exit(1)
 
       async.eachLimit(
         requests,

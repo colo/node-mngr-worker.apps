@@ -33,8 +33,14 @@ const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
 
 module.exports = function(payload){
-  let {input, output, type, full_range } = payload
-  let table = output.table
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
+  let table = input.table
+  full_range = full_range || false
+  
+  // let {input, output, type, full_range } = payload
+  // let table = output.table
 
   let filter = function(doc, opts, next, pipeline){
     debug('2nd filter %o', doc, doc.id, table, doc.metadata.from)

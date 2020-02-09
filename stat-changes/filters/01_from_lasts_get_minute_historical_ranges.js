@@ -35,14 +35,20 @@ const DAY = HOUR * 24
 
 
 module.exports = function(payload){
-  let {input, output, type, full_range } = payload
-  let table = output.table
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
+  let table = input.table
+  full_range = full_range || false
+  // let {input, output, type, full_range } = payload
+  // let table = output.table
 
   let filter = function(doc, opts, next, pipeline){
     debug('2nd filter %o', doc)
     // process.exit(1)
 
-    if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
+    // if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
+    if(doc && doc.id === 'once'){
       // let { type, input, input_type, app } = opts
 
       let ranges = []

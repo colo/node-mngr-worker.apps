@@ -85,156 +85,157 @@ module.exports = new Class({
               : { params: {}, query: {} }
 
             if(req.id === 'once'){
-              debug_internals('default ONCE %o %o', req, app.options.table)
 
-              // let distinct_indexes = (req.params && req.params.prop ) ? pluralize(req.params.prop, 1) : app.distinct_indexes
-              // if(!Array.isArray(distinct_indexes))
-              //   distinct_indexes = [distinct_indexes]
-              //
-              // debug_internals('property', distinct_indexes);
+              let _once = function(){
+                debug_internals('default ONCE %o %o', req, app.options.table)
+                // process.exit(1)
+                // let distinct_indexes = (req.params && req.params.prop ) ? pluralize(req.params.prop, 1) : app.distinct_indexes
+                // if(!Array.isArray(distinct_indexes))
+                //   distinct_indexes = [distinct_indexes]
+                //
+                // debug_internals('property', distinct_indexes);
 
-              let from = req.from || app.options.table
-
-
-              let query = app.r
-                .db(app.options.db)
-                .table(from)
-
-              // query = (req.params.prop && req.params.value)
-              // ? query
-              //   .getAll(app.r.args(req.params.value) , {index: pluralize(req.params.prop, 1)})
-              // : query
-              if(req.params.prop && req.params.value){
-                if(!Array.isArray(req.params.value))
-                  try{
-                    req.params.value = JSON.parse(req.params.value)
-                  }
-                  catch(e){
-                    req.params.value = [req.params.value]
-                  }
-
-                query = query.getAll(app.r.args(req.params.value) , {index: pluralize(req.params.prop, 1)})
-              }
-
-              debug_internals('default %o %o', req, app.options.table)
+                let from = req.from || app.options.table
 
 
-              /**
-              * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
-              **/
-              let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
-              if(
-                transformation
-                && (transformation.orderBy
-                  || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
-                )
-              ){
-                let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
-                query = app.query_with_transformation(query, orderBy)
+                let query = app.r
+                  .db(app.options.db)
+                  .table(from)
 
-                if(Array.isArray(transformation)){
-                  transformation = Array.clone(transformation)
-                  transformation.each(function(trasnform, index){
-                    if(Object.keys(trasnform)[0] === 'orderBy')
-                      transformation[index] = undefined
-                  })
+                // query = (req.params.prop && req.params.value)
+                // ? query
+                //   .getAll(app.r.args(req.params.value) , {index: pluralize(req.params.prop, 1)})
+                // : query
+                if(req.params.prop && req.params.value){
+                  if(!Array.isArray(req.params.value))
+                    try{
+                      req.params.value = JSON.parse(req.params.value)
+                    }
+                    catch(e){
+                      req.params.value = [req.params.value]
+                    }
 
-                  transformation = transformation.clean()
+                  query = query.getAll(app.r.args(req.params.value) , {index: pluralize(req.params.prop, 1)})
                 }
 
+                debug_internals('default %o %o', req, app.options.table)
 
-              }
 
-              if(req.query && req.query.filter)
-                query = app.query_with_filter(query, req.query.filter)
+                /**
+                * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+                **/
+                let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
+                if(
+                  transformation
+                  && (transformation.orderBy
+                    || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
+                  )
+                ){
+                  let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
+                  query = app.query_with_transformation(query, orderBy)
 
-              if(transformation)
-                query = app.query_with_transformation(query, transformation)
-              /**
-              * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
-              **/
+                  if(Array.isArray(transformation)){
+                    transformation = Array.clone(transformation)
+                    transformation.each(function(trasnform, index){
+                      if(Object.keys(trasnform)[0] === 'orderBy')
+                        transformation[index] = undefined
+                    })
 
-              // query = (req.params.path)
-              // ? query
-              //   .filter( app.r.row('metadata')('path').eq(req.params.path) )
-              // : query
-              let _result_callback = function(err, resp){
-                debug_internals('run', err)//resp
-                app.process_default(
-                  err,
-                  resp,
-                  {
-                    _extras: {
-                      from: from,
-                      type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                      id: req.id,
-                      transformation: (req.query.transformation) ? req.query.transformation : undefined,
-                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-                      filter: (req.query.filter) ? req.query.filter : undefined
-                      // prop: pluralize(index)
-                    }
+                    transformation = transformation.clean()
                   }
-                )
-              }
 
-              if (req.query && req.query.aggregation && !req.query.q) {
-                query =  this.result_with_aggregation(query, req.query.aggregation)
-                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
-              }
-              else if(req.query.index === false){
-                query = app.build_query_fields(query, req.query)
 
-                debug('NO INDEX %o', query)
+                }
 
-                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+                if(req.query && req.query.filter)
+                  query = app.query_with_filter(query, req.query.filter)
 
-              }
-              else{
-                if(req.query && (req.query.q || req.query.filter)){
-                  query = query
-                    .group( app.get_group(req.query.index) )
-                    // .group( {index:'path'} )
-                    .ungroup()
-                    .map(
-                      function (doc) {
-                        // return app.build_default_query_result(doc, req.query)
-                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                if(transformation)
+                  query = app.query_with_transformation(query, transformation)
+                /**
+                * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+                **/
+
+                // query = (req.params.path)
+                // ? query
+                //   .filter( app.r.row('metadata')('path').eq(req.params.path) )
+                // : query
+                let _result_callback = function(err, resp){
+                  debug_internals('run', err)//resp
+                  app.process_default(
+                    err,
+                    resp,
+                    {
+                      _extras: {
+                        from: from,
+                        type: (req.params && req.params.path) ? req.params.path : app.options.type,
+                        id: req.id,
+                        transformation: (req.query.transformation) ? req.query.transformation : undefined,
+                        aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
+                        filter: (req.query.filter) ? req.query.filter : undefined
+                        // prop: pluralize(index)
                       }
-                    )
-                    .run(app.conn, {arrayLimit: 10000000}, _result_callback)
+                    }
+                  )
+                }
+
+                if (req.query && req.query.aggregation && !req.query.q) {
+                  query =  this.result_with_aggregation(query, req.query.aggregation)
+                  query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+                }
+                else if(req.query.index === false){
+                  query = app.build_query_fields(query, req.query)
+
+                  debug('NO INDEX %o', query)
+
+                  query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
 
                 }
                 else{
-                  app.build_default_result_distinct(query, app.get_distinct(req.query.index), _result_callback)
+                  if(req.query && (req.query.q || req.query.filter)){
+                    query = query
+                      .group( app.get_group(req.query.index) )
+                      // .group( {index:'path'} )
+                      .ungroup()
+                      .map(
+                        function (doc) {
+                          // return app.build_default_query_result(doc, req.query)
+                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        }
+                      )
+                      .run(app.conn, {arrayLimit: 10000000}, _result_callback)
+
+                  }
+                  else{
+                    app.build_default_result_distinct(query, app.get_distinct(req.query.index), _result_callback)
+                  }
+                  // query = query
+                  //   .group( app.r.row('metadata')('path') )
+                  //   .ungroup()
+                  //   .map(
+                  //     function (doc) {
+                  //         return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                  //     }
+                  // )
                 }
-                // query = query
-                //   .group( app.r.row('metadata')('path') )
-                //   .ungroup()
-                //   .map(
-                //     function (doc) {
-                //         return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
-                //     }
-                // )
               }
 
-              // query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
-              //   debug_internals('run', err)//resp
-              //   app.process_default(
-              //     err,
-              //     resp,
-              //     {
-              //       _extras: {
-              //         from: from,
-              //         type: (req.params && req.params.path) ? req.params.path : app.options.type,
-              //         id: req.id,
-              //         transformation: (req.query.transformation) ? req.query.transformation : undefined,
-              //         aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-              //         filter: (req.query.filter) ? req.query.filter : undefined
-              //         // prop: pluralize(index)
-              //       }
-              //     }
-              //   )
-              // })
+
+
+              debug('CONNECTED? %o %s', app.connected, app.options.db)
+              if(app.connected === false){
+                app.addEvent(app.ON_CONNECT, _once)
+                // app.r.on('connect', function(err, conn){
+                //   app.register(
+                //     query,
+                //     req,
+                //     params
+                //   )
+                // })
+              }
+              else{
+                _once()
+              }
 
             } //req.query.register === false
 					}

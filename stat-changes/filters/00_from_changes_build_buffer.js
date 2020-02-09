@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts');
-let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_default_query_get_lasts:Internals');
+let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_changes_build_buffer');
+let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_changes_build_buffer:Internals');
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
@@ -100,6 +100,7 @@ module.exports = function(payload){
     }
     else if(expire === undefined && type === 'hour'){
       expire = roundMinutes(Date.now() + HOUR)
+      // expire = roundMinutes(Date.now() + MINUTE)//for testing
     }
 
     debug('expire %s %s', new Date(), new Date(expire))

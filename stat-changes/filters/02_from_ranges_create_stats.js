@@ -37,9 +37,50 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 
 const stat = require('../libs/stat')
 
+const roundMilliseconds = function(timestamp){
+  let d = new Date(timestamp)
+  d.setMilliseconds(0)
+
+  return d.getTime()
+}
+
+const roundSeconds = function(timestamp){
+  timestamp = roundMilliseconds(timestamp)
+  let d = new Date(timestamp)
+  d.setSeconds(0)
+
+  return d.getTime()
+}
+
+const roundMinutes = function(timestamp){
+  timestamp = roundSeconds(timestamp)
+  let d = new Date(timestamp)
+  d.setMinutes(0)
+
+  return d.getTime()
+}
+const roundHours = function(timestamp){
+  timestamp = roundMinutes(timestamp)
+  let d = new Date(timestamp)
+  d.setHours(0)
+
+  return d.getTime()
+}
+
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = HOUR * 24
+
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
+  full_range = full_range || false
+
+  // let {input, output, type } = payload
+  // let table = input.table
 
   // const stat = require('../libs/stat')[type]
 

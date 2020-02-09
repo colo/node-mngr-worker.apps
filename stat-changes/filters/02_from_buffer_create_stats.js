@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_ranges_create_stats');
-let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_ranges_create_stats:Internals');
+let debug = require('debug')('Server:Apps:Stat:Periodical:Filters:from_buffer_create_stats');
+let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from_buffer_create_stats:Internals');
 let ss = require('simple-statistics');
 
 const path = require('path')
@@ -134,7 +134,7 @@ module.exports = function(payload){
   // const stat = require('../libs/stat')[type]
 
   let filter = function(buffer, opts, next, pipeline){
-    // debug('3rd filter %o', buffer)
+    debug('2nd filter %o', buffer)
     // process.exit(1)
     let sorted_buffer = {}
 
@@ -273,7 +273,10 @@ module.exports = function(payload){
 
                 }
                 else{
-                  if(type === 'minute' || !value['mean']){
+                  // debug('VALUE', type, path, _key, (hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'), value)
+
+                  // if(type === 'minute' || !value['mean']){
+                  if(type === 'minute'){
                     values[host][path][key][timestamp] = value;
                   }
                   else{
@@ -290,6 +293,8 @@ module.exports = function(payload){
 
 
               });
+
+              // debug('VALUES %o', values)
 
               // if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
               //   values[host][path] = hooks[path].post_values(values[host][path])
@@ -319,10 +324,10 @@ module.exports = function(payload){
 
   //
   //
-        // if(values.colo && values.colo['os.cpus']){
-        //   debug_internals('values %o', values.colo['os.cpus'])
-        //   process.exit(1)
-        // }
+        if(values.colo){
+          debug_internals('values %o', values.colo)
+          // process.exit(1)
+        }
 
         if(Object.getLength(values) > 0){
           Object.each(values, function(host_data, host){
@@ -349,7 +354,7 @@ module.exports = function(payload){
 
                 }
 
-                debug_internals('HOOK DOC KEY %s %s', key, _key)
+                // debug_internals('HOOK DOC KEY %s %s', key, _key)
                 // process.exit(1)
 
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
@@ -360,6 +365,8 @@ module.exports = function(payload){
                   new_doc['data'][key] = stat(value)
                 }
 
+                debug_internals('HOOK DOC KEY %s %o', key, new_doc['data'][key])
+                // process.exit(1)
 
 
 
