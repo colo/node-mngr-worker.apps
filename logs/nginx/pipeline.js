@@ -246,7 +246,7 @@ module.exports = function(file, domain, out){
             data: result,
             metadata: {
               host: os.hostname(),
-              path: 'logs.nginx',
+              path: 'logs.nginx.'+doc.domain,
               domain: doc.domain,
               timestamp: doc_ts,
               // timestamp: Date.now(),

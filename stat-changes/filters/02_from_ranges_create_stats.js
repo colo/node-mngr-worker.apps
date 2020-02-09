@@ -72,6 +72,9 @@ const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
 
+const traverse_path_require = require('node-tabular-data').traverse_path_require
+const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
+
 module.exports = function(payload){
   let {input, output, opts } = payload
   let type = input.type
@@ -132,18 +135,25 @@ module.exports = function(payload){
             if(!values[host]) values[host] = {};
             if(!values[host][path]) values[host][path] = {};
 
-            try{
-              //debug_internals('HOOK path %s', path)
-              let _require = require('../hooks/'+type+'/'+path)
+            // try{
+              let _require = traverse_path_require(type, hooks_path, path)
+              // try{
+              //   //debug_internals('HOOK path %s', path)
+              //   let _require = require('../hooks/'+type+'/'+path)
               if(_require)
                 hooks[path] = _require
-            }
-            catch(e){
-              debug_internals('no hook file for %s %o', path, e)
-            }
-            // if(path === 'os.procs'){
-            //   debug_internals('HOOKs', hooks)
+              // //debug_internals('HOOK path %s', path)
+              // let _require = require('../hooks/'+type+'/'+path)
+              // if(_require)
+              //   hooks[path] = _require
+            // }
+            // catch(e){
+            //   debug_internals('no hook file for %s %o', path, e)
             //   process.exit(1)
+            // }
+            // if(path === 'os.procs'){
+              debug_internals('HOOKs', hooks)
+              // process.exit(1)
             // }
 
 

@@ -55,7 +55,7 @@ module.exports = function(payload){
     debug('1st filter %o', doc, table)
     // process.exit(1)
 
-    if(doc && doc.id === 'once' && doc.data && doc.metadata && doc.metadata.from === table){
+    if(doc && doc.id === 'once' && doc.data && doc.metadata.transformation === undefined && doc.metadata.filter === undefined ){
       // process.exit(1)
       // let { type, input, input_type, app } = opts
 
@@ -85,17 +85,17 @@ module.exports = function(payload){
       //   // paths.push(group.path)
         if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
-          let req_type
-
-          if(type === 'minute'){
-            req_type = 'periodical'
-          }
-          else if(type === 'hour'){
-            req_type = 'minute'
-          }
-          else{
-            throw new Error('Not implemented type' + type)
-          }
+          // let req_type
+          //
+          // if(type === 'minute'){
+          //   req_type = 'periodical'
+          // }
+          // else if(type === 'hour'){
+          //   req_type = 'minute'
+          // }
+          // else{
+          //   throw new Error('Not implemented type' + type)
+          // }
 
           Array.each(path_data.hosts, function(host){
 
@@ -118,7 +118,7 @@ module.exports = function(payload){
 
 
                 ],
-                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+req_type+"')"]
+                "filter": ["r.row('metadata')('path').eq('"+path+"')", "r.row('metadata')('host').eq('"+host+"')", "r.row('metadata')('type').eq('"+type+"')"]
               },
               params: {},
             })

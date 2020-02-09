@@ -86,6 +86,8 @@ module.exports = function(payload){
   // "filter": "r.row('metadata')('host').eq('colo')"
   // }
 
+  let interval = -1
+
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
     // process.exit(1)
@@ -112,22 +114,34 @@ module.exports = function(payload){
 
       buffer.push(doc)
 
-      if( Date.now() >= expire){
-        if(buffer.length > 0){
-          next(Array.clone(buffer), opts, next, pipeline)
-          buffer = []
+      let __next = function(){
+        if( Date.now() >= expire){
+          if(buffer.length > 0){
+            next(Array.clone(buffer), opts, next, pipeline)
+            buffer = []
+          }
+
+          expire = undefined
+          clearInterval(interval)
+          interval = -1
+          // if(type === 'minute'){
+          //   expire = roundSeconds(Date.now() + MINUTE)
+          // }
+          // else if(type === 'hour'){
+          //   expire = roundMinutes(Date.now() + HOUR)
+          // }
+
+          // process.exit(1)
         }
-
-        expire = undefined
-        // if(type === 'minute'){
-        //   expire = roundSeconds(Date.now() + MINUTE)
-        // }
-        // else if(type === 'hour'){
-        //   expire = roundMinutes(Date.now() + HOUR)
-        // }
-
-        // process.exit(1)
       }
+
+      if( Date.now() >= expire){
+        __next()
+      }
+      else if(interval === -1){//if no perdiocal data comes in, use an interval (ex: logs)
+        interval = setInterval(__next, 1000)
+      }
+
 
     }
     // else{

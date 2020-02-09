@@ -207,7 +207,7 @@ module.exports = new Class({
 
                   }
                   else{
-                    app.build_default_result_distinct(query, app.get_distinct(req.query.index), _result_callback)
+                    app.build_default_result_distinct(query, app.get_distinct(req.query.index), req.query.distinct, _result_callback)
                   }
                   // query = query
                   //   .group( app.r.row('metadata')('path') )
