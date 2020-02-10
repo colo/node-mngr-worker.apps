@@ -32,6 +32,9 @@ module.exports = function(){
         })
 
         debug('unique_visitors - doc %o', entry_point[key])
+        if(Object.getLength(entry_point[key]) === 0)
+          delete entry_point[key]
+
         // process.exit(1)
         return entry_point
       }
@@ -45,19 +48,23 @@ module.exports = function(){
         let data_values = Object.values(value);
         Array.each(data_values, function(val){
           // debug('method - doc %o', val)
-          Object.each(val, function(data, item){
-            if(typeof item !== 'string')
-              item = JSON.stringify(item)
-            if(!entry_point[key][item]) entry_point[key][item] = 0
+          if(val && Object.getLength(val)){
+            Object.each(val, function(data, item){
+              if(typeof item !== 'string')
+                item = JSON.stringify(item)
+              if(!entry_point[key][item]) entry_point[key][item] = 0
 
-            entry_point[key][item] += data
-          })
+              entry_point[key][item] += data
+            })
+          }
+
+
 
         })
 
         debug('method - doc %o', entry_point[key])
-        // if(key === 'unique_visitors_by_ip')
-        // process.exit(1)
+        if(Object.getLength(entry_point[key]) === 0)
+          delete entry_point[key]
 
         return entry_point
       }
@@ -79,62 +86,76 @@ module.exports = function(){
         let data_values = Object.values(value);
         Array.each(data_values, function(val){
           // debug('method - doc %o', val)
-          Object.each(val, function(data, item){
-            if(!entry_point[key][item]) entry_point[key][item] = {}
+          if(val && Object.getLength(val) > 0){
+            Object.each(val, function(data, item){
+              if(!entry_point[key][item]) entry_point[key][item] = {}
 
-            Object.each(data, function(val, data_item){
+              Object.each(data, function(val, data_item){
 
-              if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = {}
+                if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = {}
 
-              Object.each(val, function(agent, val_item){
-                if(typeof val_item !== 'string')
-                  val_item = JSON.stringify(val_item)
+                Object.each(val, function(agent, val_item){
+                  if(typeof val_item !== 'string')
+                    val_item = JSON.stringify(val_item)
 
-                if(!entry_point[key][item][data_item][val_item]) entry_point[key][item][data_item][val_item] = 0
+                  if(!entry_point[key][item][data_item][val_item]) entry_point[key][item][data_item][val_item] = 0
 
-                entry_point[key][item][data_item][val_item] += agent
+                  entry_point[key][item][data_item][val_item] += agent
+                })
+
+
+
               })
 
-
-
             })
+          }
 
-          })
 
         })
 
         debug('method - doc %o', entry_point[key])
+        if(Object.getLength(entry_point[key]) === 0)
+          delete entry_point[key]
+
         // process.exit(1)
         return entry_point
       }
     },
     referer: {
       doc: function(entry_point, value, key){
-        // debug('method - doc', entry_point, value, key)
+        debug('method - doc', entry_point, value, key)
         delete entry_point[key]
         entry_point[key] = {}
         let data_values = Object.values(value);
         Array.each(data_values, function(val){
-          // debug('method - doc %o', val)
-          Object.each(val, function(data, item){
-            if(!entry_point[key][item]) entry_point[key][item] = {}
+          debug('method - doc %o', val)
+          process.exit(1)
 
-            Object.each(data, function(val, data_item){
-              if(typeof data_item !== 'string')
-                data_item = JSON.stringify(data_item)
+          if(val && Object.getLength(val) > 0){
+            Object.each(val, function(data, item){
+              if(!entry_point[key][item]) entry_point[key][item] = {}
 
-              if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
+              Object.each(data, function(val, data_item){
+                if(typeof data_item !== 'string')
+                  data_item = JSON.stringify(data_item)
 
-              entry_point[key][item][data_item] += val
+                if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
+
+                entry_point[key][item][data_item] += val
+
+              })
 
             })
+          }
 
-          })
+
 
         })
 
         debug('method - doc %o', entry_point[key])
-        // process.exit(1)
+        if(Object.getLength(entry_point[key]) === 0)
+          delete entry_point[key]
+
         return entry_point
       }
     },
