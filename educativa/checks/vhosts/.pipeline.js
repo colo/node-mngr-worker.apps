@@ -50,8 +50,6 @@ const HOUR = 60 * MINUTE
 // const DAY = HOUR * 24
 const DAY = 15 * MINUTE //devel
 
-// let hosts_checks = {}
-
 module.exports = function(payload){
   let {input, output, filters, type} = payload
 
@@ -92,7 +90,7 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               // if(type === 'minute'){
-                return cron.schedule('*/10 * * * * *', dispatch);//every minute
+                return cron.schedule('* * * * *', dispatch);//every minute
               // }
               // else{
               //   return cron.schedule('0 * * * *', dispatch);//every hour
@@ -119,12 +117,9 @@ module.exports = function(payload){
               debug('1st filter %O', group)
               let hosts = group.hosts
 
-              // Array.each(hosts, function(host){
-                // debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - MINUTE)) )
-                debug('1st filter %s %s', new Date(roundSeconds(Date.now() - MINUTE)) )
+              Array.each(hosts, function(host){
+                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - MINUTE)) )
                 // process.exit(1)
-
-                // hosts_checks[host] = false
 
                 pipeline.get_input_by_id('input.vhosts').fireEvent('onRange', {
                   // id: "once",
@@ -148,7 +143,7 @@ module.exports = function(payload){
                     // ],
                     "filter": [
                       "r.row('metadata')('tag').contains('enabled').and('nginx').and('vhost')",
-                      // "r.row('metadata')('host').eq('"+host+"')",
+                      "r.row('metadata')('host').eq('"+host+"')",
                       "r.row('metadata')('type').eq('periodical')"
                     ]
                   },
@@ -156,7 +151,7 @@ module.exports = function(payload){
                 })
 
 
-              // })
+              })
             }
           })
 
@@ -172,9 +167,6 @@ module.exports = function(payload){
         // debug('2nd filter %O', doc)
 
         if(doc && doc.data && doc.metadata && doc.metadata.from === 'vhosts'){
-
-          pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
-
           let hosts_urls = {}
           Array.each(doc.data, function(group){
             // debug('2nd filter groups %O', group)
@@ -192,16 +184,13 @@ module.exports = function(payload){
           let docs = []
           Object.each(hosts_urls, function(urls, host){
 
-            // hosts_checks[host] = true
+            async.eachLimit(urls, 1, function(url, callback){//current nginx limit 5r/s
 
-            async.eachLimit(urls, 2, function(url, callback){//current nginx limit 5r/s
-
-              // -> 10 sec timeout
-              request.head({uri: url, timeout: 10000}, function(error, response, body){
+              request.head({uri: url}, function(error, response, body){
                 if(response && response.statusCode)
-                  debug('request result %s %s %O ', host, url, response.statusCode)
+                  debug('request result %O', response.statusCode)
 
-                // pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
+                pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
                 // if(error){
                 //   debug('request result %O', error)
                 //   process.exit(1)
@@ -269,13 +258,7 @@ module.exports = function(payload){
                 } else {
                   debug('request SAVE %O', docs)
 
-                  //resume if every host has been checked
-                  // if(Object.every(hosts_checks, function(value, host){ return value })){
-                  //   pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
-                  // }
-
                   pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
-
                   next(docs, opts, next, pipeline)
                   // console.log('All files have been processed successfully');
                 }
