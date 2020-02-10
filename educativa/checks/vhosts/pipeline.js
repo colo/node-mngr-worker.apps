@@ -192,7 +192,8 @@ module.exports = function(payload){
             hosts_checks[host] = true
             async.eachLimit(urls, 1, function(url, callback){//current nginx limit 5r/s
 
-              request.head({uri: url}, function(error, response, body){
+              // -> 10 sec timeout
+              request.head({uri: url, timeout: 10000}, function(error, response, body){
                 if(response && response.statusCode)
                   debug('request result %O', response.statusCode)
 
