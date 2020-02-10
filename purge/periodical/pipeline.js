@@ -29,7 +29,8 @@ const InputPollerRethinkDBDelete = require ( './input/rethinkdb.delete.js' )
 
 
 module.exports = function(payload){
-  let {input, output, filters, type} = payload
+  // let {input, output, filters, type} = payload
+  let {input, output, filters, opts} = payload
 
   Array.each(filters, function(filter, i){
     filters[i] = filter(payload)
@@ -63,10 +64,10 @@ module.exports = function(payload){
 
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              if(type === 'periodical'){
+              if(input.type === 'periodical'){
                 return cron.schedule('* * * * *', dispatch);//every minute
               }
-              else if(type === 'minute'){
+              else if(input.type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
               }
               else{

@@ -32,8 +32,13 @@ const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
 // const DAY = 15 * MINUTE //devel
 module.exports = function(payload){
-  let {input, output, type } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
+  full_range = full_range || false
+  // let {input, output, type } = payload
+  // let table = input.table
 
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
@@ -132,7 +137,7 @@ module.exports = function(payload){
       if(doc && doc.id === 'range'){
         pipeline.fireEvent('onResume')
       }
-      
+
       next(doc, opts, next, pipeline)
     }
 
