@@ -119,8 +119,9 @@ module.exports = function(payload){
               debug('1st filter %O', group)
               let hosts = group.hosts
 
-              Array.each(hosts, function(host){
-                debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - MINUTE)) )
+              // Array.each(hosts, function(host){
+                // debug('1st filter %s %s', host, new Date(roundSeconds(Date.now() - MINUTE)) )
+                debug('1st filter %s %s', new Date(roundSeconds(Date.now() - MINUTE)) )
                 // process.exit(1)
 
                 // hosts_checks[host] = false
@@ -155,7 +156,7 @@ module.exports = function(payload){
                 })
 
 
-              })
+              // })
             }
           })
 
