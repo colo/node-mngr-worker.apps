@@ -193,12 +193,12 @@ module.exports = function(payload){
 
             // hosts_checks[host] = true
 
-            async.eachLimit(urls, 1, function(url, callback){//current nginx limit 5r/s
+            async.eachLimit(urls, 2, function(url, callback){//current nginx limit 5r/s
 
               // -> 10 sec timeout
               request.head({uri: url, timeout: 10000}, function(error, response, body){
                 if(response && response.statusCode)
-                  debug('request result %s %O ', url, response.statusCode)
+                  debug('request result %s %s %O ', host, url, response.statusCode)
 
                 // pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
                 // if(error){
