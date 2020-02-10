@@ -157,7 +157,7 @@ module.exports = function(payload){
       })
     }
 
-    // debug('process filter %o', sorted_buffer)
+    debug('process filter %o', sorted_buffer)
     // process.exit(1)
 
 
@@ -275,8 +275,8 @@ module.exports = function(payload){
                 else{
                   // debug('VALUE', type, path, _key, (hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'), value)
 
-                  // if(type === 'minute' || !value['mean']){
-                  if(type === 'minute'){
+                  if(type === 'minute' || value['mean'] === undefined){
+                  // if(type === 'minute'){
                     values[host][path][key][timestamp] = value;
                   }
                   else{

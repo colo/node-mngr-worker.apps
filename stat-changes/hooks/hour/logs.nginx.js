@@ -129,7 +129,7 @@ module.exports = function(){
         let data_values = Object.values(value);
         Array.each(data_values, function(val){
           debug('method - doc %o', val)
-          process.exit(1)
+          // process.exit(1)
 
           if(val && Object.getLength(val) > 0){
             Object.each(val, function(data, item){
