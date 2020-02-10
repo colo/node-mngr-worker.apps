@@ -195,7 +195,7 @@ module.exports = function(payload){
               // -> 10 sec timeout
               request.head({uri: url, timeout: 10000}, function(error, response, body){
                 if(response && response.statusCode)
-                  debug('request result %O', response.statusCode)
+                  debug('request result %s %O ', url, response.statusCode)
 
                 // pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
                 // if(error){
