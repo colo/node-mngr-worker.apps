@@ -11,7 +11,7 @@ module.exports = function(host, urls, cb){//sanitize + metadata
 
   let docs = []
 
-  async.eachLimit(urls, 2, function(url, callback){//current nginx limit 5r/s
+  async.eachLimit(urls, 4, function(url, callback){//current nginx limit 5r/s
 
     request.head({uri: url, timeout: 10000}, function(error, response, body){
       if(response && response.statusCode)
