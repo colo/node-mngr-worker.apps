@@ -96,7 +96,10 @@ module.exports = function(host, urls, cb){//sanitize + metadata
 
         // next(docs, opts, next, pipeline)
         cb(docs)
-        process.exit(0)
+        setTimeout(function(){
+          process.exit(0)
+        }, 2000)
+        
         // console.log('All files have been processed successfully');
       }
   });

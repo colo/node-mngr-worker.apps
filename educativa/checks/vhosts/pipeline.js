@@ -215,7 +215,7 @@ module.exports = function(payload){
                 let doc = msg.doc
                 debug('result %o %o', data, doc)
 
-                delete forks[host]
+                // delete forks[host]
                 next(data, opts, next, pipeline)
                 callback()
 
@@ -262,6 +262,7 @@ module.exports = function(payload){
                 // // debug('2nd filter groups %O', docs)
                 // // process.exit(1)
                 //
+                forks = {}
                 pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
                 //
                 // next(docs, opts, next, pipeline)
