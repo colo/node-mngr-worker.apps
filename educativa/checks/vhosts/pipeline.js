@@ -60,6 +60,10 @@ let shuffle = function (a) {
   return a
 }
 
+const { fork } = require('child_process');
+
+let forks = {}
+
 module.exports = function(payload){
   let {input, output, filters, type} = payload
 
@@ -185,133 +189,177 @@ module.exports = function(payload){
 
           pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
 
-          // let hosts_urls = {}
-          // Array.each(doc.data, function(group){
-          //   // debug('2nd filter groups %O', group)
-          //   // process.exit(1)
-          //   Array.each(group, function(vhost){
-          //     // let url = vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port
-          //     if(!hosts_urls[vhost.metadata.host]) hosts_urls[vhost.metadata.host] = []
-          //     hosts_urls[vhost.metadata.host].push(vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port)
-          //     // debug('2nd filter URL %s', url)
-          //   })
-          // })
 
-          let checks = []
+          let hosts_urls = {}
+          let hosts= []
           Array.each(doc.data, function(row){
-            debug('2nd filter groups %O', row)
-            checks.push({
-              url: row.data.schema+'://'+row.data.uri+':'+row.data.port,
-              host: row.metadata.host
-            })
-            // // process.exit(1)
-            // Array.each(group, function(vhost){
-            //   // debug('2nd filter groups %o', vhost)
-            //   // let url = vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port
-            //   if(!hosts_urls[vhost.metadata.host]) hosts_urls[vhost.metadata.host] = []
-            //   hosts_urls[vhost.metadata.host].push(vhost.data.schema+'://'+vhost.data.uri+':'+vhost.data.port)
-            //   // debug('2nd filter URL %s', url)
-            // })
+            if(!hosts_urls[row.metadata.host]) hosts_urls[row.metadata.host] = []
+              hosts_urls[row.metadata.host].push(row.data.schema+'://'+row.data.uri+':'+row.data.port)
+              hosts.combine([row.metadata.host])
           })
 
-          // let urls_result = {}
-          checks = shuffle(checks)
-          debug('2nd filter groups %O', checks)
+
+          // debug('2nd filter groups %O', hosts_urls)
           // process.exit(1)
+          async.eachLimit(hosts, 5, function(host, callback){//max forks => 5
+            debug('2nd filter groups %O', host)
 
-          let docs = []
-          // Object.each(hosts_urls, function(urls, host){
+            // if(!forks[host]){
+              forks[host] = fork(process.cwd()+'/apps/educativa/checks/libs/fork_filter', [
+                path.join(process.cwd(), '/apps/educativa/checks/filters/vhosts'),
+              ])
 
-            // hosts_checks[host] = true
+              forks[host].on('message', function(msg){
+                let data = msg.result
+                let doc = msg.doc
+                debug('result %o %o', data, doc)
 
-            async.eachLimit(checks, 5, function(check, callback){//current nginx limit 5r/s
-              let {url, host} = check
-              // -> 10 sec timeout
-              request.head({uri: url, timeout: 10000}, function(error, response, body){
-                if(response && response.statusCode)
-                  debug('request result %s %s %O ', host, url, response.statusCode)
-
-                // pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
-                // if(error){
-                //   debug('request result %O', error)
-                //   process.exit(1)
-                // }
-                let doc = {
-                  id: undefined,
-                  data: {},
-                  metadata: {
-                    path: 'educativa.checks.vhosts',
-                    type: 'check',
-                    host: host,
-                    tag: ['check', 'vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol'],
-                    timestamp: Date.now()
-                  }
-                }
-
-                let id = url.replace('://', '.').replace(':', '.')
-                doc.id = doc.metadata.host+'.'+doc.metadata.path+'.'+id+'@'+doc.metadata.timestamp
-                doc.metadata.id = doc.id
-
-                if(response){
-                  doc.data = {
-                    headers: response.headers,
-                    code: response.statusCode,
-                    message: response.statusMessage,
-                    host: response.request.uri.host,
-                    hostname: response.request.uri.host,
-                    port: response.request.uri.port,
-                    protocol: response.request.uri.protocol,
-                  }
-
-                  doc.metadata.tag.push(response.statusCode)
-
-
-                  // debug('request result %O %O %s',
-                  //   response.headers,
-                  //   response.statusCode,
-                  //   response.request.uri.host,
-                  //   response.request.uri.hostname,
-                  //   response.request.uri.port,
-                  //   response.request.uri.protocol,
-                  //   host
-                  // )
-                  // process.exit(1)
-                }
-                else{
-                  Object.each(error, function(value, key){
-                    error[key] = value.toString()
-                  })
-                  doc.data = error
-                  doc.data.uri = url
-                  if(error.code) doc.metadata.tag.push(error.code)
-                  error.code = (error.code) ? error.code : (error.reason) ? error.reason : 'unknown'
-                  doc.metadata.tag.push('error')
-                }
-
-                docs.push(doc)
+                next(data, opts, next, pipeline)
                 callback()
+
+                delete forks[host]
+                // // process.exit(1)
+                // // let doc = Object.clone(real_data)
+                //
+                // let key = Object.keys(data)[0]
+                // doc.data = data[key]
+                // doc.metadata.format = format
+                // // next(doc, opts, next, pipeline)
+                //
+                // sanitize_filter(
+                //   doc,
+                //   opts,
+                //   pipeline.output.bind(pipeline),
+                //   pipeline
+                // )
+                //
+                // // // process.exit(1)
               })
-            }, function(err) {
 
-                // if any of the file processing produced an error, err would equal that error
-                if( err ) {
-                  debug('request ERROR %o', err)
-                } else {
-                  debug('request SAVE %O', docs)
+            // }
 
-                  //resume if every host has been checked
-                  // if(Object.every(hosts_checks, function(value, host){ return value })){
-                  //   pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
-                  // }
-                  // debug('2nd filter groups %O', docs)
-                  // process.exit(1)
+            forks[host].send({
+              params: [host, hosts_urls[host]],
+              // doc:  Object.clone(real_data)
+            })
 
-                  pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+          }, function(err) {
 
-                  next(docs, opts, next, pipeline)
-                  // console.log('All files have been processed successfully');
-                }
-            });
+              // if any of the file processing produced an error, err would equal that error
+              if( err ) {
+                debug('request ERROR %o', err)
+              } else {
+                debug('request END')
+                // process.exit(1)
+                // debug('request SAVE %O', docs)
+                //
+                // //resume if every host has been checked
+                // // if(Object.every(hosts_checks, function(value, host){ return value })){
+                // //   pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+                // // }
+                // // debug('2nd filter groups %O', docs)
+                // // process.exit(1)
+                //
+                pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+                //
+                // next(docs, opts, next, pipeline)
+                // // console.log('All files have been processed successfully');
+              }
+          });
+
+          // let docs = []
+          // // Object.each(hosts_urls, function(urls, host){
+          //
+          //   // hosts_checks[host] = true
+          //
+          //   async.eachLimit(checks, 5, function(check, callback){//current nginx limit 5r/s
+          //     let {url, host} = check
+          //     // -> 10 sec timeout
+          //     request.head({uri: url, timeout: 10000}, function(error, response, body){
+          //       if(response && response.statusCode)
+          //         debug('request result %s %s %O ', host, url, response.statusCode)
+          //
+          //       // pipeline.get_input_by_id('input.vhosts').fireEvent('onSuspend')
+          //       // if(error){
+          //       //   debug('request result %O', error)
+          //       //   process.exit(1)
+          //       // }
+          //       let doc = {
+          //         id: undefined,
+          //         data: {},
+          //         metadata: {
+          //           path: 'educativa.checks.vhosts',
+          //           type: 'check',
+          //           host: host,
+          //           tag: ['check', 'vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol'],
+          //           timestamp: Date.now()
+          //         }
+          //       }
+          //
+          //       let id = url.replace('://', '.').replace(':', '.')
+          //       doc.id = doc.metadata.host+'.'+doc.metadata.path+'.'+id+'@'+doc.metadata.timestamp
+          //       doc.metadata.id = doc.id
+          //
+          //       if(response){
+          //         doc.data = {
+          //           headers: response.headers,
+          //           code: response.statusCode,
+          //           message: response.statusMessage,
+          //           host: response.request.uri.host,
+          //           hostname: response.request.uri.host,
+          //           port: response.request.uri.port,
+          //           protocol: response.request.uri.protocol,
+          //         }
+          //
+          //         doc.metadata.tag.push(response.statusCode)
+          //
+          //
+          //         // debug('request result %O %O %s',
+          //         //   response.headers,
+          //         //   response.statusCode,
+          //         //   response.request.uri.host,
+          //         //   response.request.uri.hostname,
+          //         //   response.request.uri.port,
+          //         //   response.request.uri.protocol,
+          //         //   host
+          //         // )
+          //         // process.exit(1)
+          //       }
+          //       else{
+          //         Object.each(error, function(value, key){
+          //           error[key] = value.toString()
+          //         })
+          //         doc.data = error
+          //         doc.data.uri = url
+          //         if(error.code) doc.metadata.tag.push(error.code)
+          //         error.code = (error.code) ? error.code : (error.reason) ? error.reason : 'unknown'
+          //         doc.metadata.tag.push('error')
+          //       }
+          //
+          //       docs.push(doc)
+          //       callback()
+          //     })
+          //   }, function(err) {
+          //
+          //       // if any of the file processing produced an error, err would equal that error
+          //       if( err ) {
+          //         debug('request ERROR %o', err)
+          //       } else {
+          //         debug('request SAVE %O', docs)
+          //
+          //         //resume if every host has been checked
+          //         // if(Object.every(hosts_checks, function(value, host){ return value })){
+          //         //   pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+          //         // }
+          //         // debug('2nd filter groups %O', docs)
+          //         // process.exit(1)
+          //
+          //         pipeline.get_input_by_id('input.vhosts').fireEvent('onResume')
+          //
+          //         next(docs, opts, next, pipeline)
+          //         // console.log('All files have been processed successfully');
+          //       }
+          //   });
 
           // })
 
