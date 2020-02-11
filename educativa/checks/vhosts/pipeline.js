@@ -201,8 +201,8 @@ module.exports = function(payload){
 
           // debug('2nd filter groups %O', hosts_urls)
           // process.exit(1)
-          // async.eachLimit(hosts, 5, function(host, callback){//max forks => 5
-          async.eachOf(hosts, function(host, callback){//max forks => 5
+          async.eachLimit(hosts, 5, function(host, callback){//max forks => 5
+          // async.eachOf(hosts, function(host, index, callback){//max forks => 5
             debug('2nd filter groups %O', host)
 
             // if(!forks[host]){
@@ -218,7 +218,7 @@ module.exports = function(payload){
                 next(data, opts, next, pipeline)
                 callback()
 
-                delete forks[host]
+                // delete forks[host]
                 // // process.exit(1)
                 // // let doc = Object.clone(real_data)
                 //
