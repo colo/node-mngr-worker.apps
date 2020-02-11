@@ -194,12 +194,13 @@ module.exports = function(payload){
           let hosts= []
           Array.each(doc.data, function(row){
             if(!hosts_urls[row.metadata.host]) hosts_urls[row.metadata.host] = []
-              hosts_urls[row.metadata.host].push(row.data.schema+'://'+row.data.uri+':'+row.data.port)
-              hosts.combine([row.metadata.host])
+            
+            hosts_urls[row.metadata.host].push(row.data.schema+'://'+row.data.uri+':'+row.data.port)
+            hosts.combine([row.metadata.host])
           })
 
 
-          // debug('2nd filter groups %O', hosts_urls)
+          debug('2nd filter groups %O', hosts)
           // process.exit(1)
           async.eachLimit(hosts, 5, function(host, callback){//max forks => 5
           // async.eachOf(hosts, function(host, index, callback){//max forks => 5
