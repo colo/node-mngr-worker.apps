@@ -205,7 +205,7 @@ module.exports = function(payload){
           // async.eachOf(hosts, function(host, index, callback){//max forks => 5
             debug('2nd filter groups %O', host)
 
-            // if(!forks[host]){
+            if(!forks[host]){
               forks[host] = fork(process.cwd()+'/apps/educativa/checks/libs/fork_filter', [
                 path.join(process.cwd(), '/apps/educativa/checks/filters/vhosts'),
               ])
@@ -215,10 +215,11 @@ module.exports = function(payload){
                 let doc = msg.doc
                 debug('result %o %o', data, doc)
 
+                delete forks[host]
                 next(data, opts, next, pipeline)
                 callback()
 
-                // delete forks[host]
+
                 // // process.exit(1)
                 // // let doc = Object.clone(real_data)
                 //
@@ -237,7 +238,7 @@ module.exports = function(payload){
                 // // // process.exit(1)
               })
 
-            // }
+            }
 
             forks[host].send({
               params: [host, hosts_urls[host]],
