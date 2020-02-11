@@ -213,7 +213,7 @@ module.exports = function(payload){
               forks[host].on('message', function(msg){
                 let data = msg.result
                 let doc = msg.doc
-                debug('result %o %o', data, doc)
+                // debug('result %o %o', data, doc)
 
                 // delete forks[host]
                 next(data, opts, next, pipeline)

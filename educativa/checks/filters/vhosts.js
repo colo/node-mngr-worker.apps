@@ -83,7 +83,7 @@ module.exports = function(host, urls, cb){//sanitize + metadata
       if( err ) {
         debug('request ERROR %o', err)
       } else {
-        debug('request SAVE %O', docs)
+        // debug('request SAVE %O', docs)
 
         //resume if every host has been checked
         // if(Object.every(hosts_checks, function(value, host){ return value })){
@@ -99,7 +99,7 @@ module.exports = function(host, urls, cb){//sanitize + metadata
         setTimeout(function(){
           process.exit(0)
         }, 2000)
-        
+
         // console.log('All files have been processed successfully');
       }
   });
