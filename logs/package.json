@@ -24,8 +24,8 @@
   ],
   "dependencies": {
     "event-stream": "^4.0.1",
-    "frontail": "^4.8.0",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git",
     "node-app": "git+https://github.com/colo/node-app.git",
-    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
+    "tail": "^2.0.3"
   }
 }

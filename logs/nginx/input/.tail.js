@@ -12,8 +12,7 @@ const Debug = require('debug')
 const debug = Debug("Server:Apps:Logs:Nginx:Input:Tail")
 const debug_internals = Debug("Server:Apps:Logs:Nginx:Input:Tail:Internals")
 
-// const tail = require('frontail/lib/tail')
-const tail = require('tail').Tail
+const tail = require('frontail/lib/tail')
 // debug_events = Debug("Server:Apps:Logs:Nginx:Input:Tail:Events");
 
 // import store from 'src/store'
@@ -130,32 +129,36 @@ module.exports = new Class({
 
 		this.parent(options);//override default options
 
-    // this.tailer = tail([this.options.file], {
-    //   buffer: 1
-    // });
+    // if (process.argv.length > 2) {
+    //   this.stream = fs.createReadStream(process.argv[2])
+    // }
+    // else {
+    //   this.stream = process.stdin
+    // }
+    //
+    // this.stream.pipe(es.split())
+    // .pipe(
+    //   es.map((line) => this.line(line))
+    //   .on('error', function(err){
+    //     console.log('Error while reading file.', err);
+    //   })
+    //   .on('end', function(){
+    //     // this.fireEvent('onResume')//will propagate resume until frontail.io resumes (started suspended)
+    //     console.log('Read entire file.')
+    //   })
+    // )
+    this.tailer = tail([this.options.file], {
+      buffer: 1
+    });
 
-    this.tailer = new tail(this.options.file)
     /**
     * Send incoming data
     */
-    let self = this
-    this.tailer.on('line', this.line.bind(this))
+    this.tailer.on('line', this.line.bind(this));
 
-    this.tailer.on('error', err => this.err('tail '+ this.options.file + 'err'))
-    // this.tailer.on('ready', fd => self.log('tail '+ self.options.file + 'ready') )
-    // this.tailer.on('eof', pos => self.log('Catched up to the last line for '+ self.options.file))
-    // this.tailer.on('skip', pos => self.log(self.options.file + ' suddenly got replaced with a large file'))
-    // this.tailer.on('secondary', filename => self.log(`${self.options.file} is missing. Tailing ${filename} instead`))
     //
-    // this.tailer.on('restart', reason => {
-    //   if( reason == 'PRIMEFOUND' ) self.log('Now we can finally start tailing. File has appeared: '+ self.options.file)
-    //   if( reason == 'NEWPRIME' ) self.log('We will switch over to the new file now: '+ self.options.file)
-    //   if( reason == 'TRUNCATE' ) self.log('The file got smaller. I will go up and continue: '+ self.options.file)
-    //   if( reason == 'CATCHUP' ) self.log('We found a start in an earlier file and are now moving to the next one in the list: '+ self.options.file)
-    // });
-    //
-    // this.tailer.start();
-    this.tailer.watch()
+    // // let _io = new App(DefaultConn)
+    // this.add_io(HostsIO)
 
 		this.profile('root_init');//start profiling
 
