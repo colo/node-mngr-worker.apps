@@ -5,8 +5,8 @@ let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
-// let paths_whitelist = /^munin/
+let paths_whitelist = /^os|^munin|^logs/
+// let paths_whitelist = undefined
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
 let __white_black_lists_filter = function(whitelist, blacklist, str){
@@ -30,8 +30,13 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 const async = require('async')
 
 module.exports = function(payload){
-  let {input, output, type, full_range } = payload
+  let {input, output, opts } = payload
+  let type = input.type
+  let full_range = input.full_range
   let table = input.table
+
+  // let {input, output, type, full_range } = payload
+  // let table = input.table
   full_range = full_range || false
 
   // throw new Error('el default debe traer solo los hosts, luego traer los paths y enviar todo a este plugin')
@@ -69,16 +74,21 @@ module.exports = function(payload){
       // debug('2nd filter %o', hosts)
       let docs = []
 
+      // Array.each(doc.data, function(path_data){
       Object.each(doc.data, function(path_data, path){
+        // let path = path_data.path
+
       //   // range[0] = (group.range && (group.range[0] < range[0] || range[0] === 0)) ? group.range[0] : range[0]
       //   // range[1] = (group.range && group.range[1] > range[1] ) ? group.range[1] : range[1]
       //   // hosts.combine(group.hosts)
       //   // paths.push(group.path)
         if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+          debug('path %s', path)
+
           Array.each(path_data.hosts, function(host){
 
             docs.push({
-              id: 'once',
+              id: 'from_default',
               data: [
                 {
                   metadata: {
@@ -106,6 +116,8 @@ module.exports = function(payload){
         }
 
       })
+
+      debug('DOCS %o', docs)
 
       async.eachLimit(
         docs,

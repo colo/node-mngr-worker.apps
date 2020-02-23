@@ -59,6 +59,7 @@ const roundMinutes = function(timestamp){
 
   return d.getTime()
 }
+
 const roundHours = function(timestamp){
   timestamp = roundMinutes(timestamp)
   let d = new Date(timestamp)
@@ -104,6 +105,17 @@ module.exports = function(payload){
       expire = roundMinutes(Date.now() + HOUR)
       // expire = roundMinutes(Date.now() + MINUTE)//for testing
     }
+    else if(expire === undefined){
+      throw new Error("You should use a periodical range for bigger ranges than 'hour': "+type + ':'+ expire)
+    }
+    // else if(expire === undefined && type === 'day'){
+    //   expire = roundHours(Date.now() + DAY)
+    //   // expire = roundMinutes(Date.now() + MINUTE)//for testing
+    // }
+    // else if(expire === undefined && type === 'month'){
+    //   expire = roundHours(Date.now() + DAY)
+    //   // expire = roundMinutes(Date.now() + MINUTE)//for testing
+    // }
 
     debug('expire %s %s', new Date(), new Date(expire))
     // process.exit(1)

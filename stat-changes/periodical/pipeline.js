@@ -69,14 +69,18 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               if(input.type === 'second'){
-                return cron.schedule('* * * * * *', dispatch);//every minute
+                return cron.schedule('* * * * * *', dispatch);//every second
               }
               else if(input.type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
               }
-              else{
-                return cron.schedule('0 * * * *', dispatch);//every hour
-                // return cron.schedule('*/1 * * * * *', dispatch);//testing ML
+              else if(input.type === 'hour'){
+                // return cron.schedule('0 * * * *', dispatch);//every hour
+                return cron.schedule('*/10 * * * * *', dispatch);//testing ML
+              }
+              else if(input.type === 'day'){
+                // return cron.schedule('0 0 * * *', dispatch);//every day
+                return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
     				},
     				// periodical: 15000,
@@ -113,16 +117,21 @@ module.exports = function(payload){
     				 * */
              periodical: function(dispatch){
      					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              if(input.type === 'second'){
-                return cron.schedule('* * * * * *', dispatch);//every minute
-              }
-              else if(input.type === 'minute'){
-                return cron.schedule('* * * * *', dispatch);//every minute
-              }
-              else{
-                return cron.schedule('0 * * * *', dispatch);//every hour
-              }
-     				},
+               if(input.type === 'second'){
+                 return cron.schedule('* * * * * *', dispatch);//every second
+               }
+               else if(input.type === 'minute'){
+                 return cron.schedule('* * * * *', dispatch);//every minute
+               }
+               else if(input.type === 'hour'){
+                 return cron.schedule('0 * * * *', dispatch);//every hour
+                 // return cron.schedule('*/10 * * * *', dispatch);//testing ML
+               }
+               else if(input.type === 'day'){
+                 return cron.schedule('0 0 * * *', dispatch);//every day
+                 // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
+               }
+   				    },
     				// periodical: 15000,
     				// periodical: 1000,//test
     			},

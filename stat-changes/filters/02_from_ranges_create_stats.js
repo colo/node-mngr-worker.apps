@@ -66,11 +66,12 @@ const roundHours = function(timestamp){
 
   return d.getTime()
 }
-
 const SECOND = 1000
 const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
+const WEEK = DAY * 7
+
 
 const traverse_path_require = require('node-tabular-data').traverse_path_require
 const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
@@ -203,16 +204,17 @@ module.exports = function(payload){
 
               }
               else{
-                if(type === 'minute' || !value['mean']){
-                  values[host][path][key][timestamp] = value;
-                }
-                else{
-                  /**
-                  * from historical
-                  * */
-                  values[host][path][key][timestamp] = value['mean']
-                }
+                // if(type === 'minute' || value['mean'] === undefined){
+                //   values[host][path][key][timestamp] = value;
+                // }
+                // else{
+                //   /**
+                //   * from historical
+                //   * */
+                //   values[host][path][key][timestamp] = value['mean']
+                // }
 
+                values[host][path][key][timestamp] = value
 
 
 
@@ -316,9 +318,12 @@ module.exports = function(payload){
 
             delete new_doc['metadata'].id
 
-            new_doc['metadata'].timestamp = new_doc.metadata.range.end
+            new_doc['metadata'].timestamp = new_doc.metadata.range.start
 
-            if(type === 'hour'){
+            if(type === 'day'){
+              new_doc['metadata'].timestamp = roundHours(new_doc['metadata'].timestamp + HOUR)
+            }
+            else if(type === 'hour'){
               new_doc['metadata'].timestamp = roundMinutes(new_doc['metadata'].timestamp + MINUTE)
             }
             else{

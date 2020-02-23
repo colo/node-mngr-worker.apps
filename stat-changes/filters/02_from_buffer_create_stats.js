@@ -124,6 +124,12 @@ const roundHours = function(timestamp){
 
   return d.getTime()
 }
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = HOUR * 24
+const WEEK = DAY * 7
+
 
 module.exports = function(payload){
   let {input, output, opts } = payload
@@ -275,17 +281,17 @@ module.exports = function(payload){
                 else{
                   // debug('VALUE', type, path, _key, (hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'), value)
 
-                  if(type === 'minute' || value['mean'] === undefined){
-                  // if(type === 'minute'){
-                    values[host][path][key][timestamp] = value;
-                  }
-                  else{
-                    /**
-                    * from historical
-                    * */
-                    values[host][path][key][timestamp] = value['mean']
-                  }
-
+                  // if(type === 'minute' || value['mean'] === undefined){
+                  // // if(type === 'minute'){
+                  //   values[host][path][key][timestamp] = value;
+                  // }
+                  // else{
+                  //   /**
+                  //   * from historical
+                  //   * */
+                  //   values[host][path][key][timestamp] = value['mean']
+                  // }
+                  values[host][path][key][timestamp] = value
 
 
 
@@ -324,10 +330,10 @@ module.exports = function(payload){
 
   //
   //
-        if(values.colo){
-          debug_internals('values %o', values.colo)
-          // process.exit(1)
-        }
+        // if(values.colo){
+        //   debug_internals('values %o', values.colo)
+        //   // process.exit(1)
+        // }
 
         if(Object.getLength(values) > 0){
           Object.each(values, function(host_data, host){
@@ -399,6 +405,9 @@ module.exports = function(payload){
               }
               else if(type === 'hour'){
                 round = roundMinutes
+              }
+              else if(type === 'day'){
+                round = roundHours
               }
 
               new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)

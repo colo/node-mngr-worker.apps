@@ -4,7 +4,8 @@ var debug = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Nginx');
 var debug_internals = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Nginx:Internals');
 
 // let networkInterfaces = {} //temp obj to save data
-let ss = require('simple-statistics')
+// let ss = require('simple-statistics')
+const ss_stat = require('../../libs/stat')
 
 
 module.exports = function(){
@@ -209,28 +210,58 @@ module.exports = function(){
     //   },
     // },
 
+    // body_bytes_sent: {
+    //   doc: function(entry_point, value, key){
+    //     debug('body_bytes_sent - doc', entry_point, value, key)
+    //
+    //     let data_values = Object.values(value);
+    //
+    //     let min = ss.min(data_values);
+    //     let max = ss.max(data_values);
+    //
+    //
+    //
+    //
+    //     entry_point[key] = {
+    //       // samples: time,
+    //       min : min,
+    //       max : max,
+    //       mean : ss.mean(data_values),
+    //       median : ss.median(data_values),
+    //       mode : ss.mode(data_values),
+    //       sum: ss.sumSimple(data_values),
+    //       range: max - min,
+    //     }
+    //
+    //     // debug('body_bytes_sent - doc', entry_point)
+    //     // process.exit(1)
+    //     return entry_point
+    //   },
+    //
+    // }
     body_bytes_sent: {
       doc: function(entry_point, value, key){
         debug('body_bytes_sent - doc', entry_point, value, key)
 
-        let data_values = Object.values(value);
-
-        let min = ss.min(data_values);
-        let max = ss.max(data_values);
-
-
+        // let data_values = Object.values(value);
+        //
+        // let min = ss.min(data_values);
+        // let max = ss.max(data_values);
 
 
-        entry_point[key] = {
-          // samples: time,
-          min : min,
-          max : max,
-          mean : ss.mean(data_values),
-          median : ss.median(data_values),
-          mode : ss.mode(data_values),
-          sum: ss.sumSimple(data_values),
-          range: max - min,
-        }
+
+
+        // entry_point[key] = {
+        //   // samples: time,
+        //   min : min,
+        //   max : max,
+        //   mean : ss.mean(data_values),
+        //   median : ss.median(data_values),
+        //   mode : ss.mode(data_values),
+        //   sum: ss.sumSimple(data_values),
+        //   range: max - min,
+        // }
+        entry_point[key] = ss_stat(value)
 
         // debug('body_bytes_sent - doc', entry_point)
         // process.exit(1)

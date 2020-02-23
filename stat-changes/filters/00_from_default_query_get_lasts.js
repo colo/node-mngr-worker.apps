@@ -100,7 +100,8 @@ module.exports = function(payload){
           Array.each(path_data.hosts, function(host){
 
             requests.push({
-              id: "once",
+              // id: "once",
+              id: 'from_default',
               query: {
                 index: false,
                 "q": [
