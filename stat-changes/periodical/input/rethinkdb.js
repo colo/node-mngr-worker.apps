@@ -632,7 +632,7 @@ module.exports = new Class({
               : { params: {}, query: {} }
 
             debug('PERRIODICAL %o %o', req, app.options.requests)
-            // if(req.id === 'periodical'){
+            if(req.id === 'periodical'){
               const _default = function(){
 
 
@@ -672,7 +672,8 @@ module.exports = new Class({
                   /**
                   * if no params, exec grouping query
                   **/
-                  if(req.id === 'paths'){
+                  // if(req.id === 'paths'){
+                  if(app.options.full_range === false){
                     let distinct_query = query.distinct({index: 'path'})
 
                     if(app.options.full_range === false){
@@ -763,31 +764,31 @@ module.exports = new Class({
                   * process query (same as default)
                   **/
                   else{
-                    if(app.options.full_range === false){
-                      if(app.options.type === 'minute'){
-                        query = query
-                          .between(
-                            roundSeconds(Date.now() - MINUTE),
-                            roundSeconds(Date.now()),
-                            {index: 'timestamp'}
-                          )
-                      }
-                      else{
-                        query = query
-                          .between(
-                            roundMinutes(Date.now() - HOUR),
-                            roundMinutes(Date.now()),
-                            /**
-                            * testing ML
-                            **/
-                            // Date.now() - HOUR,
-                            // Date.now(),
-                            // Date.now(),
-                            {index: 'timestamp'}
-                          )
-                      }
-
-                    }
+                    // if(app.options.full_range === false){
+                    //   if(app.options.type === 'minute'){
+                    //     query = query
+                    //       .between(
+                    //         roundSeconds(Date.now() - MINUTE),
+                    //         roundSeconds(Date.now()),
+                    //         {index: 'timestamp'}
+                    //       )
+                    //   }
+                    //   else{
+                    //     query = query
+                    //       .between(
+                    //         roundMinutes(Date.now() - HOUR),
+                    //         roundMinutes(Date.now()),
+                    //         /**
+                    //         * testing ML
+                    //         **/
+                    //         // Date.now() - HOUR,
+                    //         // Date.now(),
+                    //         // Date.now(),
+                    //         {index: 'timestamp'}
+                    //       )
+                    //   }
+                    //
+                    // }
                     // debug('FULL RANGE %o', app.options.full_range, req)
                     // process.exit(1)
 
@@ -910,7 +911,7 @@ module.exports = new Class({
               }
 
 
-            // }
+            }
 
 
 					}

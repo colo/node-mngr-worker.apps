@@ -55,7 +55,7 @@ module.exports = function(payload){
     debug('1st filter %o', doc, table)
     // process.exit(1)
 
-    if(doc && doc.id === 'paths' && doc.data && doc.metadata && doc.metadata.from === table){
+    if(doc && doc.id === 'periodical' && doc.data && doc.metadata && doc.metadata.from === table){
       // process.exit(1)
       // let { type, input, input_type, app } = opts
 
@@ -88,7 +88,7 @@ module.exports = function(payload){
           Array.each(path_data.hosts, function(host){
 
             docs.push({
-              id: 'from_default',
+              id: 'once',
               data: [
                 {
                   metadata: {
@@ -118,6 +118,7 @@ module.exports = function(payload){
       })
 
       debug('DOCS %o', docs)
+      // process.exit(1)
 
       async.eachLimit(
         docs,
