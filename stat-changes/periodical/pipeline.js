@@ -68,7 +68,7 @@ module.exports = function(payload){
     				 * */
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              if(input.type === 'second'){
+              if(input.type === 'inmediate' || input.type === 'second'){
                 return cron.schedule('* * * * * *', dispatch);//every second
               }
               else if(input.type === 'minute'){
@@ -78,7 +78,8 @@ module.exports = function(payload){
                 return cron.schedule('0 * * * *', dispatch);//every hour 0x:00
                 // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
-              else if(input.type === 'day'){
+              // else if(input.type === 'day'){
+              else{
                 return cron.schedule('0 0 * * *', dispatch);//every day...00:00
                 // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
@@ -117,7 +118,7 @@ module.exports = function(payload){
     				 * */
              periodical: function(dispatch){
      					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-               if(input.type === 'second'){
+               if(input.type === 'inmediate' || input.type === 'second'){
                  return cron.schedule('* * * * * *', dispatch);//every second
                }
                else if(input.type === 'minute'){
@@ -127,7 +128,8 @@ module.exports = function(payload){
                  return cron.schedule('0 * * * *', dispatch);//every hour
                  // return cron.schedule('*/10 * * * *', dispatch);//testing ML
                }
-               else if(input.type === 'day'){
+               // else if(input.type === 'day'){
+               else {
                  return cron.schedule('0 0 * * *', dispatch);//every day
                  // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
                }
