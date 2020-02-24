@@ -5,7 +5,7 @@ let debug_internals = require('debug')('Server:Apps:Stat:Periodical:Filters:from
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 let paths_blacklist = /^[a-zA-Z0-9_\.]+$/
-let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^os\.procs$|^os\.procs\.uid$|^os\.procs\.cmd$|^munin|^logs/
+let paths_whitelist = /^os|^munin|^logs/
 // let paths_whitelist = /^munin/
 // let paths_whitelist = /^os$|^os\.networkInterfaces$|^os\.blockdevices$|^os\.mounts$|^munin/
 
@@ -55,7 +55,7 @@ module.exports = function(payload){
     debug('1st filter %o', doc, table)
     // process.exit(1)
 
-    if(doc && doc.id === 'once' && doc.data && doc.metadata.transformation === undefined && doc.metadata.filter === undefined ){
+    if(doc && !doc._id && doc.id === 'once' && doc.data && doc.metadata.transformation === undefined && doc.metadata.filter === undefined ){
       // process.exit(1)
       // let { type, input, input_type, app } = opts
 
@@ -100,9 +100,9 @@ module.exports = function(payload){
           Array.each(path_data.hosts, function(host){
 
             requests.push({
-              // id: "once",
-              id: 'from_default',
+              id: "once",
               query: {
+                id: 'lasts',
                 index: false,
                 "q": [
                   "data",
@@ -129,7 +129,7 @@ module.exports = function(payload){
 
       })
 
-      debug('1st filter %o', requests)
+      debug('requests %o', requests)
       // process.exit(1)
 
       async.eachLimit(

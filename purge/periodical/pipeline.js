@@ -61,17 +61,18 @@ module.exports = function(payload){
     			// 	periodical: 1000,
     			// },
           requests: {
-
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              if(input.type === 'periodical'){
+              if(input.type === 'periodical' || input.type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
               }
-              else if(input.type === 'minute'){
-                return cron.schedule('* * * * *', dispatch);//every minute
+              else if(input.type === 'hour'){
+                return cron.schedule('0 * * * *', dispatch);//every hour 0x:00
+                // return cron.schedule('*/10 * * * * *', dispatch);//testing
               }
-              else{
-                return cron.schedule('0 * * * *', dispatch);//every hour
+              else if(input.type === 'day'){
+                return cron.schedule('0 0 * * *', dispatch);//every day...00:00
+                // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
     				},
     				// periodical: 15000,

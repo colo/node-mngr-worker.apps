@@ -33,18 +33,19 @@ const roundSeconds = function(timestamp){
   return d.getTime()
 }
 
-const roundMinutes = function(timestamp){
-  timestamp = roundSeconds(timestamp)
+const roundHours = function(timestamp){
+  timestamp = roundMinutes(timestamp)
   let d = new Date(timestamp)
-  d.setMinutes(0)
+  d.setHours(0)
 
   return d.getTime()
 }
-
 const SECOND = 1000
 const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
+const WEEK = DAY * 7
+
 
 module.exports = new Class({
   Extends: App,
@@ -169,7 +170,7 @@ module.exports = new Class({
                       _extras: {
                         from: from,
                         type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                        id: req.id,
+                        id: (req.query && req.query.id) ? req.query.id : req.id,
                         transformation: (req.query.transformation) ? req.query.transformation : undefined,
                         aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
                         filter: (req.query.filter) ? req.query.filter : undefined
@@ -283,7 +284,7 @@ module.exports = new Class({
                   _extras: {
                     from: from,
                     type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                    id: req.id,
+                    id: (req.query && req.query.id) ? req.query.id : req.id,
                     transformation: (req.query.transformation) ? req.query.transformation : undefined,
                     aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
                     filter: (req.query.filter) ? req.query.filter : undefined
@@ -660,7 +661,7 @@ module.exports = new Class({
                         _extras: {
                           from: from,
                           type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                          id: req.id,
+                          id: (req.query && req.query.id) ? req.query.id : req.id,
                           transformation: (req.query.transformation) ? req.query.transformation : undefined,
                           aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
                           filter: (req.query.filter) ? req.query.filter : undefined
@@ -676,26 +677,43 @@ module.exports = new Class({
                   if(app.options.full_range === false){
                     let distinct_query = query.distinct({index: 'path'})
 
-                    if(app.options.full_range === false){
+                    // if(app.options.full_range === false){
                       if(app.options.type === 'minute'){
                         query = query
-                          .between(
-                            roundSeconds(Date.now() - MINUTE),
-                            roundSeconds(Date.now()),
-                            {index: 'timestamp'}
-                          )
+                        .between(
+                          roundSeconds(Date.now() - MINUTE),
+                          roundSeconds(Date.now()),
+                          {index: 'timestamp'}
+                        )
                       }
-                      else{
+                      else if(app.options.type === 'hour'){
                         query = query
-                          .between(
-                            roundMinutes(Date.now() - HOUR),
-                            roundMinutes(Date.now()),
-                            // Date.now(),
-                            {index: 'timestamp'}
-                          )
+                        .between(
+                          roundMinutes(Date.now() - HOUR),
+                          roundMinutes(Date.now()),
+                          /**
+                          * testing ML
+                          **/
+                          // Date.now() - HOUR,
+                          // Date.now(),
+                          {index: 'timestamp'}
+                        )
+                      }
+                      else if(app.options.type === 'day'){
+                        query = query
+                        .between(
+                          roundHours(Date.now() - DAY),
+                          roundHours(Date.now()),
+                          /**
+                          * testing ML
+                          **/
+                          // Date.now() - DAY,
+                          // Date.now(),
+                          {index: 'timestamp'}
+                        )
                       }
 
-                    }
+                    // }
 
                     distinct_query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
                       if(err){
@@ -1241,7 +1259,7 @@ module.exports = new Class({
                     _extras: {
                       from: from,
                       type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                      id: req.id,
+                      id: (req.query && req.query.id) ? req.query.id : req.id,
                       Range: range,
                       range: req.opt.range,
                       transformation: (req.query.transformation) ? req.query.transformation : undefined,

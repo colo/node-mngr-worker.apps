@@ -48,7 +48,7 @@ module.exports = function(payload){
     // process.exit(1)
 
     // if(doc && doc.id === 'once' && doc.metadata && doc.metadata.from === table){
-    if(doc && doc.id === 'once'){
+    if(doc && doc.id === 'lasts'){
       // let { type, input, input_type, app } = opts
 
       let ranges = []

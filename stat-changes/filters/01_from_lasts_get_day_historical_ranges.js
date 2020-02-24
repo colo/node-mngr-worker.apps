@@ -54,7 +54,7 @@ module.exports = function(payload){
     debug('2nd filter %o', doc, doc.id, table, doc.metadata.from)
     // process.exit(1)
 
-    if(doc && doc.id === 'once'){ // && doc.metadata && doc.metadata.from === table
+    if(doc && doc.id === 'lasts'){ // && doc.metadata && doc.metadata.from === table
       // let { type, input, input_type, app } = opts
 
 
@@ -76,7 +76,7 @@ module.exports = function(payload){
 
         Object.each(data, function(group){
           if(group.path === path){
-            end_range = (!end_range ||  roundHours(group.range[1]  + (DAY - HOUR - MINUTE - SECOND)) > end_range) ? roundHours(group.range[1] + (DAY - HOUR - MINUTE - SECOND)) : end_range
+            end_range = (!end_range ||  roundHours(group.range[1]  + (DAY - HOUR)) > end_range) ? roundHours(group.range[1] + (DAY - HOUR)) : end_range
           }
 
         })
@@ -91,7 +91,7 @@ module.exports = function(payload){
           if(group.path === path){
             // range[0] = group.range[0]
             range[0] = (group.range[0] > Date.now() - WEEK || full_range === true ) ? group.range[0] : roundHours(Date.now() - WEEK)
-            range[1] = roundHours(range[0] + DAY + HOUR + MINUTE)//limit on next day
+            range[1] = roundHours(range[0] + DAY + HOUR)//limit on next day
             // end_range = group.range[1]
           }
 
@@ -104,7 +104,7 @@ module.exports = function(payload){
         Array.each(data, function(group){
           // Array.each(group, function(group_item){
             range[0] = (!range[0] || group.metadata.range.end < range[0]) ? group.metadata.range.end : range[0]
-            range[1] = roundHours(range[0] + DAY + HOUR + MINUTE)//limit on next day
+            range[1] = roundHours(range[0] + DAY + HOUR)//limit on next day
             // end_range = Date.now()
             // end_range =  pipeline.current[table].data
             end_range = (end_range) ? end_range : Date.now()

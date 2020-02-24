@@ -26,9 +26,9 @@ const STDIN = require('./input/stdin')
 //     + '"$http_user_agent" "$http_x_forwarded_for"')
 
 const Parser =require('@robojones/nginx-log-parser').Parser
-const parser = new Parser('$remote_addr - $remote_user [$time_local] '
-		+ '"$request" $status $body_bytes_sent "$http_referer" '
-    + '"$http_user_agent" "$http_x_forwarded_for"')
+const schema = '$remote_addr - $remote_user [$time_local] '
+    + '"$request" $status $body_bytes_sent "$http_referer" '
+    + '"$http_user_agent" "$http_x_forwarded_for"'
 
 const moment = require ('moment')
 
@@ -56,9 +56,20 @@ const roundMilliseconds = function(timestamp){
 /**
 * to test different type of tags
 **/
-let tag_type = 'nginx'
+// let tag_type = 'nginx'
 
-module.exports = function(file, domain, out){
+module.exports = function(payload){
+  let {input, output, filters, opts} = payload
+  let domain = input.domain
+  let file = input.file
+  let log_type = opts.type
+  // Array.each(filters, function(filter, i){
+  //   filters[i] = filter(payload)
+  // })
+
+  const parser = new Parser(opts.schema || schema)
+
+
   // let socket_io_input_conf = {
   //   poll: {
   //     // suspended: true,
@@ -151,7 +162,7 @@ module.exports = function(file, domain, out){
         /**
         * to test different type of tags
         **/
-        tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
+        // tag_type = (tag_type === 'nginx') ? 'apache' : 'nginx'
         debug_internals('filters to apply...', doc, opts.input.options.id )
         /**
         * https://github.com/chriso/nginx-parser
@@ -242,17 +253,17 @@ module.exports = function(file, domain, out){
           })
 
           let new_doc = {
-            id: os.hostname()+'.'+opts.input.options.id+'.nginx.'+doc.domain+'@'+ts,
+            id: os.hostname()+'.'+opts.input.options.id+'.'+log_type+'.'+doc.domain+'@'+ts,
             data: result,
             metadata: {
               host: os.hostname(),
               // path: 'logs.nginx.'+doc.domain,
-              path: 'logs.nginx',
+              path: 'logs.'+log_type,
               domain: doc.domain,
               timestamp: doc_ts,
               // timestamp: Date.now(),
               // tag: [tag_type, 'web', doc.input],
-              tag: ['nginx', 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
+              tag: [log_type, 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
               type: 'periodical'
             }
           }
@@ -484,7 +495,7 @@ module.exports = function(file, domain, out){
   				id: "output.os.rethinkdb",
   				conn: [
   					Object.merge(
-              Object.clone(out),
+              Object.clone(output),
               {table: 'logs'}
             ),
   				],
