@@ -25,6 +25,20 @@ const debug_internals = Debug("Server:Apps:Logs:Nginx:Input:STDIN:Internals")
 // import DefaultConn from '@etc/default.io'
 // import HostsIO from '@etc/hosts.io'
 
+// let optionator = require('optionator')({
+//     prepend: 'Usage: cmd [options]',
+//     append: 'Version: '+process.env.npm_package_version,
+//     options: [{
+//         option: 'STDIN',
+//         alias: 'S',
+//         type: 'String',
+//         description: 'STDIN file',
+//         example: 'cmd --STDIN var/log/nginx/domain-access.log'
+//     }]
+// })
+//
+// let options = optionator.parseArgv(process.argv)
+
 module.exports = new Class({
   Extends: App,
 
@@ -132,7 +146,10 @@ module.exports = new Class({
 
 		this.parent(options);//override default options
 
+    // if (process.argv.length > 2) {
     if (process.argv.length > 2) {
+      // debug('ARGS', process.argv)
+      // process.exit(1)
       this.stream = fs.createReadStream(process.argv[2])
     }
     else {

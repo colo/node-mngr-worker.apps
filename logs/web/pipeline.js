@@ -62,6 +62,7 @@ module.exports = function(payload){
   let {input, output, filters, opts} = payload
   let domain = input.domain
   let file = input.file
+  let stdin = (input.stdin && input.stdin !== false) ? true : false
   let log_type = opts.type
   // Array.each(filters, function(filter, i){
   //   filters[i] = filter(payload)
@@ -69,71 +70,8 @@ module.exports = function(payload){
 
   const parser = new Parser(opts.schema || schema)
 
-
-  // let socket_io_input_conf = {
-  //   poll: {
-  //     // suspended: true,
-  //     id: 'input.frontail.io',
-  //     conn: [
-  //       Object.merge(
-  //         Object.clone(frontail),
-  //         {
-  //           module: FrontailIO,
-  //         }
-  //       )
-  //     ],
-  //     connect_retry_count: -1,
-  //     connect_retry_periodical: 1000,
-  //     requests: {
-  //       periodical: 1000
-  //     }
-  //   }
-  // }
-
   let conf = {
    input: [
-     {
-   		poll: {
-   			id: "input.stdin",
-         conn: [
-           {
-             module: STDIN,
-             domain: domain,
-           }
-   			],
-         connect_retry_count: -1,
-         connect_retry_periodical: 1000,
-   			requests: {
-   				// periodical: 1000,
-           periodical: function(dispatch){
-             // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-             return cron.schedule('* * * * * *', dispatch);//every 20 secs
-           },
-   			},
-   		},
-   	},
-  	{
-  		poll: {
-  			id: "input.tail",
-        conn: [
-          {
-            file: file,
-            module: Tail,
-            domain: domain,
-          }
-  			],
-        connect_retry_count: -1,
-        connect_retry_periodical: 1000,
-  			requests: {
-  				// periodical: 1000,
-          periodical: function(dispatch){
-            // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-            return cron.schedule('* * * * * *', dispatch);//every 20 secs
-          },
-  			},
-  		},
-  	},
-
 
    ],
    filters: [
@@ -277,219 +215,10 @@ module.exports = function(payload){
         }
         // debug('PREFIX', PREFIX)
       },
-      // function(doc, opts, next, pipeline){
-      //   let { type, input, input_type, app } = opts
-      //
-      //   let host = input_type.options.id
-      //   let module = app.options.id
-      //
-      //   // console.log('os filter',doc)
-      //
-      //   // if(app.options.id == 'os.procs'){
-      //   if(app.options.id == 'procs'){
-      //     procs_filter(
-      //       doc,
-      //       opts,
-      //       // function(doc, opts, next, pipeline){
-      //       //   sanitize_filter(
-      //       //     doc,
-      //       //     opts,
-      //       //     // function(doc, opts, next, pipeline){
-      //       //     //   zipson_filter(
-      //       //     //     doc,
-      //       //     //     opts,
-      //       //     //     pipeline.output.bind(pipeline),
-      //       //     //     pipeline
-      //       //     //   )
-      //       //     // },
-      //       //     // function(doc, opts, next, pipeline){
-      //       //     //   lzutf8_filter(
-      //       //     //     doc,
-      //       //     //     opts,
-      //       //     //     pipeline.output.bind(pipeline),
-      //       //     //     pipeline
-      //       //     //   )
-      //       //     // },
-      //       //     // function(doc, opts, next, pipeline){
-      //       //     //   lzstring_filter(
-      //       //     //     doc,
-      //       //     //     opts,
-      //       //     //     pipeline.output.bind(pipeline),
-      //       //     //     pipeline
-      //       //     //   )
-      //       //     // },
-      //       //     // function(doc, opts, next, pipeline){
-      //       //     //   compress_filter(
-      //       //     //     doc,
-      //       //     //     opts,
-      //       //     //     pipeline.output.bind(pipeline),
-      //       //     //     pipeline
-      //       //     //   )
-      //       //     // },
-      //       //     pipeline.output.bind(pipeline),
-      //       //     pipeline
-      //       //   )
-      //       // },
-      //       next,
-      //       pipeline
-      //     )
-      //   }
-      //   else{
-      //     if(doc && doc.uptime)
-      //       pipeline.current_uptime = doc.uptime
-      //
-      //     if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
-      //       networkInterfaces_filter(
-      //         doc.networkInterfaces,
-      //         opts,
-      //         // function(doc, opts, next, pipeline){
-      //         //   sanitize_filter(
-      //         //     doc,
-      //         //     opts,
-      //         //     pipeline.output.bind(pipeline),
-      //         //     pipeline
-      //         //   )
-      //         // },
-      //         next,
-      //         // sanitize_filter,
-      //         pipeline
-      //       )
-      //
-      //       delete doc.networkInterfaces
-      //
-      //     }
-      //
-      //
-      //
-      //     // sanitize_filter(
-      //     //   doc,
-      //     //   opts,
-      //     //   // function(doc, opts, next, pipeline){
-      //     //   //   zipson_filter(
-      //     //   //     doc,
-      //     //   //     opts,
-      //     //   //     pipeline.output.bind(pipeline),
-      //     //   //     pipeline
-      //     //   //   )
-      //     //   // },
-      //     //   // function(doc, opts, next, pipeline){
-      //     //   //   lzutf8_filter(
-      //     //   //     doc,
-      //     //   //     opts,
-      //     //   //     pipeline.output.bind(pipeline),
-      //     //   //     pipeline
-      //     //   //   )
-      //     //   // },
-      //     //   // function(doc, opts, next, pipeline){
-      //     //   //   lzstring_filter(
-      //     //   //     doc,
-      //     //   //     opts,
-      //     //   //     pipeline.output.bind(pipeline),
-      //     //   //     pipeline
-      //     //   //   )
-      //     //   // },
-      //     //   // function(doc, opts, next, pipeline){
-      //     //   //   compress_filter(
-      //     //   //     doc,
-      //     //   //     opts,
-      //     //   //     pipeline.output.bind(pipeline),
-      //     //   //     pipeline
-      //     //   //   )
-      //     //   // },
-      //     //   pipeline.output.bind(pipeline),
-      //     //   pipeline
-      //     // )
-      //     next({data: doc, metadata: {host: host, path: module}})
-      //
-      //   }
-      //
-      //   // debug_internals(input_type.options.id)
-      //
-      // },
-
-      /**
-      * not merge
-      **/
-      // function(doc, opts, next, pipeline){
-      //   let { type, input, input_type, app } = opts
-      //
-      //
-      //   // let host = doc.metadata.host
-      //   // let module = doc.metadata.path
-      //
-      //   let timestamp = roundMilliseconds(Date.now())
-      //   doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
-      //   doc.metadata.timestamp = timestamp
-      //
-      //   sanitize_filter(
-      //     doc,
-      //     opts,
-      //     pipeline.output.bind(pipeline),
-      //     pipeline
-      //   )
-      //
-      //   // if(!modules[host]) modules[host] = Object.clone(all_modules)
-      //   //
-      //   // modules[host][module] = true
-      //   //
-      //   // debug_internals('merge', host, module, modules[host])
-      //   //
-      //   // if(!meta_docs[host]) meta_docs[host] = Object.clone(meta_doc)
-      //   //
-      //   // meta_docs[host].data.push(doc)
-      //   // meta_docs[host].id = host+'.os.merged@'+Date.now()
-      //   // meta_docs[host].metadata['host'] = host
-      //   //
-      //   // if(Object.every(modules[host], function(val, mod){ return val })){
-      //   //   // debug_internals('META %o', meta_docs[host])
-      //   //   // meta_docs[host].data = JSON.stringify(meta_docs[host].data)
-      //   //   sanitize_filter(
-      //   //     Object.clone(meta_docs[host]),
-      //   //     opts,
-      //   //     pipeline.output.bind(pipeline),
-      //   //     pipeline
-      //   //   )
-      //   //
-      //   //   meta_docs[host].data = []
-      //   //   Object.each(modules[host], function(val, mod){ modules[host][mod] = false })
-      //   //
-      //   // }
-      //
-      //
-      // }
-
-      /**
-      * merge
-      **/
-
 
 
   	],
   	output: [
-      // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
-  		//require('./snippets/output.stdout.template'),
-  		// {
-  		// 	cradle: {
-  		// 		id: "output.os.cradle",
-  		// 		conn: [
-  		// 			{
-  		// 				host: 'elk',
-  		// 				port: 5984,
-  		// 				db: 'live',
-  		// 				opts: {
-  		// 					cache: false,
-  		// 					raw: false,
-  		// 					forceSave: false,
-  		// 				},
-  		// 			},
-  		// 		],
-  		// 		module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
-      //     buffer:{
-  		// 			size: 0,
-  		// 			expire:0
-  		// 		}
-  		// 	}
-  		// }
       {
   			rethinkdb: {
   				id: "output.os.rethinkdb",
@@ -513,6 +242,58 @@ module.exports = function(payload){
   		}
   	]
   }
+
+  if(stdin === true){
+    conf.input.push(
+      {
+       poll: {
+         id: "input.stdin",
+          conn: [
+            {
+              module: STDIN,
+              domain: domain,
+            }
+         ],
+          connect_retry_count: -1,
+          connect_retry_periodical: 1000,
+         requests: {
+           // periodical: 1000,
+            periodical: function(dispatch){
+              // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+              return cron.schedule('* * * * * *', dispatch);//every 20 secs
+            },
+         },
+       },
+      }
+    )
+  }
+
+  if(file){
+    conf.input.push(
+      {
+       poll: {
+         id: "input.tail",
+         conn: [
+           {
+             file: file,
+             module: Tail,
+             domain: domain,
+           }
+         ],
+         connect_retry_count: -1,
+         connect_retry_periodical: 1000,
+         requests: {
+           // periodical: 1000,
+           periodical: function(dispatch){
+             // return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+             return cron.schedule('* * * * * *', dispatch);//every 20 secs
+           },
+         },
+       },
+      }
+    )
+  }
+
 
   return conf
 }
