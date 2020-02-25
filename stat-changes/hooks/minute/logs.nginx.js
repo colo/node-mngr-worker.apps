@@ -78,44 +78,93 @@ module.exports = function(){
         debug_internals('doc %s %o', key, value)
         delete entry_point[key]
 
-        let stat = {}
+        let stat = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
         let data_values = Object.values(value);
 
         Array.each(data_values, function(data){
-          // if(!stat[key]) stat[key] = {}
-          Object.each(data, function(item, name){
-            // if(name !== 'major' && name !== 'minor'){
 
-              if((item.geonameId || (item.names && item.geonameId.en)) && !stat[name]) stat[name] = {}
+          let ipAddress
+          if(data.traits && data.traits.ipAddress){
+            ipAddress = data.traits.ipAddress
+          }
+
+          if(ipAddress && !stat.ip[ipAddress]) stat.ip[ipAddress] = { count: 0 }
+
+          if(stat.ip[ipAddress]) stat.ip[ipAddress].count +=1
+
+          if(data.location && stat.ip[ipAddress]){
+            // if(!stat.ip[ipAddress].location) stat.ip[ipAddress].location= {}
+            // let geo_id = data.location.longitude + ':' + data.location.latitude
+
+            if(!stat.ip[ipAddress].location) stat.ip[ipAddress].location = Object.merge(Object.clone(data.location), {city: undefined, country: undefined, continent: undefined})
+
+            // stat.ip[ipAddress].location.count +=1
+            stat.ip[ipAddress].location.city = (data.city && data.city.names && data.city.names.en) ? data.city.names.en : undefined
+            stat.ip[ipAddress].location.country = (data.country && data.country.names && data.country.names.en) ? data.country.names.en : undefined
+            stat.ip[ipAddress].location.continent = (data.continent && data.continent.names && data.continent.names.en) ? data.continent.names.en : undefined
+          }
+
+          Object.each(data, function(item, name){
+
+
+            if(stat.ip[ipAddress]){
+
+              // if((item.geonameId || (item.names && item.geonameId.en)) && !stat.ip[ipAddress][name]) stat.ip[ipAddress][name] = {}
+              // if((item.geonameId) && !stat.ip[ipAddress][name]) stat.ip[ipAddress][name] = {}
 
               if(item.geonameId){
-                if(!stat[name].geonameId) stat[name].geonameId = {}
-                if(!stat[name].geonameId[item.geonameId]) stat[name].geonameId[item.geonameId] = 0
-                stat[name].geonameId[item.geonameId] +=1
+                // if(!stat.ip[ipAddress][name].geonameId) stat.ip[ipAddress][name].geonameId = {}
+                // if(!stat.ip[ipAddress][name].geonameId[item.geonameId]) stat.ip[ipAddress][name].geonameId[item.geonameId] = 0
+                // stat.ip[ipAddress][name].geonameId[item.geonameId] +=1
+
+                if(!stat.ip[ipAddress][name]) stat.ip[ipAddress][name] = {geonameId : item.geonameId, name: undefined}
+
+                // stat.ip[ipAddress][name][item.geonameId].count +=1
+
+                if(item.names && item.names.en && stat.ip[ipAddress][name].name === undefined){
+                  stat.ip[ipAddress][name].name = item.names.en
+                }
               }
 
-              if(item.names && item.names.en ){
-                if(!stat[name].names) stat[name].names = {}
-                if(!stat[name].names[item.names.en]) stat[name].names[item.names.en] = 0
-                stat[name].names[item.names.en] +=1
-              }
-              // Object.each(item, function(val, key){
-              //   if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor ' && val !== null){
-              //     if(!stat[name][key]) stat[name][key] = {}
-              //     if(!stat[name][key][val]) stat[name][key][val] = 0
-              //     stat[name][key][val] += 1
-              //   }
-              // })
-            // }
+              // if(item.names && item.names.en ){
+              //   if(!stat.ip[ipAddress][name].names) stat.ip[ipAddress][name].names = {}
+              //   if(!stat.ip[ipAddress][name].names[item.names.en]) stat.ip[ipAddress][name].names[item.names.en] = 0
+              //   stat.ip[ipAddress][name].names[item.names.en] +=1
+              // }
 
+            }
 
 
           })
 
+
+        })
+
+        Object.each(stat, function(val, prop){
+          if(prop !== 'ip' || prop !== 'location'){
+            Object.each(stat.ip, function(ip_val, ip){
+              if(ip_val[prop] && ip_val[prop].name && stat[prop])
+                stat[prop][ip_val[prop].name] = (stat[prop][ip_val[prop].name]) ? stat[prop][ip_val[prop].name] + ip_val.count : ip_val.count
+
+            })
+          }
+
+          if(prop === 'location'){
+            Object.each(stat.ip, function(ip_val, ip){
+              if(ip_val['location'] && ip_val['location'].latitude && ip_val['location'].longitude && stat['location']){
+                let geoip_id = ip_val['location'].latitude +':'+ ip_val['location'].longitude
+                if(!stat['location'][geoip_id]) stat['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: 0})
+
+                stat['location'][geoip_id].count += 1
+              }
+
+            })
+          }
+
         })
 
         debug_internals('doc %o', stat)
-
+        // process.exit(1)
         entry_point[key] = stat
         // process.exit(1)
         return entry_point
@@ -209,7 +258,7 @@ module.exports = function(){
         //   range: max - min,
         // }
         entry_point[key] = ss_stat(value)
-        
+
         // debug('body_bytes_sent - doc', entry_point)
         // process.exit(1)
         return entry_point

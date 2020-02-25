@@ -33,8 +33,8 @@ module.exports = function(){
         })
 
         debug('unique_visitors - doc %o', entry_point[key])
-        if(Object.getLength(entry_point[key]) === 0)
-          delete entry_point[key]
+        // if(Object.getLength(entry_point[key]) === 0)
+        //   delete entry_point[key]
 
         // process.exit(1)
         return entry_point
@@ -70,16 +70,7 @@ module.exports = function(){
         return entry_point
       }
     },
-    generic_agent_or_geoip: {
-      generic_agent_or_geoip: new RegExp('^(^user\_agent|geoip)$'),
-      // key: function(entry_point, timestamp, value, key){
-      //   debug_internals('key %s %o', key, value)
-      //   process.exit(1)
-      // },
-      // value: function(entry_point, timestamp, value, key){
-      //   debug_internals('value %s %o', key, value)
-      //   process.exit(1)
-      // },
+    user_agent: {
       doc: function(entry_point, value, key){
         // debug('method - doc', entry_point, value, key)
         delete entry_point[key]
@@ -115,6 +106,88 @@ module.exports = function(){
         })
 
         debug('method - doc %o', entry_point[key])
+        if(Object.getLength(entry_point[key]) === 0)
+          delete entry_point[key]
+
+        // process.exit(1)
+        return entry_point
+      }
+    },
+    geoip: {
+    // generic_agent_or_geoip: {
+    //   generic_agent_or_geoip: new RegExp('^(^user\_agent|geoip)$'),
+      // key: function(entry_point, timestamp, value, key){
+      //   debug_internals('key %s %o', key, value)
+      //   process.exit(1)
+      // },
+      // value: function(entry_point, timestamp, value, key){
+      //   debug_internals('value %s %o', key, value)
+      //   process.exit(1)
+      // },
+      doc: function(entry_point, value, key){
+        // debug('method - doc', entry_point, value, key)
+        delete entry_point[key]
+        entry_point[key] = {}
+        let data_values = Object.values(value);
+        Array.each(data_values, function(val){
+          // debug('doc %o', val)
+          // process.exit(1)
+          if(val && Object.getLength(val) > 0){
+            Object.each(val, function(data, item){
+              // debug('doc item %s - %o', item, data)
+              // process.exit(1)
+
+              // if(!entry_point[key][item]) entry_point[key][item] = {}
+              //
+              // if(data.count){
+              //   if(!entry_point[key][item].count) entry_point[key][item] = Object.merge(Object.clone(data), {count: 0})
+              //   entry_point[key][item].count += data.count
+              // }
+              // else{
+              //   if(!entry_point[key][item][data]) entry_point[key][item][data] = 0
+              //
+              //   entry_point[key][item][data] +=1
+              // }
+              if(!entry_point[key][item]) entry_point[key][item] = {}
+
+              Object.each(data, function(val, data_item){
+                // debug('doc data_item %s - %o', data_item, val)
+                // process.exit(1)
+
+                if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
+
+                if(val.count){
+                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: 0})
+
+                  entry_point[key][item][data_item].count += val.count
+                }
+                else{
+                  entry_point[key][item][data_item] += val
+                }
+                // Object.each(val, function(agent, val_item){
+                //   if(typeof val_item !== 'string')
+                //     val_item = JSON.stringify(val_item)
+                //
+                //   if(!entry_point[key][item][data_item][val_item]) entry_point[key][item][data_item][val_item] = 0
+                //
+                //   entry_point[key][item][data_item][val_item] += agent
+                // })
+
+
+
+              })
+              // debug('doc data_item %o', entry_point[key])
+              // process.exit(1)
+
+            })
+          }
+
+
+        })
+
+        debug('method - doc %o', entry_point[key])
+        // process.exit(1)
+        //
         if(Object.getLength(entry_point[key]) === 0)
           delete entry_point[key]
 
