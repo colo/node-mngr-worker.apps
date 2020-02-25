@@ -53,8 +53,8 @@ module.exports = function(value){
 
   data_values = merge_historicals(data_values)
 
-  let min = ( data_values.min ) ? ( data_values.min.length > 0 ) ? ss.min(data_values.min) : 0 : (data_values.length > 0) ?  ss.min(data_values) : 0,
-  let max = ( data_values.max ) ? ( data_values.max.length > 0 ) ? ss.max(data_values.max) : 0 : (data_values.length > 0) ?  ss.max(data_values) : 0,
+  let min = ( data_values.min ) ? ( data_values.min.length > 0 ) ? ss.min(data_values.min) : 0 : (data_values.length > 0) ?  ss.min(data_values) : 0
+  let max = ( data_values.max ) ? ( data_values.max.length > 0 ) ? ss.max(data_values.max) : 0 : (data_values.length > 0) ?  ss.max(data_values) : 0
   // if(min === undefined){
     // debug('value %o', value, data_values)
     // process.exit(1)
