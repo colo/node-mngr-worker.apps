@@ -13,7 +13,7 @@ module.exports = function(host, urls, cb){//sanitize + metadata
 
   async.eachLimit(urls, 3, function(url, callback){//current nginx limit 5r/s
 
-    request.head({uri: url, timeout: 10000}, function(error, response, body){
+    request.head({uri: url, timeout: 60000}, function(error, response, body){
       if(response && response.statusCode)
         debug('request result %s %s %O ', host, url, response.statusCode)
 
