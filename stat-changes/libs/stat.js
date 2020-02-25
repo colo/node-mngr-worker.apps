@@ -53,8 +53,8 @@ module.exports = function(value){
 
   data_values = merge_historicals(data_values)
 
-  let min = ( data_values.min ) ? ss.min(data_values.min) : ss.min(data_values)
-  let max = ( data_values.max ) ? ss.max(data_values.max) : ss.max(data_values)
+  let min = ( data_values.min ) ? ( data_values.min.length > 0 ) ? ss.min(data_values.min) : 0 : (data_values.length > 0) ?  ss.min(data_values) : 0,
+  let max = ( data_values.max ) ? ( data_values.max.length > 0 ) ? ss.max(data_values.max) : 0 : (data_values.length > 0) ?  ss.max(data_values) : 0,
   // if(min === undefined){
     // debug('value %o', value, data_values)
     // process.exit(1)
@@ -64,10 +64,10 @@ module.exports = function(value){
     // samples : value,
     min : min,
     max : max,
-    mean : ( data_values.mean ) ? ss.mean(data_values.mean) : ss.mean(data_values),
-    median : ( data_values.median ) ? ss.median(data_values.median) : ss.median(data_values),
-    mode : ( data_values.median ) ? ss.mode(data_values.median) : ss.mode(data_values),
-    sum: ( data_values.sum ) ? ss.sumSimple(data_values.sum) : ss.sumSimple(data_values),
+    mean : ( data_values.mean ) ? ( data_values.mean.length > 0 ) ? ss.mean(data_values.mean) : undefined : (data_values.length > 0) ?  ss.mean(data_values) : undefined,
+    median : ( data_values.median ) ? ( data_values.median.length > 0 ) ? ss.median(data_values.median) : undefined : (data_values.length > 0) ?  ss.median(data_values) : undefined,
+    mode : ( data_values.mode ) ? ( data_values.mode.length > 0 ) ? ss.mode(data_values.mode) : undefined : (data_values.length > 0) ?  ss.mode(data_values) : undefined,
+    sum: ( data_values.sum ) ? ( data_values.sum.length > 0 ) ? ss.sumSimple(data_values.sum) : undefined : (data_values.length > 0) ?  ss.sumSimple(data_values) : undefined,
     range: max - min
   }
 }
