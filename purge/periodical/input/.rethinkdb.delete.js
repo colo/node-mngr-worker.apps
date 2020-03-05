@@ -29,7 +29,7 @@ const pluralize = require('pluralize')
 module.exports = new Class({
   Extends: App,
 
-  ID: 'b1f06da2-82bd-4c95-8e4e-a5a25075e39b',
+  ID: '0395336a-a0af-5996-a103-abb05b15238c',
 
   options: {
     db: undefined,
@@ -140,18 +140,26 @@ module.exports = new Class({
 
               if (req.query && req.query.aggregation && !req.query.q) {
                 query =  this.result_with_aggregation(query, req.query.aggregation)
-                query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
+                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+              }
+              else if(req.query.index === false){
+                query = app.build_query_fields(query, req.query)
+
+                debug('NO INDEX %o', query)
+
+                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+
               }
               else{
-                if(req.query && req.query.q){
+                if(req.query && (req.query.q || req.query.filter)){
                   query = query
                     .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
-                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
                     .run(app.conn, {arrayLimit: 10000000}, _result_callback)
@@ -253,6 +261,12 @@ module.exports = new Class({
                 if (req.query.register === 'periodical' && req.query.aggregation && !req.query.q) {
                   query =  this.result_with_aggregation(query, req.query.aggregation)
                 }
+                else if(req.query.register === 'periodical' && req.query.index === false){
+                  query = app.build_query_fields(query, req.query)
+
+                  debug('NO INDEX %o', query)
+
+                }
                 else if(req.query.register === 'periodical'){
                   // query = query
                   //   .group( app.r.row('metadata')('path') )
@@ -262,14 +276,15 @@ module.exports = new Class({
                   //         return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                   //     }
                   // )
-                  if(req.query && req.query.q){
+                  if(req.query && (req.query.q || req.query.filter)){
                     query = query
-                      .group( app.r.row('metadata')('path') )
+                      .group( app.get_group(req.query.index) )
                       // .group( {index:'path'} )
                       .ungroup()
                       .map(
                         function (doc) {
-                          return app.build_default_query_result(doc, req.query)
+                          // return app.build_default_query_result(doc, req.query)
+                          return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                         }
                       )
 
@@ -278,7 +293,7 @@ module.exports = new Class({
                   else{
                     //Promise
                     // process.exit(1)
-                    query = app.build_default_result(query)
+                    query = app.build_default_result_distinct(query,  app.get_distinct(req.query.index))
                   }
                 }
 
@@ -312,7 +327,18 @@ module.exports = new Class({
           * default query from mngr-ui-admin/libs/pipelines/input/rethinkdb
           **/
 					default: function(req, next, app){
-            req = (req) ? Object.clone(req) : { id: 'default', params: {}, query: {} }
+            req = (req) ? Object.clone(req) : { id: 'default', params: {},
+              query: {
+                index: false,
+                "q":[
+              		{"metadata": ["timestamp"]}
+              	],
+              	"transformation": [
+              		{ "orderBy": { "index": "r.asc(timestamp)" } },
+                  "slice:0:1"
+              	]
+              }
+            }
             // if(!req.query || (!req.query.register && !req.query.unregister)){
 
 
@@ -404,25 +430,51 @@ module.exports = new Class({
 
               if (req.query && req.query.aggregation && !req.query.q) {
                 query =  this.result_with_aggregation(query, req.query.aggregation)
-                query.run(app.conn, {arrayLimit: 1000000}, _result_callback)
+                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+              }
+              else if(req.query.index === false){
+                query = app.build_query_fields(query, req.query)
+
+                debug('NO INDEX %o', query)
+
+                query.run(app.conn, {arrayLimit: 10000000}, _result_callback)
+
               }
               else{
-                if(req.query && req.query.q){
+                if(req.query && (req.query.q || req.query.filter)){
+                // if(req.query && req.query.q){
                   query = query
-                    .group( app.r.row('metadata')('path') )
+                    .group( app.get_group(req.query.index) )
                     // .group( {index:'path'} )
                     .ungroup()
                     .map(
                       function (doc) {
-                        return app.build_default_query_result(doc, req.query)
+                        // return app.build_default_query_result(doc, req.query)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
                       }
                     )
-                    .run(app.conn, {arrayLimit: 1000000}, _result_callback)
+                    .run(app.conn, {arrayLimit: 10000000}, _result_callback)
 
                 }
                 else{
-                  app.build_default_result(query, _result_callback)
+                  app.build_default_result_distinct(query, app.get_distinct(req.query.index), _result_callback)
                 }
+                  // query = query
+                  //   .group( app.r.row('metadata')('path') )
+                  //   // .group( {index:'path'} )
+                  //   .ungroup()
+                  //   .map(
+                  //     function (doc) {
+                  //       // return app.build_default_query_result(doc, req.query)
+                  //       return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc)
+                  //     }
+                  //   )
+                  //   .run(app.conn, {arrayLimit: 10000000}, _result_callback)
+
+                // }
+                // else{
+                //   app.build_default_result(query, _result_callback)
+                // }
                 // query = query
                 //   .group( app.r.row('metadata')('path') )
                 //   .ungroup()
@@ -447,7 +499,7 @@ module.exports = new Class({
               //   )
               // }
               //
-              // query.run(app.conn, {arrayLimit: 1000000}, function(err, resp){
+              // query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
               //   debug_internals('run', err)//resp
               //   app.process_default(
               //     err,
@@ -562,7 +614,7 @@ module.exports = new Class({
 
 
               query.delete().run(app.conn, {durability: "hard"}, function(err, resp){
-                debug_internals('run', err) //resp
+                debug_internals('run %o %o', err, resp) //resp
                 app.process_default(
                   err,
                   resp,

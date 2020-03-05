@@ -46,6 +46,7 @@ module.exports = function(payload){
     		poll: {
 
     			id: "input.periodical",
+          suspended: (opts && opts.suspended) ? opts.suspended : false,
     			conn: [
             Object.merge(
               Object.clone(input),
@@ -65,6 +66,7 @@ module.exports = function(payload){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               if(input.type === 'periodical' || input.type === 'minute'){
                 return cron.schedule('* * * * *', dispatch);//every minute
+                // return cron.schedule('*/10 * * * * *', dispatch);//testing
               }
               else if(input.type === 'hour'){
                 return cron.schedule('0 * * * *', dispatch);//every hour 0x:00

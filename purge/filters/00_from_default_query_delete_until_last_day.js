@@ -1,7 +1,7 @@
 'use strict'
 
-let debug = require('debug')('Server:Apps:Purge:Periodical:Filters:from_default_query_delete_until_last_hour');
-let debug_internals = require('debug')('Server:Apps:Purge:Periodical:Filters:from_default_query_delete_until_last_hour:Internals');
+let debug = require('debug')('Server:Apps:Purge:Periodical:Filters:from_default_query_delete_until_last_day');
+let debug_internals = require('debug')('Server:Apps:Purge:Periodical:Filters:from_default_query_delete_until_last_day:Internals');
 
 const roundMilliseconds = function(timestamp){
   let d = new Date(timestamp)
@@ -42,7 +42,7 @@ module.exports = function(payload){
 
   let filter = function(doc, opts, next, pipeline){
     debug('1st filter %o', doc, table)
-    if(doc && doc.id === 'default' && doc.data && doc.metadata && doc.metadata.from === table){
+    if(doc && doc.id === 'periodical' && doc.data && doc.metadata && doc.metadata.from === table){
       // let { type, input, input_type, app } = opts
 
       // let hosts = []
@@ -61,8 +61,9 @@ module.exports = function(payload){
 
       debug('1st filter END RANGE %s', new Date(end))
 
-      Array.each(doc.data, function(group, index){
+      Array.each(doc.data[0], function(group, index){
         debug('1st filter GROUP %o', group)
+        // process.exit(1)
 
         pipeline.get_input_by_id('input.periodical').fireEvent('onRange', {
           id: "range",
@@ -84,11 +85,11 @@ module.exports = function(payload){
 
 
             ],
-            // "filter": [
-            //   "r.row('metadata')('path').eq('"+group.path+"')",
-            //   "r.row('metadata')('host').eq('"+host+"')",
-            //   "r.row('metadata')('type').eq('"+type+"')"
-            // ]
+            "filter": [
+              // "r.row('metadata')('path').eq('"+group.path+"')",
+              // "r.row('metadata')('host').eq('"+host+"')",
+              "r.row('metadata')('type').eq('"+group.metadata.type+"')"
+            ]
           },
           params: {},
         })
