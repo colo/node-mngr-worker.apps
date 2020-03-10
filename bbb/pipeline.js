@@ -26,7 +26,8 @@ const roundMilliseconds = function(timestamp){
 }
 
 
-module.exports = function(conn){
+module.exports = function(input, out){
+
   let conf = {
     input: [
     	{
@@ -34,7 +35,7 @@ module.exports = function(conn){
       		id: "input.bbb",
       		conn: [
             Object.merge(
-              conn,
+              input,
               {
         				module: InputPollerBBB,
         			},
@@ -48,36 +49,14 @@ module.exports = function(conn){
       			// periodical: 5000,
             periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-              return cron.schedule('*/10 * * * * *', dispatch);//every 20 secs
+              // return cron.schedule('*/10 * * * * *', dispatch);//every 20 secs
+              return cron.schedule('* * * * * *', dispatch);//every 20 secs
     				},
       		},
       	}
 
     	},
-      // {
-      //   poll: {
-      // 		id: "input.elk.bbb",
-      // 		conn: [
-      // 			{
-      // 				scheme: 'bbb',
-      // 				host:'elk',
-      // 				port: 4949,
-      // 				module: InputPollerBBB,
-      // 				load: [],
-      // 			}
-      // 		],
-      // 		connect_retry_count: -1,
-      // 		connect_retry_periodical: 1000,
-      // 		requests: {
-      // 			// periodical: 5000,
-      //       periodical: function(dispatch){
-    	// 				// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-      //         return cron.schedule('*/5 * * * * *', dispatch);//every 20 secs
-    	// 			},
-      // 		},
-      // 	}
-      //
-    	// }
+
     ],
 
     filters: [
@@ -96,7 +75,8 @@ module.exports = function(conn){
         if(Object.getLength(doc.meetings) > 0){//discard modules doc
           let new_doc = {data: {}, metadata: {}}
           new_doc.data = doc.meetings
-          let path = id.replace(/\_/, '.', 'g')
+          // let path = id.replace(/\_/, '.', 'g')
+          let path = 'os.'+id.replace(/\_/, '.', 'g')
           let timestamp = roundMilliseconds(Date.now())
           new_doc.id = doc.host+'.'+path+'@'+timestamp
           new_doc.metadata = {
@@ -178,23 +158,45 @@ module.exports = function(conn){
       // },
       **/
    	],
-  	output: [
+  	// output: [
+    //   {
+  	// 		rethinkdb: {
+  	// 			id: "output.bbb.rethinkdb",
+  	// 			conn: [
+  	// 				{
+    //           host: 'elk',
+  	// 					port: 28015,
+  	// 					db: 'servers',
+    //           table: 'periodical',
+  	// 				},
+  	// 			],
+  	// 			module: require('js-pipeline.output.rethinkdb'),
+    //       buffer:{
+  	// 				size: 1, //-1
+  	// 				expire: 0 //ms
+    //         // expire: 999 //ms
+  	// 			}
+  	// 		}
+  	// 	}
+  	// ]
+    output: [
       {
   			rethinkdb: {
-  				id: "output.bbb.rethinkdb",
+  				id: "output.rethinkdb",
   				conn: [
-  					{
-              host: 'elk',
-  						port: 28015,
-  						db: 'servers',
-              table: 'periodical',
-  					},
+            Object.merge(
+              Object.clone(out),
+              {table: 'os'}
+            )
   				],
   				module: require('js-pipeline.output.rethinkdb'),
           buffer:{
-  					size: 1, //-1
-  					expire: 0 //ms
-            // expire: 999 //ms
+  					// // size: 1, //-1
+  					// expire: 1001,
+            size: -1, //-1
+  					// expire: 0 //ms
+            expire: 1000, //ms
+            periodical: 500 //how often will check if buffer timestamp has expire
   				}
   			}
   		}

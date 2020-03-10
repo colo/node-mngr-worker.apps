@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "bbb-promise": "^1.1.0",
-    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git"
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git",
+    "node-app": "git+https://github.com/colo/node-app.git",
+    "request": "^2.88.2"
   }
 }
