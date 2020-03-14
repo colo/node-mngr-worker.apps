@@ -84,6 +84,8 @@ module.exports = function(payload){
   let full_range = input.full_range
   let table = input.table
   let host = input.host
+  let server_id = input.id || undefined
+
   // const stat = require('../libs/stat')[type]
 
   let filter = function(buffer, opts, next, pipeline){
@@ -104,6 +106,9 @@ module.exports = function(payload){
         let clients_doc = Object.clone(new_doc)
 
         clients_doc.metadata.tag.push('clients')
+        if(server_id !== undefined)
+          clients_doc.metadata.path += '.'+server_id
+
         clients_doc.metadata.path += '.clients'
         clients_doc.metadata.id +='.clients@'+ts
         clients_doc.data = {
@@ -121,6 +126,9 @@ module.exports = function(payload){
         let queries_doc = Object.clone(new_doc)
 
         queries_doc.metadata.tag.push('queries')
+        if(server_id !== undefined)
+          queries_doc.metadata.path += '.'+server_id
+
         queries_doc.metadata.path += '.queries'
         queries_doc.metadata.id +='.queries@'+ts
         queries_doc.data = {
@@ -138,6 +146,9 @@ module.exports = function(payload){
         let read_doc = Object.clone(new_doc)
 
         read_doc.metadata.tag.push('read_docs')
+        if(server_id !== undefined)
+          read_doc.metadata.path += '.'+server_id
+
         read_doc.metadata.path += '.read_docs'
         read_doc.metadata.id +='.read_docs@'+ts
         read_doc.data = {
@@ -155,6 +166,9 @@ module.exports = function(payload){
         let write_doc = Object.clone(new_doc)
 
         write_doc.metadata.tag.push('written_docs')
+        if(server_id !== undefined)
+          write_doc.metadata.path += '.'+server_id
+
         write_doc.metadata.path += '.written_docs'
         write_doc.metadata.id +='.written_docs@'+ts
         write_doc.data = {
