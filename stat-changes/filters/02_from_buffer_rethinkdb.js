@@ -90,9 +90,16 @@ module.exports = function(payload){
 
   let filter = function(buffer, opts, next, pipeline){
     debug('3rd filter %o %o', buffer)
+    // process.exit(1)
 
-    if(buffer.id === 'changes' && buffer.data.length > 0){
+    if((buffer.id === 'changes' || buffer.id === 'periodical') && buffer.data.length > 0){
+      if(buffer.id === 'periodical')
+        buffer.data = buffer.data[0]
+
       Array.each(buffer.data, function(doc, _index){
+        // debug('3rd filter DOC %o', doc)
+        // process.exit(1)
+
         let ts = roundMilliseconds(Date.now())
         // const ts = buffer.metadata.timestamp + _index
         let new_doc = Object.clone(template_doc)
