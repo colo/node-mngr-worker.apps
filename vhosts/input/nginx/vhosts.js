@@ -120,15 +120,23 @@ module.exports = new Class({
 
         Object.each(body, function(vhost, uri){
           Array.each(vhost, function(listen){
-            if(typeof listen !== 'string' && listen._value)
-              listen = listen._value
+            if(!Array.isArray(listen)){
+              listen = [listen]
+            }
 
-            let port = listen.split(':')[1]
-            let schema = (port.indexOf('ssl') > 0) ? 'https' : 'http'
-            port = port.replace('ssl', '')
-            port = port.trim()
-            // debug('vhost_listen %o %o', listen, port, schema)
-            this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol']}, data: {uri: uri, port: port, schema: schema }});
+            Array.each(listen, function(_listen){
+              if(typeof _listen !== 'string' && _listen._value){
+                _listen = _listen._value
+              }
+
+              let port = _listen.split(':')[1]
+              let schema = (port.indexOf('ssl') > 0) ? 'https' : 'http'
+              port = port.replace('ssl', '')
+              port = port.trim()
+              // debug('vhost_listen %o %o', listen, port, schema)
+              this.fireEvent(this.ON_PERIODICAL_DOC, { metadata: {path: 'vhosts.nginx.enabled', tag: ['vhost','enabled', 'nginx', 'port', 'uri', 'url', 'schema', 'protocol']}, data: {uri: uri, port: port, schema: schema }});
+            }.bind(this))
+
           }.bind(this))
         }.bind(this))
         // Array.each(decoded_body, function(listen){
