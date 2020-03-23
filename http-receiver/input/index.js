@@ -1,0 +1,217 @@
+'use strict'
+
+const debug = require('debug')('Server:Apps:HttpReceiver:Input'),
+      debug_internals = require('debug')('Server:Apps:HttpReceiver:Input:Internals')
+
+
+let HttpServer = require('js-pipeline.input.http-server')
+// const bodyParser = require('body-parser'),
+const express = require('express'),
+			cors = require('cors'),
+			os = require('os')
+
+module.exports = new Class({
+  Extends: HttpServer,
+
+  options: {
+    // host: '127.0.0.1',
+    // port: 8080,
+		id: 'HttpReceiver',
+		path: '',
+
+		// // authentication: {
+		// // 	users : [
+		// // 			{ id: 1, username: 'anonymous' , role: 'anonymous', password: ''}
+		// // 	],
+		// // },
+    //
+		// logs: null,
+    //
+		// //authorization: {
+		// 	//config: path.join(__dirname,'./rbac.json'),
+		// //},
+    //
+		// // params: {
+		// // 	event: /exit|resume|suspend|once|range/
+		// // },
+
+		middlewares: [
+			express.json(),
+			express.urlencoded({ extended: true }),
+			cors({
+				'exposedHeaders': ['Link', 'Content-Range']
+			})
+	  ],
+
+    routes: {},
+	  api: {
+
+			version: '1.0.0',
+
+			routes: {
+				get: [
+					{
+						path: '',
+						callbacks: ['get']
+					}
+				],
+				post: [
+					// {
+					// 	path: ':prop',
+					// 	callbacks: ['404'],
+					// 	//version: '',
+					// },
+					{
+						path: ':path',
+						callbacks: ['post'],
+						//version: '',
+					},
+				],
+        all: [
+
+				]
+			},
+
+		},
+  },
+	get: function (req, resp, next){
+		resp.json({id: this.options.id+':'+os.hostname()})
+	},
+  post: function (req, resp, next){
+		debug('POST %o', req.params, req.body, req.query)
+  },
+  initialize: function(options){
+    this.parent(options)
+  }
+})
+
+// module.exports = new Class({
+//   Extends: App,
+//
+//   //ON_CONNECT: 'onConnect',
+//   //ON_CONNECT_ERROR: 'onConnectError',
+//
+//   options: {
+//
+// 		requests : {
+// 			// once: [
+// 			// 	{ api: { get: {uri: ''} } },
+// 			// ],
+// 			periodical: [
+// 				{ api: { get: {uri: ''} } },
+// 			],
+//
+// 		},
+//
+// 		routes: {
+// 		},
+//
+// 		api: {
+//
+// 			version: '1.0.0',
+//
+// 			routes: {
+// 				get: [
+// 					{
+// 						path: ':prop',
+// 						callbacks: ['get'],
+// 						//version: '',
+// 					},
+// 					{
+// 						path: '',
+// 						callbacks: ['get'],
+// 						//version: '',
+// 					},
+// 				]
+// 			},
+//
+// 		},
+//   },
+//   //get_prop: function (err, resp, body, req){
+//
+// 		//if(err){
+// 			//this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1)+'Error', err);//capitalize first letter
+// 		//}
+// 		//else{
+// 			//this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), body);//capitalize first letter
+// 		//}
+//
+// 	//},
+//   get: function (err, resp, body, req){
+// 		//console.log('OS GET');
+// 		//console.log(this.options.requests.current);
+//
+// 		if(err){
+// 			//console.log(err);
+//
+// 			if(req.uri != ''){
+// 				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1)+'Error', err);//capitalize first letter
+// 			}
+// 			else{
+// 				this.fireEvent('onGetError', err);
+// 			}
+//
+// 			this.fireEvent(this.ON_DOC_ERROR, err);
+//
+// 			if(this.options.requests.current.type == 'once'){
+// 				this.fireEvent(this.ON_ONCE_DOC_ERROR, err);
+// 			}
+// 			else{
+// 				this.fireEvent(this.ON_PERIODICAL_DOC_ERROR, err);
+// 			}
+// 		}
+// 		else{
+// 			////console.log('success');
+//
+//       try{
+//         let decoded_body = {}
+//         decoded_body = JSON.decode(body)
+//
+//         if(req.uri != ''){
+//   				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), decoded_body);//capitalize first letter
+//   			}
+//   			else{
+//   				this.fireEvent('onGet', decoded_body);
+//   			}
+//
+//   			//this.fireEvent(this.ON_DOC, JSON.decode(body));
+//
+//   			if(this.options.requests.current.type == 'once'){
+//   				this.fireEvent(this.ON_ONCE_DOC, decoded_body);
+//   			}
+//   			else{
+//   				// var original = JSON.decode(body);
+//   				var doc = {};
+//
+//   				doc.loadavg = decoded_body.loadavg;
+//   				doc.uptime = decoded_body.uptime;
+//   				doc.freemem = decoded_body.freemem;
+//   				doc.totalmem = decoded_body.totalmem;
+//   				doc.cpus = decoded_body.cpus;
+//   				doc.networkInterfaces = decoded_body.networkInterfaces;
+//
+//   				this.fireEvent(this.ON_PERIODICAL_DOC, doc);
+//
+//   				////console.log('STATUS');
+//   			}
+//
+//       }
+//       catch(e){
+//         console.log(e)
+//       }
+//
+//
+//
+//
+// 		}
+//
+//   },
+//   initialize: function(options){
+//
+// 		this.parent(options);//override default options
+//
+// 		this.log('os', 'info', 'os started');
+//   },
+//
+//
+// });
