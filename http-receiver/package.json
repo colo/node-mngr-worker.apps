@@ -23,7 +23,10 @@
     "authentication"
   ],
   "dependencies": {
+    "compression": "^1.7.4",
+    "express-session": "^1.17.0",
     "js-pipeline.input.http-server": "git+https://github.com/colo/js-pipeline.input.http-server.git",
-    "js-pipeline.input.httpclient": "git+https://github.com/colo/js-pipeline.input.http-client.git"
+    "js-pipeline.input.httpclient": "git+https://github.com/colo/js-pipeline.input.http-client.git",
+    "memorystore": "^1.6.2"
   }
 }

@@ -7,6 +7,9 @@ const debug = require('debug')('Server:Apps:HttpReceiver:Input'),
 let HttpServer = require('js-pipeline.input.http-server')
 // const bodyParser = require('body-parser'),
 const express = require('express'),
+      session = require('express-session'),
+      compression = require('compression'),
+      MemoryStore = require('memorystore')(session), //https://www.npmjs.com/package/memorystore
 			cors = require('cors'),
 			os = require('os')
 
@@ -18,6 +21,17 @@ module.exports = new Class({
     // port: 8080,
 		id: 'HttpReceiver',
 		path: '',
+
+    logs: {
+			loggers: {
+				error: null,
+				access: null,
+				profiling: null
+			},
+
+			path: './logs',
+
+		},
 
 		// // authentication: {
 		// // 	users : [
@@ -36,6 +50,7 @@ module.exports = new Class({
 		// // },
 
 		middlewares: [
+      compression(),
 			express.json(),
 			express.urlencoded({ extended: true }),
 			cors({
@@ -52,7 +67,8 @@ module.exports = new Class({
 				get: [
 					{
 						path: '',
-						callbacks: ['get']
+						callbacks: ['get'],
+            roles: ['mngr']
 					}
 				],
 				post: [
@@ -64,6 +80,7 @@ module.exports = new Class({
 					{
 						path: ':path',
 						callbacks: ['post'],
+            roles: ['mngr']
 						//version: '',
 					},
 				],
@@ -75,13 +92,56 @@ module.exports = new Class({
 		},
   },
 	get: function (req, resp, next){
+    debug('GET %o', req.params, req.body, req.query)
 		resp.json({id: this.options.id+':'+os.hostname()})
 	},
   post: function (req, resp, next){
 		debug('POST %o', req.params, req.body, req.query)
+    resp.json({status: 'accepted'})
+    process.exit(1)
+    // next()
   },
   initialize: function(options){
+    this.addEvent(this.ON_INIT_AUTHENTICATION, function(authentication){
+      /**
+  		 * add 'check_authentication' & 'check_authorization' to each route
+  		 * */
+  		Object.each(this.options.api.routes, function(routes, verb){
+
+  			// if(verb != 'all'){
+  				Array.each(routes, function(route){
+  					// debug('route: ', verb, route);
+  					// route.callbacks.unshift('check_authorization');
+  					route.callbacks.unshift('check_authentication');
+            debug('route: ', verb, route);
+
+  					// if(verb == 'get')//users can "read" info
+  					// 	route.roles = ['user']
+  				}.bind(this));
+  			// }
+
+  		}.bind(this));
+
+    }.bind(this));
+
     this.parent(options)
+
+    this.options.session = session({
+				store: new MemoryStore({
+					checkPeriod: 3600000 // prune expired entries every hour
+				}),
+				cookie: { path: '/', httpOnly: true, maxAge: null, secure: false },
+				secret: '19qX9cZ3yvjsMWRiZqOn',
+				resave: true,
+				saveUninitialized: false,
+				name: 'mngr',
+				unset: 'destroy'
+		});
+
+
+
+
+
   }
 })
 

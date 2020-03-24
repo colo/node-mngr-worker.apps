@@ -6,6 +6,8 @@ const debug = require('debug')('Server:Apps:HttpReceiver:Output'),
 
 // const	mootools = require('mootools')
 // let HttpClient = require('js-pipeline.input.httpclient')
+let conn = []
+
 let HttpClient = require('node-app-http-client');
 
 let HttpClientReceiver = new Class({
@@ -51,11 +53,25 @@ let HttpClientReceiver = new Class({
   },
 
   post: function (err, resp, body, req){
-    debug('HttpClientReceiver post %o', body)
-    // process.exit(1)
+    debug('HttpClientReceiver post %o', resp.statusCode)
+    if(resp.statusCode !== 200)
+      process.exit(1)
+
   },
   get: function (err, resp, body, req){
-    debug('HttpClientReceiver get %o', body)
+    let index = req.options.qs.index
+
+    if(!conn[index]) conn[index] = {}
+
+    if(resp.statusCode === 200){
+      conn[index].accept = true
+      // this.fireEvent(this.ON_ACCEPT, index)
+    }
+    else{
+      conn[index].accept = false
+    }
+
+    debug('HttpClientReceiver get %o', conn, resp.statusCode)
     // process.exit(1)
   }
 })
@@ -137,7 +153,7 @@ module.exports = new Class({
 			this.fireEvent(this.ON_CONNECT, { conn: conn,  params: params});
 
       // this.conns[index].accept = true
-      this.options.conn[index].accept = true
+      // this.options.conn[index].accept = true
 
       // try{
       //   let index = params.index
@@ -203,28 +219,36 @@ module.exports = new Class({
 		Array.each(this.options.conn, function(conn, index){
 			// this.dbs.push( new(couchdb.Connection)(conn.host, conn.port, conn.opts).database(conn.db) );
 
-      let opts = {
-  			host: conn.host,
-  			port: conn.port,
-  			// db: conn.db
-  		};
+      // let opts = {
+  		// 	host: conn.host,
+  		// 	port: conn.port,
+  		// 	// db: conn.db
+  		// };
 
       let _cb = function(err, conn){
         this.conns[index] = conn
         connect_cb = (typeOf(connect_cb) ==  "function") ? connect_cb.bind(this) : this.connect.bind(this)
-        connect_cb(err, conn, Object.merge(opts, {index: index}))
+        connect_cb(err, conn, Object.merge(Object.clone(conn), {index: index}))
       }.bind(this)
 
       // this.r = require('rethinkdb')
       //
   		// this.r.connect(Object.merge(opts, conn.rethinkdb), _cb)
 
-      let httpconn = new HttpClientReceiver(Object.merge(opts, conn.http))
+      // let httpconn = new HttpClientReceiver(Object.merge(opts, conn.http))
+      let httpconn = new HttpClientReceiver(Object.merge(Object.clone(conn), {path: ''}))
       httpconn.addEvent(httpconn.ON_CONNECT, function(payload){_cb(undefined, httpconn, payload)})
       httpconn.addEvent(httpconn.ON_CONNECT_ERROR, function(payload){_cb(payload, httpconn, undefined)})
 
-      debug('INITIALIZE %o', httpconn, Object.merge(opts, conn.http))
-      httpconn.api.get({uri:''})
+      debug('INITIALIZE %o', httpconn, conn)
+      // process.exit(1)
+      httpconn.api.get({
+        uri:'',
+        qs: {
+          index: index
+        },
+        gzip: true
+      })
       // process.exit(1)
 
 		}.bind(this));
@@ -275,24 +299,26 @@ module.exports = new Class({
 	},
   _save_to_dbs: function(doc){
 
-    Array.each(this.conns, function(conn, index){
-      debug_internals('_save_to_dbs %o %o', conn, this.options.conn[index])
+    Array.each(this.conns, function(http_conn, index){
+      debug_internals('_save_to_dbs %o %o', http_conn, this.options.conn[index])
       // // let table = this.options.conn[index].table
       // let db = this.options.conn[index].db
       // let table = this.options.conn[index].table
-      let accept = this.options.conn[index].accept
+      let accept = (conn[index] && conn[index].accept) ? conn[index].accept : false
       //
-      // debug_internals('_save_to_dbs %s %s %o', db, table, this.options.conn[index])
+      debug_internals('_save_to_dbs %d %o %o', index, conn, accept)
+      // process.exit(1)
+
       if(accept === true){
         this._save_docs(doc, index);
       }
-      else{
-        let _save = function(){
-          this._save_docs(doc, index);
-          this.removeEvent(this.ON_ACCEPT, _save)
-        }.bind(this)
-        this.addEvent(this.ON_ACCEPT, _save)
-      }
+      // else{
+      //   let _save = function(index){
+      //     this._save_docs(doc, index);
+      //     this.removeEvent(this.ON_ACCEPT, _save)
+      //   }.bind(this)
+      //   this.addEvent(this.ON_ACCEPT, _save)
+      // }
 
 
 
@@ -311,7 +337,8 @@ module.exports = new Class({
     conn.api.post({
       uri: path,
       body: doc,
-      json: true
+      json: true,
+      gzip: true
     })
 
     // this.r.db(db).table(table).insert(doc, this.options.insert).run(conn, function(err, result){
