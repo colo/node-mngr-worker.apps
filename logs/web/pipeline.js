@@ -252,6 +252,7 @@ module.exports = function(payload){
             {
               module: STDIN,
               domain: domain,
+              log_type: log_type
             }
          ],
           connect_retry_count: -1,
@@ -278,6 +279,7 @@ module.exports = function(payload){
              file: file,
              module: Tail,
              domain: domain,
+             log_type: log_type,
            }
          ],
          connect_retry_count: -1,

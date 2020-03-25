@@ -55,7 +55,8 @@ let HttpClientReceiver = new Class({
   post: function (err, resp, body, req){
     debug('HttpClientReceiver post %o', resp.statusCode)
     if(resp.statusCode !== 200)
-      process.exit(1)
+      conn[index].accept = false
+      // process.exit(1)
 
   },
   get: function (err, resp, body, req){
@@ -63,7 +64,7 @@ let HttpClientReceiver = new Class({
 
     if(!conn[index]) conn[index] = {}
 
-    if(resp.statusCode === 200){
+    if(resp && resp.statusCode === 200){
       conn[index].accept = true
       // this.fireEvent(this.ON_ACCEPT, index)
     }
@@ -71,7 +72,7 @@ let HttpClientReceiver = new Class({
       conn[index].accept = false
     }
 
-    debug('HttpClientReceiver get %o', conn, resp.statusCode)
+    debug('HttpClientReceiver get %o', conn, resp)
     // process.exit(1)
   }
 })
@@ -202,6 +203,47 @@ module.exports = new Class({
       // }
 		}
 	},
+  __connect: function(connect_index, connect_cb){
+    Array.each(this.options.conn, function(conn, index){
+      if(!connect_index || connect_index === undefined || connect_index === index){
+        // this.dbs.push( new(couchdb.Connection)(conn.host, conn.port, conn.opts).database(conn.db) );
+
+        // let opts = {
+    		// 	host: conn.host,
+    		// 	port: conn.port,
+    		// 	// db: conn.db
+    		// };
+
+        let _cb = function(err, conn){
+          this.conns[index] = conn
+          connect_cb = (typeOf(connect_cb) ==  "function") ? connect_cb.bind(this) : this.connect.bind(this)
+          connect_cb(err, conn, Object.merge(Object.clone(conn), {index: index}))
+        }.bind(this)
+
+        // this.r = require('rethinkdb')
+        //
+    		// this.r.connect(Object.merge(opts, conn.rethinkdb), _cb)
+
+        // let httpconn = new HttpClientReceiver(Object.merge(opts, conn.http))
+        let httpconn = new HttpClientReceiver(Object.merge(Object.clone(conn), {path: ''}))
+        httpconn.addEvent(httpconn.ON_CONNECT, function(payload){_cb(undefined, httpconn, payload)})
+        httpconn.addEvent(httpconn.ON_CONNECT_ERROR, function(payload){_cb(payload, httpconn, undefined)})
+
+        debug('INITIALIZE %o', httpconn, conn)
+        // process.exit(1)
+        httpconn.api.get({
+          uri:'',
+          qs: {
+            index: index
+          },
+          gzip: true
+        })
+        // process.exit(1)
+
+      }
+
+		}.bind(this));
+  },
 	initialize: function(options, connect_cb){
 		//console.log('---RethinkDBOutput->init---');
 		//throw new Error();
@@ -216,42 +258,7 @@ module.exports = new Class({
 			this.options.conn.push(conn);
 		}
 
-		Array.each(this.options.conn, function(conn, index){
-			// this.dbs.push( new(couchdb.Connection)(conn.host, conn.port, conn.opts).database(conn.db) );
-
-      // let opts = {
-  		// 	host: conn.host,
-  		// 	port: conn.port,
-  		// 	// db: conn.db
-  		// };
-
-      let _cb = function(err, conn){
-        this.conns[index] = conn
-        connect_cb = (typeOf(connect_cb) ==  "function") ? connect_cb.bind(this) : this.connect.bind(this)
-        connect_cb(err, conn, Object.merge(Object.clone(conn), {index: index}))
-      }.bind(this)
-
-      // this.r = require('rethinkdb')
-      //
-  		// this.r.connect(Object.merge(opts, conn.rethinkdb), _cb)
-
-      // let httpconn = new HttpClientReceiver(Object.merge(opts, conn.http))
-      let httpconn = new HttpClientReceiver(Object.merge(Object.clone(conn), {path: ''}))
-      httpconn.addEvent(httpconn.ON_CONNECT, function(payload){_cb(undefined, httpconn, payload)})
-      httpconn.addEvent(httpconn.ON_CONNECT_ERROR, function(payload){_cb(payload, httpconn, undefined)})
-
-      debug('INITIALIZE %o', httpconn, conn)
-      // process.exit(1)
-      httpconn.api.get({
-        uri:'',
-        qs: {
-          index: index
-        },
-        gzip: true
-      })
-      // process.exit(1)
-
-		}.bind(this));
+		this.__connect(undefined, connect_cb)
 
 
 
@@ -311,6 +318,9 @@ module.exports = new Class({
 
       if(accept === true){
         this._save_docs(doc, index);
+      }
+      else {
+        this.__connect(index)
       }
       // else{
       //   let _save = function(index){

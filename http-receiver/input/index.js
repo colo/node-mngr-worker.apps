@@ -96,9 +96,25 @@ module.exports = new Class({
 		resp.json({id: this.options.id+':'+os.hostname()})
 	},
   post: function (req, resp, next){
-		debug('POST %o', req.params, req.body, req.query)
+		// debug('POST %o', req.params, req.body, req.query)
     resp.json({status: 'accepted'})
-    process.exit(1)
+
+    this.fireEvent(
+      this.ON_DOC,
+      [
+        // {
+        //   'log' : line,
+        //   'domain': this.options.domain,
+        //   'counter':this.lines_counter,
+        //   'input': 'tail'
+        // },
+        req.body,
+        {id: this.id, type: 'periodical', input_type: this, app: this}
+      ]
+    )
+
+    // debug('POST %o', req.params, req.body, req.query)
+    // process.exit(1)
     // next()
   },
   initialize: function(options){

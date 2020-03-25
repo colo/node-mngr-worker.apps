@@ -26,6 +26,8 @@ let PollHttp = require('js-pipeline.input.httpclient')
 let OSPollHttp = require('node-app-http-client/load')(PollHttp)
 let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
 
+// let HttpReceiverOutput = require('../http-receiver/output')
+
 /**
 * for merged docs
 let modules = {}
@@ -278,7 +280,7 @@ module.exports = function(http, out){
               next,
               pipeline
             )
-            
+
             // debug('blockdevices %O', Object.keys(doc[Object.keys(doc)[0]]))
             // // process.exit(1)
             // Object.each(doc, function(_doc, device){
@@ -439,28 +441,7 @@ module.exports = function(http, out){
   	output: [
       // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
   		//require('./snippets/output.stdout.template'),
-  		// {
-  		// 	cradle: {
-  		// 		id: "output.os.cradle",
-  		// 		conn: [
-  		// 			{
-  		// 				host: 'elk',
-  		// 				port: 5984,
-  		// 				db: 'live',
-  		// 				opts: {
-  		// 					cache: false,
-  		// 					raw: false,
-  		// 					forceSave: false,
-  		// 				},
-  		// 			},
-  		// 		],
-  		// 		module: require(path.join(process.cwd(), 'lib/pipeline/output/cradle')),
-      //     buffer:{
-  		// 			size: 0,
-  		// 			expire:0
-  		// 		}
-  		// 	}
-  		// }
+
       {
   			rethinkdb: {
   				id: "output.os.rethinkdb",
@@ -481,6 +462,36 @@ module.exports = function(http, out){
   				}
   			}
   		}
+
+      // {
+  		// 	rethinkdb: {
+  		// 		id: "output.os.http-client",
+  		// 		conn: [
+      //       Object.merge(
+      //         Object.clone(out),
+      //         {
+      //           path: 'os',
+      //           authentication: {
+      //       			username: 'mngr',
+      //       			password: '1234',
+      //       			sendImmediately: true,
+      //       			// bearer: 'bearer',
+      //       			basic: true
+      //       		},
+      //         }
+      //       )
+  		// 		],
+  		// 		module: HttpReceiverOutput,
+      //     buffer:{
+  		// 			// // size: 1, //-1
+  		// 			// expire: 1001,
+      //       size: -1, //-1
+  		// 			// expire: 0 //ms
+      //       expire: 1000, //ms
+      //       periodical: 500 //how often will check if buffer timestamp has expire
+  		// 		}
+  		// 	}
+  		// }
   	]
   }
 
