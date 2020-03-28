@@ -104,6 +104,8 @@ module.exports = new Class({
           'log' : line,
           'domain': this.options.domain,
           'log_type': this.options.log_type,
+          'hostname': this.options.hostname,
+          'schema': this.options.schema,
           'counter':this.lines_counter,
           'input': 'tail'
         },

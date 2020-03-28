@@ -53,8 +53,9 @@ let HttpClientReceiver = new Class({
   },
 
   post: function (err, resp, body, req){
-    debug('HttpClientReceiver post %o', resp.statusCode)
-    if(resp.statusCode !== 200)
+    if(resp) debug('HttpClientReceiver post %o', resp.statusCode)
+
+    if(resp && resp.statusCode !== 200)
       conn[index].accept = false
       // process.exit(1)
 

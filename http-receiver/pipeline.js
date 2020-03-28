@@ -11,9 +11,23 @@ require('https').globalAgent.maxSockets = Infinity
 
 const HttpServerInput = require('./input/')
 
-module.exports = function(http, out){
+module.exports = function(payload){
+  let {input, output, filters, opts} = payload
 
-  debug('HTTP %o', http)
+  // Array.each(filters, function(filter, i){
+  //   filters[i] = filter(payload)
+  // })
+
+  /**
+  * test
+  **/
+  // filters.push(function(doc, opts, next, pipeline){
+  //   let { type, input, input_type, app } = opts
+  //   debug('FILTER %o', doc)
+  //   next(doc)
+  // })
+
+  debug('ouput %o', output)
 
   let conf = {
     input: [
@@ -22,7 +36,7 @@ module.exports = function(http, out){
     		id: "input.localhost.http",
     		conn: [
           Object.merge(
-            Object.clone(http),
+            Object.clone(input),
             {
               // module: HttpServer,
               // load: ['apps/http-receiver/input']
@@ -43,17 +57,11 @@ module.exports = function(http, out){
     },
 
     ],
-    filters: [
-      function(doc, opts, next, pipeline){
-        let { type, input, input_type, app } = opts
-        debug('FILTER %o', doc)
-      }
-    ],
-    output: [
-      // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
-
-    ]
+    filters: filters,
+    output: output
   }
+
+  conf = Object.merge(conf, opts)
 
   return conf
 }
