@@ -53,6 +53,8 @@ let HttpClientReceiver = new Class({
   },
 
   post: function (err, resp, body, req){
+    let index = req.options.qs.index
+
     if(resp) debug('HttpClientReceiver post %o', resp.statusCode)
 
     if(resp && resp.statusCode !== 200)
@@ -347,6 +349,9 @@ module.exports = new Class({
 
     conn.api.post({
       uri: path,
+      qs: {
+        index: index
+      },
       body: doc,
       json: true,
       gzip: true
