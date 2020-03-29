@@ -76,33 +76,42 @@ module.exports = new Class({
 			////console.log('success');
 			////console.log(JSON.decode(body));
 
-			if(req.uri != ''){
-				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), JSON.decode(body));//capitalize first letter
-			}
-			else{
-				this.fireEvent('onGet', JSON.decode(body));
-			}
+      try{
+        let decoded_body = {}
+        decoded_body = JSON.decode(body)
 
-			//this.fireEvent(this.ON_DOC, JSON.decode(body));
+  			if(req.uri != ''){
+  				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), decoded_body);//capitalize first letter
+  			}
+  			else{
+  				this.fireEvent('onGet', decoded_body);
+  			}
 
-			if(this.options.requests.current.type == 'once'){
-				this.fireEvent(this.ON_ONCE_DOC, JSON.decode(body));
-			}
-			else{
-				//var original = JSON.decode(body);
-				//var doc = {};
+  			//this.fireEvent(this.ON_DOC, decoded_body);
 
-				//doc.loadavg = original.loadavg;
-				//doc.uptime = original.uptime;
-				//doc.freemem = original.freemem;
-				//doc.totalmem = original.totalmem;
-				//doc.cpus = original.cpus;
-				//doc.networkInterfaces = original.networkInterfaces;
+  			if(this.options.requests.current.type == 'once'){
+  				this.fireEvent(this.ON_ONCE_DOC, [decoded_body] );
+  			}
+  			else{
+  				//var original = decoded_body;
+  				//var doc = {};
 
-				this.fireEvent(this.ON_PERIODICAL_DOC, JSON.decode(body));
+  				//doc.loadavg = original.loadavg;
+  				//doc.uptime = original.uptime;
+  				//doc.freemem = original.freemem;
+  				//doc.totalmem = original.totalmem;
+  				//doc.cpus = original.cpus;
+  				//doc.networkInterfaces = original.networkInterfaces;
 
-				////console.log('STATUS');
-			}
+  				this.fireEvent(this.ON_PERIODICAL_DOC, [decoded_body] );
+  				////console.log('STATUS');
+  				////console.log(decoded_body);
+  			}
+
+      }
+      catch(e){
+        // console.log(e)
+      }
 
 
 		}

@@ -488,12 +488,13 @@ module.exports = new Class({
       /**
       * @hack: system (as a whole) doens't support fqdn yet, so we try to remove domains
       **/
-      if(resp[0].indexOf('.') > -1){
+      /**if(resp[0].indexOf('.') > -1){
         this.node = resp[0].substring(0, resp[0].indexOf('.'))
       }
       else{
         this.node = resp[0]
-      }
+      }**/
+      this.node = resp[0]
 
       this.options.id = this.node
 
