@@ -139,7 +139,7 @@ module.exports = function(doc, opts, next, pipeline){
         path: 'logs.'+doc.log_type,
         domain: doc.domain,
         timestamp: doc_ts,
-        // timestamp: Date.now(),
+        // timestamp: 0,// DEVEL only
         // tag: [tag_type, 'web', doc.input],
         tag: [doc.log_type, 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
         type: 'periodical'
