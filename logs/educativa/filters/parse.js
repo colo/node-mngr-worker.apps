@@ -66,7 +66,7 @@ module.exports = function(doc, opts, next, pipeline){
         result.end = result.end.replace('.', '') * 1
         result.duration = result.end - result.start
 
-        result.type = (result.type === 1) ? 'download' : 'upload'
+        result.type = (result.type === 1) ? 'upload' : 'download'
 
         result.course *=1
 
