@@ -66,42 +66,47 @@ module.exports = function(doc, opts, next, pipeline){
         result.end = result.end.replace('.', '') * 1
         result.duration = result.end - result.start
 
-        result.type = (result.type === 1) ? 'upload' : 'download'
+        if(result.duration >= 0){//negative duartion is a known erro, discard
 
-        result.course *=1
+          result.type = (result.type === 1) ? 'upload' : 'download'
+
+          result.course *=1
 
 
-        // debug('parse %o', result)
-        // process.exit(1)
+          // debug('parse %o', result)
+          // process.exit(1)
 
-        let doc_ts = (result.end) ? (result.end / 1000).round() : Date.now()
+          let doc_ts = (result.end) ? (result.end / 1000).round() : Date.now()
 
-        let ts = Date.now()
-        ts += (doc.counter) ? '-'+doc.counter : ''
+          let ts = Date.now()
+          ts += (doc.counter) ? '-'+doc.counter : ''
 
-        Object.each(result, function(value, key){
-          if(value === null || value === undefined)
-            delete result[key]
-        })
+          Object.each(result, function(value, key){
+            if(value === null || value === undefined)
+              delete result[key]
+          })
 
-        let new_doc = {
-          id: doc.hostname+'.'+opts.input.options.id+'.'+doc.log_type+'.'+doc.domain+'@'+ts,
-          data: result,
-          metadata: {
-            host: doc.hostname,
-            // path: 'logs.nginx.'+doc.domain,
-            path: 'logs.'+doc.log_type,
-            domain: doc.domain,
-            timestamp: doc_ts,
-            // timestamp: 0,// DEVEL only
-            // tag: [doc.log_type, 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
-            tag: [doc.log_type, doc.input],
-            type: 'periodical'
+          let new_doc = {
+            id: doc.hostname+'.'+opts.input.options.id+'.'+doc.log_type+'.'+doc.domain+'@'+ts,
+            data: result,
+            metadata: {
+              host: doc.hostname,
+              // path: 'logs.nginx.'+doc.domain,
+              path: 'logs.'+doc.log_type,
+              domain: doc.domain,
+              timestamp: doc_ts,
+              // timestamp: 0,// DEVEL only
+              // tag: [doc.log_type, 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
+              tag: [doc.log_type, doc.input],
+              type: 'periodical'
+            }
           }
+
+          // debug('parsed line', new_doc)
+          next(new_doc)
+          
         }
 
-        // debug('parsed line', new_doc)
-        next(new_doc)
       })
 
     })

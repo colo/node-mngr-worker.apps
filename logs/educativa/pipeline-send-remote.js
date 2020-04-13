@@ -1,4 +1,4 @@
-domain'use strict'
+'use strict'
 
 const debug = require('debug')('Server:Apps:Logs:Educativa:Pipeline:SendRemote'),
       debug_internals = require('debug')('Server:Apps:Logs:Educativa:Pipeline:SendRemote:Internals')
@@ -38,7 +38,7 @@ module.exports = function(payload){
   // const parser = new Parser(opts.schema || schema)
 
   let conf = {
-    schema: opts.schema || schema,
+    // schema: opts.schema || schema,
     input: [
 
     ],
