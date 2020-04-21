@@ -55,7 +55,8 @@ module.exports = function(payload){
     debug('1st filter %o', doc, table)
     // process.exit(1)
 
-    if(doc && !doc._id && doc.id === 'once' && doc.data && doc.metadata.transformation === undefined && doc.metadata.filter === undefined ){
+    // if(doc && !doc._id && doc.id === 'once' && doc.data && doc.metadata.transformation === undefined && doc.metadata.filter === undefined ){
+    if(doc && !doc._id && doc.id === 'once' && doc.data && doc.metadata.transformation === undefined){
       // process.exit(1)
       // let { type, input, input_type, app } = opts
 

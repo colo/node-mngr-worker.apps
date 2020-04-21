@@ -683,6 +683,11 @@ module.exports = new Class({
                         .between(
                           roundSeconds(Date.now() - MINUTE),
                           roundSeconds(Date.now()),
+                          /**
+                          * devel
+                          **/
+                          // 0,
+                          // roundSeconds(Date.now()),
                           {index: 'timestamp'}
                         )
                       }
@@ -714,6 +719,8 @@ module.exports = new Class({
                       }
 
                     // }
+                    if(req.query && req.query.filter)
+                      query = app.query_with_filter(query, req.query.filter)
 
                     distinct_query.run(app.conn, {arrayLimit: 10000000}, function(err, resp){
                       if(err){
