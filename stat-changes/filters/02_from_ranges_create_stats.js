@@ -323,7 +323,7 @@ module.exports = function(payload){
               new_doc['metadata'] = {
                 tag: tag,
                 type: type,
-                host: undefined,//filter.sanitize.rethinkdb tries to add a host if it doens't find one
+                host: "*",//filter.sanitize.rethinkdb tries to add a host if it doens't find one
                 // host: host,
                 // path: 'historical.'+path,
                 path: path,

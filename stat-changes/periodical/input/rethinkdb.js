@@ -639,7 +639,7 @@ module.exports = new Class({
             debug('PERRIODICAL %o %o', req, app.options.requests)
             if(req.id === 'periodical'){
               const _default = function(){
-
+                debug_internals('default PERIODICAL %o %o', req, app.options.table)
 
                   app.options.full_range = app.options.full_range || false
 
