@@ -256,14 +256,17 @@ module.exports = new Class({
               : { params: {}, query: {} }
 
             if(req.id === 'changes'){
+              if(!req.query.filter)
+                req.query.filter = []
 
               if(app.options.type === 'minute'){
-                req.query.filter = [
-                  "r.row('metadata')('type').eq('periodical')"
-                ]
+                // req.query.filter = [
+                //   "r.row('metadata')('type').eq('periodical')"
+                // ]
+                req.query.filter.push("r.row('metadata')('type').eq('periodical')")
               }
               else if(app.options.type === 'hour'){
-                "r.row('metadata')('type').eq('minute')"
+                req.query.filter.push("r.row('metadata')('type').eq('minute')")
               }
 
               req.query.register = 'changes'
@@ -272,8 +275,9 @@ module.exports = new Class({
               // if(req.query.register || req.query.unregister){
                 // process.exit(1)
 
-                debug_internals('register %o %o', req, app.options);
+                debug_internals('register %o', req); //, app.options
                 // process.exit(1)
+
                 req.params = req.params || {}
 
                 let from = req.from || app.options.table
