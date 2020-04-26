@@ -95,8 +95,8 @@ module.exports = function(payload){
                   metadata: {
                     host: host,
                     path: path,
-                    // range: { end: path_data.range[0], start: path_data.range[1] },// use range end to start on next filter
-                    range: { end: path_data.range[1], start: path_data.range[0] },// use range end to start on next filter
+                    range: { end: path_data.range[0], start: path_data.range[1] },// use range end to start on next filter
+                    // range: { end: path_data.range[1], start: path_data.range[0] },// use range end to start on next filter
                     type: 'minute'
                   }
                 }

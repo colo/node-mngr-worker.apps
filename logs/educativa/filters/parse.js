@@ -95,6 +95,7 @@ module.exports = function(doc, opts, next, pipeline){
               path: 'logs.'+doc.log_type,
               domain: doc.domain,
               timestamp: doc_ts,
+              // timestamp: Date.now(), //DEVEL ONLY
               // timestamp: 0,// DEVEL only
               // tag: [doc.log_type, 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
               tag: [doc.log_type, doc.input],
@@ -104,7 +105,7 @@ module.exports = function(doc, opts, next, pipeline){
 
           // debug('parsed line', new_doc)
           next(new_doc)
-          
+
         }
 
       })

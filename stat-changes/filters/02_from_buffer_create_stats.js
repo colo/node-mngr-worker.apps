@@ -130,12 +130,14 @@ const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
 const WEEK = DAY * 7
 
+const DEFAULT_GROUP_INDEX = 'metadata.host'
 
 module.exports = function(payload){
   let {input, output, opts } = payload
   let type = input.type
   let full_range = input.full_range
   let table = input.table
+  let group_index = (opts && opts.group_index !== undefined) ? opts.group_index : DEFAULT_GROUP_INDEX
 
   // const stat = require('../libs/stat')[type]
 
@@ -150,13 +152,14 @@ module.exports = function(payload){
         if(doc && doc.id === 'changes' && doc.metadata && doc.metadata.from === table && doc.data){
           Array.each(doc.data, function(real_data){
             // let timestamp = real_data.metadata.timestamp
-            let host = real_data.metadata.host
+            // let host = real_data.metadata.host
+            let grouped = real_data[group_index.split('.')[0]][group_index.split('.')[1]]
             let path = real_data.metadata.path
             // let tags = real_data.metadata.tag
-            if(!sorted_buffer[host]) sorted_buffer[host] = {}
-            if(!sorted_buffer[host][path]) sorted_buffer[host][path] = []
+            if(!sorted_buffer[grouped]) sorted_buffer[grouped] = {}
+            if(!sorted_buffer[grouped][path]) sorted_buffer[grouped][path] = []
 
-            sorted_buffer[host][path].push(real_data)
+            sorted_buffer[grouped][path].push(real_data)
           })
         }
 
@@ -167,8 +170,8 @@ module.exports = function(payload){
     // process.exit(1)
 
 
-    Object.each(sorted_buffer, function(host_data, host){
-      Object.each(host_data, function(real_data, path){
+    Object.each(sorted_buffer, function(grouped_data, grouped){
+      Object.each(grouped_data, function(real_data, path){
         let values = {};
         let first, last
         let tag = []
@@ -194,7 +197,7 @@ module.exports = function(payload){
         //   first = doc_data[doc_data.length - 1].metadata.timestamp;
 
           // Array.each(doc_data, function(group, group_index){
-          Array.each(real_data, function(group, group_index){
+          Array.each(real_data, function(group, arr_index){
             debug('GROUP', group)
             // process.exit(1)
 
@@ -207,12 +210,13 @@ module.exports = function(payload){
 
               // let data = real_data
               let timestamp = group.metadata.timestamp;
-              let host = group.metadata.host
+              // let host = group.metadata.host
+              let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
               tag.combine(group.metadata.tag)
-              metadata = Object.merge(metadata, group.metadata)
+              // metadata = Object.merge(metadata, group.metadata)
 
-              if(!values[host]) values[host] = {};
-              if(!values[host][path]) values[host][path] = {};
+              if(!values[grouped]) values[grouped] = {};
+              if(!values[grouped][path]) values[grouped][path] = {};
 
               let _require = traverse_path_require(type, hooks_path, path)
               // try{
@@ -258,16 +262,16 @@ module.exports = function(payload){
                 // if(path == 'os.procs')
                 //   debug_internals('KEY %s %s', key, _key)
 
-                if(!values[host][path][key]){
+                if(!values[grouped][path][key]){
 
                   if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
-                    values[host][path] = hooks[path][_key].key(values[host][path], timestamp, value, key)
+                    values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
 
-                    if(values[host][path][key] == undefined)
-                      delete values[host][path][key]
+                    if(values[grouped][path][key] == undefined)
+                      delete values[grouped][path][key]
                   }
                   else{
-                    values[host][path][key] = {};
+                    values[grouped][path][key] = {};
                   }
                 }
 
@@ -275,7 +279,7 @@ module.exports = function(payload){
 
 
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
-                  values[host][path] = hooks[path][_key].value(values[host][path], timestamp, value, key)
+                  values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
 
                 }
                 else{
@@ -283,15 +287,15 @@ module.exports = function(payload){
 
                   // if(type === 'minute' || value['mean'] === undefined){
                   // // if(type === 'minute'){
-                  //   values[host][path][key][timestamp] = value;
+                  //   values[grouped][path][key][timestamp] = value;
                   // }
                   // else{
                   //   /**
                   //   * from historical
                   //   * */
-                  //   values[host][path][key][timestamp] = value['mean']
+                  //   values[grouped][path][key][timestamp] = value['mean']
                   // }
-                  values[host][path][key][timestamp] = value
+                  values[grouped][path][key][timestamp] = value
 
 
 
@@ -303,13 +307,13 @@ module.exports = function(payload){
               // debug('VALUES %o', values)
 
               // if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-              //   values[host][path] = hooks[path].post_values(values[host][path])
+              //   values[grouped][path] = hooks[path].post_values(values[grouped][path])
               // }
-              if(group_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-                values[host][path] = hooks[path].post_values(values[host][path])
+              if(arr_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+                values[grouped][path] = hooks[path].post_values(values[grouped][path])
 
                 // if(/^os\.blockdevices/.test(path)){
-                //   debug_internals('os.blockdevices ', values[host][path])
+                //   debug_internals('os.blockdevices ', values[grouped][path])
                 //   process.exit(1)
                 // }
               }
@@ -334,13 +338,14 @@ module.exports = function(payload){
         //   debug_internals('values %o', values.colo)
         //   // process.exit(1)
         // }
+        let group_prop = group_index.split('.')[1]
 
         if(Object.getLength(values) > 0){
-          Object.each(values, function(host_data, host){
+          Object.each(values, function(grouped_data, grouped){
 
 
 
-            Object.each(host_data, function(data, path){
+            Object.each(grouped_data, function(data, path){
 
               let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
 
@@ -382,17 +387,32 @@ module.exports = function(payload){
               /**
               * add other metadata fields like "domain" for logs
               */
-              new_doc['metadata'] = Object.merge(metadata, {
+              // new_doc['metadata'] = Object.merge(metadata, {
+              //   tag: tag,
+              //   type: type,
+              //   host: host,
+              //   // path: 'historical.'+path,
+              //   path: path,
+              //   range: {
+              //     start: first,
+              //     end: last
+              //   }
+              // })
+
+              new_doc['metadata'] = {
                 tag: tag,
                 type: type,
-                host: host,
+                host: undefined,//filter.sanitize.rethinkdb tries to add a host if it doens't find one
+                // host: host,
                 // path: 'historical.'+path,
                 path: path,
                 range: {
                   start: first,
                   end: last
                 }
-              })
+              }
+
+              new_doc['metadata'][group_prop] = grouped
 
               delete new_doc['metadata'].id
 
@@ -412,7 +432,8 @@ module.exports = function(payload){
 
               new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
 
-              new_doc.id = new_doc.metadata.host+
+              // new_doc.id = new_doc.metadata.host+
+              new_doc.id = new_doc.metadata[group_prop]+
                 // '.historical.minute.'+
                 '.'+type+'.'+
                 new_doc.metadata.path+'@'+
