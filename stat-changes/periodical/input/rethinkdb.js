@@ -33,6 +33,14 @@ const roundSeconds = function(timestamp){
   return d.getTime()
 }
 
+const roundMinutes = function(timestamp){
+  timestamp = roundSeconds(timestamp)
+  let d = new Date(timestamp)
+  d.setMinutes(0)
+
+  return d.getTime()
+}
+
 const roundHours = function(timestamp){
   timestamp = roundMinutes(timestamp)
   let d = new Date(timestamp)
