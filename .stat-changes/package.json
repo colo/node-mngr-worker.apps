@@ -1,0 +1,40 @@
+{
+  "name": "historical",
+  "version": "0.0.1",
+  "description": "historical App",
+  "author": {
+    "name": "Luciano Bueno",
+    "email": "glamero@gmail.com"
+  },
+  "main": "./",
+  "engines": {
+    "node": ">= 0.10.21"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {
+    "@liquid-carrot/carrot": "^0.3.18",
+    "neataptic": "^1.4.7",
+    "kalmanjs": "^1.1.0",
+    "brain.js": "^2.0.0-alpha.11"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": [
+    "historical",
+    "authentication"
+  ],
+  "dependencies": {
+    "async": "^3.1.0",
+    "js-pipeline.inputs.rethinkdb-rest": "git+https://github.com/colo/js-pipeline.inputs.rethinkdb-rest.git",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git",
+    "mngr-ui-admin-charts": "git+https://github.com/colo/mngr-ui-admin-charts.git",
+    "node-mngr-docs": "git+https://github.com/colo/node-mngr-docs.git",
+    "pluralize": "^8.0.0",
+    "simple-statistics": "^7.0.2",
+    "uuid": "^3.3.3"
+  }
+}
