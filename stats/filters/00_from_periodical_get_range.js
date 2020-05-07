@@ -121,7 +121,7 @@ module.exports = function(payload){
             let data = distinct_doc[first_level_group][second_level_group]
 
             req.query.filter.push(
-              "r.row('"+first_level_group+"')('"+second_level_group+"').eq("+data+")"
+              "r.row('"+first_level_group+"')('"+second_level_group+"').eq('"+data+"')"
             )
 
             if(type === 'minute'){
@@ -189,15 +189,23 @@ module.exports = function(payload){
       async.eachLimit(
         ranges,
         1,
-        function(new_doc, callback){
+        function(range, callback){
           // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
           // callback()
-          let wrapped = async.timeout(function(new_doc){
-            next(new_doc, opts, next, pipeline)
-          }, 1000)
+          let wrapped = async.timeout(function(range){
+            // sleep(1001).then( () => {
+            //   // process.exit(1)
+            //   debug('RANGE', range)
+            // })
+
+
+            pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+            // process.exit(1)
+            // callback()
+          }, 100)
 
           // try{
-          wrapped(new_doc, function(err, data) {
+          wrapped(range, function(err, data) {
             if(err){
               // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
               callback()
