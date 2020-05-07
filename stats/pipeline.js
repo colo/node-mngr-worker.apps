@@ -15,7 +15,7 @@ let cron = require('node-cron');
 
 
 
-const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
+// const InputPollerRethinkDB = require ( './input/rethinkdb.js' )
 
 
 // let hooks = {}
@@ -91,56 +91,56 @@ module.exports = function(payload){
     			},
     		},
     	},
-      {
-    		poll: {
-
-    			id: "input.historical",
-          suspended: true,
-    			conn: [
-            Object.merge(
-              Object.clone(output),//yeap...fetches from the output table
-              {
-                // path_key: 'logs',
-                module: InputPollerRethinkDB,
-                // table: input.table+'_historical'
-              }
-            )
-    			],
-    			connect_retry_count: -1,
-    			connect_retry_periodical: 1000,
-    			// requests: {
-    			// 	periodical: 1000,
-    			// },
-          requests: {
-    				/**
-    				 * runnign at 20 secs intervals
-    				 * needs 3 runs to start analyzing from last historical (or from begining)
-    				 * it takes 60 secs to complete, so it makes historical each minute
-    				 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
-    				 * */
-             periodical: function(dispatch){
-     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
-               if(input.type === 'inmediate' || input.type === 'second'){
-                 return cron.schedule('* * * * * *', dispatch);//every second
-               }
-               else if(input.type === 'minute'){
-                 return cron.schedule('* * * * *', dispatch);//every minute
-               }
-               else if(input.type === 'hour'){
-                 return cron.schedule('0 * * * *', dispatch);//every hour
-                 // return cron.schedule('*/10 * * * *', dispatch);//testing ML
-               }
-               // else if(input.type === 'day'){
-               else {
-                 return cron.schedule('0 0 * * *', dispatch);//every day
-                 // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
-               }
-   				    },
-    				// periodical: 15000,
-    				// periodical: 1000,//test
-    			},
-    		},
-    	}
+      // {
+    	// 	poll: {
+      //
+    	// 		id: "input.historical",
+      //     suspended: true,
+    	// 		conn: [
+      //       Object.merge(
+      //         Object.clone(output),//yeap...fetches from the output table
+      //         {
+      //           // path_key: 'logs',
+      //           module: InputPollerRethinkDB,
+      //           // table: input.table+'_historical'
+      //         }
+      //       )
+    	// 		],
+    	// 		connect_retry_count: -1,
+    	// 		connect_retry_periodical: 1000,
+    	// 		// requests: {
+    	// 		// 	periodical: 1000,
+    	// 		// },
+      //     requests: {
+    	// 			/**
+    	// 			 * runnign at 20 secs intervals
+    	// 			 * needs 3 runs to start analyzing from last historical (or from begining)
+    	// 			 * it takes 60 secs to complete, so it makes historical each minute
+    	// 			 * @use node-cron to start on 14,29,44,59....or it would start messuring on a random timestamp
+    	// 			 * */
+      //        periodical: function(dispatch){
+     	// 				// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
+      //          if(input.type === 'inmediate' || input.type === 'second'){
+      //            return cron.schedule('* * * * * *', dispatch);//every second
+      //          }
+      //          else if(input.type === 'minute'){
+      //            return cron.schedule('* * * * *', dispatch);//every minute
+      //          }
+      //          else if(input.type === 'hour'){
+      //            return cron.schedule('0 * * * *', dispatch);//every hour
+      //            // return cron.schedule('*/10 * * * *', dispatch);//testing ML
+      //          }
+      //          // else if(input.type === 'day'){
+      //          else {
+      //            return cron.schedule('0 0 * * *', dispatch);//every day
+      //            // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
+      //          }
+   		// 		    },
+    	// 			// periodical: 15000,
+    	// 			// periodical: 1000,//test
+    	// 		},
+    	// 	},
+    	// }
     ],
 
     filters: filters,
