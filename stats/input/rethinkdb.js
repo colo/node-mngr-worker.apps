@@ -76,7 +76,7 @@ module.exports = new Class({
               ? Object.merge({ params: {}, query: {}}, Object.clone(app.options.once))
               : { params: {}, query: {} }
 
-            if(!req.query || (!req.query.register && !req.query.unregister)){
+            if(app.options.once && (!req.query || (!req.query.register && !req.query.unregister))){
 
               let _default = function(){
                 debug_internals('default %o %o', req, req.params.value);
@@ -217,17 +217,17 @@ module.exports = new Class({
                 }
               }
 
-
+              debug('CONNECTED? %o %s', app.connected, app.options.db)
+              if(app.connected === false){
+                app.addEvent(app.ON_CONNECT, _default)
+              }
+              else{
+                _default()
+              }
 
             } //req.query.register === false
 
-            debug('CONNECTED? %o %s', app.connected, app.options.db)
-            if(app.connected === false){
-              app.addEvent(app.ON_CONNECT, _default)
-            }
-            else{
-              _default()
-            }
+
 					}
 				},
 
@@ -239,7 +239,7 @@ module.exports = new Class({
               ? Object.merge({ params: {}, query: {}}, Object.clone(app.options.once))
               : { params: {}, query: {} }
 
-            if(req.query.register || req.query.unregister){
+            if(app.options.once && (req.query.register || req.query.unregister)){
               if(!req.query.filter)
                 req.query.filter = []
 
@@ -511,8 +511,9 @@ module.exports = new Class({
               ? Object.merge({ params: {}, query: {}}, Object.clone(app.options.periodical))
               : { params: {}, query: {} }
 
-						debug_internals('default range', req, app.options.type)
-            if(!req.query || (!req.query.register && !req.query.unregister) && app.options.type){
+						if(app.options.periodical && (!req.query || (!req.query.register && !req.query.unregister) && app.options.type)){
+              debug_internals('default range', req, app.options.type)
+
               let _default = function(){
                 let start, end
 
@@ -680,8 +681,8 @@ module.exports = new Class({
               ? Object.merge({ params: {}, query: {}}, Object.clone(app.options.range))
               : { params: {}, query: {} }
 
-						debug_internals('default range', req);
-            if(!req.query || (!req.query.register && !req.query.unregister)){
+						if(app.options.periodical && (app.options.range && !req.query || (!req.query.register && !req.query.unregister))){
+              debug_internals('default range', req);
 
               let start, end
               end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
@@ -817,7 +818,7 @@ module.exports = new Class({
               ? Object.merge({ params: {}, query: {}}, Object.clone(app.options.range))
               : { params: {}, query: {} }
 
-            if(req.query.register || req.query.unregister){
+            if(app.options.range && (req.query.register || req.query.unregister)){
               debug_internals('range register', req);
               req.params = req.params || {}
 
