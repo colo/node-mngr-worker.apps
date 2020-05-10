@@ -1,1 +1,0 @@
-../hour/logs.nginx.js
