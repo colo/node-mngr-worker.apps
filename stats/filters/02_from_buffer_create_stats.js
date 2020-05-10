@@ -174,7 +174,7 @@ module.exports = function(payload){
       Object.each(grouped_data, function(real_data, path){
         let values = {};
         let first, last
-        let tag = []
+        // let tag = []
         let metadata = {}
         let hooks = {}
 
@@ -212,8 +212,23 @@ module.exports = function(payload){
               let timestamp = group.metadata.timestamp;
               // let host = group.metadata.host
               let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
-              tag.combine(group.metadata.tag)
+              // tag.combine(group.metadata.tag)
               // metadata = Object.merge(metadata, group.metadata)
+              Object.each(group.metadata, function(val, metadata_prop){
+                if(
+                  metadata_prop !== 'timestamp'
+                  || metadata_prop !== 'type'
+                  || metadata_prop !== 'path'
+                  || metadata_prop !== group_index.split('.')[1]
+                ){
+                  if(!metadata[metadata_prop]) metadata[metadata_prop] = []
+
+                  if(!Array.isArray(val))
+                    val = [val]
+
+                  metadata[metadata_prop].combine(val)
+                }
+              })
 
               if(!values[grouped]) values[grouped] = {};
               if(!values[grouped][path]) values[grouped][path] = {};
@@ -387,30 +402,30 @@ module.exports = function(payload){
               /**
               * add other metadata fields like "domain" for logs
               */
-              // new_doc['metadata'] = Object.merge(metadata, {
+              if(metadata.tag)
+                metadata.tag.combine([group_prop])
+
+              new_doc['metadata'] = Object.merge(metadata, {
+                type: type,
+                path: path,
+                range: {
+                  start: first,
+                  end: last
+                }
+              })
+
+              // new_doc['metadata'] = {
               //   tag: tag,
               //   type: type,
-              //   host: host,
+              //   host: "*",//filter.sanitize.rethinkdb tries to add a host if it doens't find one
+              //   // host: host,
               //   // path: 'historical.'+path,
               //   path: path,
               //   range: {
               //     start: first,
               //     end: last
               //   }
-              // })
-
-              new_doc['metadata'] = {
-                tag: tag,
-                type: type,
-                host: "*",//filter.sanitize.rethinkdb tries to add a host if it doens't find one
-                // host: host,
-                // path: 'historical.'+path,
-                path: path,
-                range: {
-                  start: first,
-                  end: last
-                }
-              }
+              // }
 
               new_doc['metadata'][group_prop] = grouped
 

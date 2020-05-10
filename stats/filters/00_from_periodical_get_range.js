@@ -65,6 +65,7 @@ const HOUR = 60 * MINUTE
 const DAY = HOUR * 24
 const WEEK = DAY * 7
 
+const DEFAULT_GROUP_INDEX = 'metadata.host'
 
 module.exports = function(payload){
   let {input, output, opts } = payload
