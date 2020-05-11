@@ -35,7 +35,7 @@ let __white_black_lists_filter = function(whitelist, blacklist, str){
 }
 
 const traverse_path_require = require('node-tabular-data').traverse_path_require
-const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
+const hooks_path = path.join(process.cwd(), '/apps/stats/hooks/')
 
 const stat = require('../libs/stat')
 

@@ -67,11 +67,11 @@ module.exports = function(payload){
               // let doc = Object.clone(real_data)
 
               if(!forks[real_data.metadata.host]){
-                forks[real_data.metadata.host] = fork(process.cwd()+'/apps/stat-changes/libs/fork_filter', [
+                forks[real_data.metadata.host] = fork(process.cwd()+'/apps/stats/libs/fork_filter', [
                   path.join(process.cwd(), '/devel/etc/snippets/filter.data_formater'),
                   // path.join(process.cwd(), '/node_modules/node-tabular-data'),
                   JSON.stringify({
-                    require_path : process.cwd()+'/apps/stat-changes/libs/data_formater/'
+                    require_path : process.cwd()+'/apps/stats/libs/data_formater/'
                   })
                 ])
 
@@ -105,12 +105,12 @@ module.exports = function(payload){
                 /**
                 * added false as new param data_formater param (data, format, full, cb)
                 **/
-                params: [real_data, format, false], //process.cwd()+'/apps/stat-changes/libs/data_formater/' -> moved to module param
+                params: [real_data, format, false], //process.cwd()+'/apps/stats/libs/data_formater/' -> moved to module param
                 doc:  Object.clone(real_data)
               })
 
 
-              // data_formater_filter(real_data, format, process.cwd()+'/apps/stat-changes/libs/data_formater/', function(data){
+              // data_formater_filter(real_data, format, process.cwd()+'/apps/stats/libs/data_formater/', function(data){
               //   debug('result %o', data)
               //   // process.exit(1)
               //   let doc = Object.clone(real_data)

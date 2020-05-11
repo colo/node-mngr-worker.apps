@@ -14,7 +14,7 @@ const brain = require('brain.js');
 
 
 let sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template'));
-const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
+const hooks_path = path.join(process.cwd(), '/apps/stats/hooks/')
 
 // paths_blacklist = /os_procs_cmd_stats|os_procs_stats|os_networkInterfaces_stats|os_procs_uid_stats/
 // let paths_blacklist = /^[a-zA-Z0-9_\[\.]+$/

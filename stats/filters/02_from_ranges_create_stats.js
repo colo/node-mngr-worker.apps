@@ -74,7 +74,7 @@ const WEEK = DAY * 7
 
 
 const traverse_path_require = require('node-tabular-data').traverse_path_require
-const hooks_path = path.join(process.cwd(), '/apps/stat-changes/hooks/')
+const hooks_path = path.join(process.cwd(), '/apps/stats/hooks/')
 
 const DEFAULT_GROUP_INDEX = 'metadata.host'
 
