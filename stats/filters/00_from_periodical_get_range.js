@@ -96,7 +96,12 @@ module.exports = function(payload){
       // // let hosts = pipeline.current[doc.metadata.from].hosts //from first filter, attach hosts
       //
       // // debug('2nd filter %o', hosts)
-      let ranges = []
+      // let ranges = []
+      let ranges = {
+        id: "range",
+        Range: undefined,
+        query: []
+      }
 
       Array.each(doc.data, function(distinct_group){
         Array.each(distinct_group, function(distinct_doc){
@@ -146,11 +151,12 @@ module.exports = function(payload){
               start  = roundHours((req.opt && req.opt.range) ? req.opt.range.start : end - WEEK)
             }
 
-            ranges.push(Object.merge(
+            ranges.Range = "posix "+start+"-"+end+"/*"
+            ranges.query.push(Object.merge(
                 req,
                 {
-                  id: "range",
-                  Range: "posix "+start+"-"+end+"/*",
+                  // id: "range",
+                  // Range: "posix "+start+"-"+end+"/*",
                   query: {
                     index: false,
                     "q": [
@@ -186,45 +192,46 @@ module.exports = function(payload){
 
       debug('RANGES %o', ranges)
       // process.exit(1)
+      pipeline.get_input_by_id('input.periodical').fireEvent('onRange', ranges)
 
-      async.eachLimit(
-        ranges,
-        1,
-        function(range, callback){
-          // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-          // callback()
-          let wrapped = async.timeout(function(range){
-            // sleep(1001).then( () => {
-            //   // process.exit(1)
-            //   debug('RANGE', range)
-            // })
-
-
-            pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-            // process.exit(1)
-            // callback()
-          }, 100)
-
-          // try{
-          wrapped(range, function(err, data) {
-            if(err){
-              // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
-              callback()
-            }
-          })
-          // }
-          // catch(e){
-          //   callback()
-          // }
-        }
-      )
-      // }
-      // else if(doc && doc.metadata && doc.metadata.from === 'logs_historical'){
+      // async.eachLimit(
+      //   ranges,
+      //   1,
+      //   function(range, callback){
+      //     // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+      //     // callback()
+      //     let wrapped = async.timeout(function(range){
+      //       // sleep(1001).then( () => {
+      //       //   // process.exit(1)
+      //       //   debug('RANGE', range)
+      //       // })
       //
-      // }
-
-      // debug('filter %o %o %o', doc, range, hosts, paths)
-      // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
+      //
+      //       pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+      //       // process.exit(1)
+      //       // callback()
+      //     }, 100)
+      //
+      //     // try{
+      //     wrapped(range, function(err, data) {
+      //       if(err){
+      //         // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+      //         callback()
+      //       }
+      //     })
+      //     // }
+      //     // catch(e){
+      //     //   callback()
+      //     // }
+      //   }
+      // )
+      // // }
+      // // else if(doc && doc.metadata && doc.metadata.from === 'logs_historical'){
+      // //
+      // // }
+      //
+      // // debug('filter %o %o %o', doc, range, hosts, paths)
+      // // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
     }
     else{
       next(doc, opts, next, pipeline)

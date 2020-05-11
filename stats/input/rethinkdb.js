@@ -681,129 +681,165 @@ module.exports = new Class({
               ? Object.merge({ params: {}, query: {}}, Object.clone(app.options.range))
               : { params: {}, query: {} }
 
+            // debug_internals('default range', req);
+            // process.exit(1)
+
 						if(app.options.periodical && (app.options.range && !req.query || (!req.query.register && !req.query.unregister))){
               debug_internals('default range', req);
 
-              let start, end
-              end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-              start  = (req.opt && req.opt.range) ? req.opt.range.start : end - 10000 //10 secs
+              let _range = function(req, callback){
+                let start, end
+                end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
+                start  = (req.opt && req.opt.range) ? req.opt.range.start : end - 10000 //10 secs
 
-              let range = 'posix '+start+'-'+end+'/*'
-
-
-              let from = req.from || app.options.table
-              // from = (from === 'minute' || from === 'hour') ? 'historical' : from
-
-              let index = "timestamp"
-
-              let query = app.r
-                .db(app.options.db)
-                .table(from)
-
-              index = (req.params.prop && req.params.value)
-              ? pluralize(req.params.prop, 1)+'.timestamp'
-              : index
-
-              start = (req.params.prop && req.params.value)
-              ? [req.params.value, start]
-              : start
-
-              end = (req.params.prop && req.params.value)
-              ? [req.params.value, end]
-              : end
+                let range = 'posix '+start+'-'+end+'/*'
 
 
-              query = (req.params.path)
-              ? query
-                .between(
-                  start,
-                  end,
-                  {index: index}
-                )
-                .filter( app.r.row('metadata')('path').eq(req.params.path) )
-              : query
-                .between(
-                  start,
-                  end,
-                  {index: index}
-                )
+                let from = req.from || app.options.table
+                // from = (from === 'minute' || from === 'hour') ? 'historical' : from
+
+                let index = "timestamp"
+
+                let query = app.r
+                  .db(app.options.db)
+                  .table(from)
+
+                index = (req.params.prop && req.params.value)
+                ? pluralize(req.params.prop, 1)+'.timestamp'
+                : index
+
+                start = (req.params.prop && req.params.value)
+                ? [req.params.value, start]
+                : start
+
+                end = (req.params.prop && req.params.value)
+                ? [req.params.value, end]
+                : end
 
 
-              /**
-              * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
-              **/
-              let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
-              if(
-                transformation
-                && (transformation.orderBy
-                  || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
-                )
-              ){
-                let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
-                query = app.query_with_transformation(query, orderBy)
+                query = (req.params.path)
+                ? query
+                  .between(
+                    start,
+                    end,
+                    {index: index}
+                  )
+                  .filter( app.r.row('metadata')('path').eq(req.params.path) )
+                : query
+                  .between(
+                    start,
+                    end,
+                    {index: index}
+                  )
 
-                if(Array.isArray(transformation)){
-                  transformation = Array.clone(transformation)
-                  transformation.each(function(trasnform, index){
-                    if(Object.keys(trasnform)[0] === 'orderBy')
-                      transformation[index] = undefined
-                  })
 
-                  transformation = transformation.clean()
+                /**
+                * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+                **/
+                let transformation = (req.query && req.query.transformation) ? req.query.transformation : undefined
+                if(
+                  transformation
+                  && (transformation.orderBy
+                    || (Array.isArray(transformation) && transformation.some(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy'}))
+                  )
+                ){
+                  let orderBy = (transformation.orderBy) ? transformation.orderBy : transformation.filter(function(trasnform){ return Object.keys(trasnform)[0] === 'orderBy' })[0]//one orderBy
+                  query = app.query_with_transformation(query, orderBy)
+
+                  if(Array.isArray(transformation)){
+                    transformation = Array.clone(transformation)
+                    transformation.each(function(trasnform, index){
+                      if(Object.keys(trasnform)[0] === 'orderBy')
+                        transformation[index] = undefined
+                    })
+
+                    transformation = transformation.clean()
+                  }
+
+
                 }
 
+                if(req.query && req.query.filter)
+                  query = app.query_with_filter(query, req.query.filter)
 
-              }
+                if(transformation)
+                  query = app.query_with_transformation(query, transformation)
+                /**
+                * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
+                **/
 
-              if(req.query && req.query.filter)
-                query = app.query_with_filter(query, req.query.filter)
+                if (req.query && req.query.aggregation && !req.query.q) {
+                  query =  this.result_with_aggregation(query, req.query.aggregation)
+                }
+                else if(req.query.index === false){
+                  query = app.build_query_fields(query, req.query)
 
-              if(transformation)
-                query = app.query_with_transformation(query, transformation)
-              /**
-              * orderBy need to be called before filters (its order table), other trasnform like "slice" are run after "filters"
-              **/
+                }
+                else{
+                  query = query
+                    .group(app.get_group(req.query.index))
+                    .ungroup()
+                    .map(
+                      function (doc) {
+                        // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
+                        return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc, (req.query.index) ? req.query.index : 'path')
+                      }
+                  )
 
-              if (req.query && req.query.aggregation && !req.query.q) {
-                query =  this.result_with_aggregation(query, req.query.aggregation)
-              }
-              else if(req.query.index === false){
-                query = app.build_query_fields(query, req.query)
+                }
 
+                query.run(app.conn, app.options.run, function(err, resp){
+                  if(callback)
+                    callback()
+
+                  debug_internals('run', err) //resp
+                  app.process_default(
+                    err,
+                    resp,
+                    {
+                      _extras: {
+                        from: from,
+                        type: (req.params && req.params.path) ? req.params.path : app.options.type,
+                        id: req.id,
+                        Range: range,
+                        range: req.opt.range,
+                        transformation: (req.query.transformation) ? req.query.transformation : undefined,
+                        aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
+                        filter: (req.query.filter) ? req.query.filter : undefined
+                        // prop: pluralize(index)
+                      }
+                    }
+                  )
+                })
+
+              }// _range = func
+
+              if(req.query && Array.isArray(req.query)){
+                async.eachLimit(
+                  req.query,
+                  1,
+                  function(sub_query, callback) {
+                    sub_query = Object.merge(req, Object.clone(sub_query))
+                    debug('RANGE array sub_query %o', sub_query)
+                    // process.exit(1)
+
+                    _range(sub_query, callback)
+
+                }, function(err) {
+                    // if any of the file processing produced an error, err would equal that error
+                    if( err ) {
+                      // // One of the iterations produced an error.
+                      // // All processing will now stop.
+                      // console.log('A file failed to process');
+                    } else {
+                      debug('RANGE array queries finished')
+                      // process.exit(1)
+                    }
+                });
               }
               else{
-                query = query
-                  .group(app.get_group(req.query.index))
-                  .ungroup()
-                  .map(
-                    function (doc) {
-                      // return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result_between(doc)
-                      return (req.query && req.query.q) ? app.build_default_query_result(doc, req.query) : app.build_default_result(doc, (req.query.index) ? req.query.index : 'path')
-                    }
-                )
-
+                _range(req)
               }
-
-              query.run(app.conn, app.options.run, function(err, resp){
-                debug_internals('run', err) //resp
-                app.process_default(
-                  err,
-                  resp,
-                  {
-                    _extras: {
-                      from: from,
-                      type: (req.params && req.params.path) ? req.params.path : app.options.type,
-                      id: req.id,
-                      Range: range,
-                      range: req.opt.range,
-                      transformation: (req.query.transformation) ? req.query.transformation : undefined,
-                      aggregation: (req.query.aggregation) ? req.query.aggregation : undefined,
-                      filter: (req.query.filter) ? req.query.filter : undefined
-                      // prop: pluralize(index)
-                    }
-                  }
-                )
-              })
 
             }
 
