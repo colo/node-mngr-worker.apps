@@ -96,12 +96,12 @@ module.exports = function(payload){
       // // let hosts = pipeline.current[doc.metadata.from].hosts //from first filter, attach hosts
       //
       // // debug('2nd filter %o', hosts)
-      // let ranges = []
-      let ranges = {
-        id: "range",
-        Range: undefined,
-        query: []
-      }
+      let ranges = []
+      // let ranges = {
+      //   id: "range",
+      //   Range: undefined,
+      //   query: []
+      // }
 
       Array.each(doc.data, function(distinct_group){
         Array.each(distinct_group, function(distinct_doc){
@@ -151,12 +151,13 @@ module.exports = function(payload){
               start  = roundHours((req.opt && req.opt.range) ? req.opt.range.start : end - WEEK)
             }
 
-            ranges.Range = "posix "+start+"-"+end+"/*"
-            ranges.query.push(Object.merge(
+            // ranges.Range = "posix "+start+"-"+end+"/*"
+            // ranges.query.push(Object.merge(
+            ranges.push(Object.merge(
                 req,
                 {
-                  // id: "range",
-                  // Range: "posix "+start+"-"+end+"/*",
+                  id: "range",
+                  Range: "posix "+start+"-"+end+"/*",
                   query: {
                     index: false,
                     "q": [
@@ -192,7 +193,18 @@ module.exports = function(payload){
 
       debug('RANGES %o', ranges)
       // process.exit(1)
-      pipeline.get_input_by_id('input.periodical').fireEvent('onRange', ranges)
+
+      /**
+      * seems to work better , end up with less impact on rethinkdb engine
+      **/
+      Array.each(ranges, function(range){
+        pipeline.get_input_by_id('input.periodical').fireEvent('onRange', range)
+      }.bind(this))
+
+      /**
+      * input/rethinkdb takes req.query [] and execute'em sequancially
+      **/
+      // pipeline.get_input_by_id('input.periodical').fireEvent('onRange', ranges)
 
       // async.eachLimit(
       //   ranges,
