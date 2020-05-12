@@ -73,12 +73,12 @@ module.exports = function(payload){
                 return cron.schedule('* * * * * *', dispatch);//every second
               }
               else if(input.type === 'minute'){
-                return cron.schedule('* * * * *', dispatch);//every minute
-                // return cron.schedule('*/10 * * * * *', dispatch);//DEVEL
+                // return cron.schedule('* * * * *', dispatch);//every minute
+                return cron.schedule('*/10 * * * * *', dispatch);//DEVEL
               }
               else if(input.type === 'hour'){
                 // return cron.schedule('0 * * * *', dispatch);//every hour 0x:00
-                return cron.schedule('*/10 * * * *', dispatch);//every minute
+                return cron.schedule('*/10 * * * *', dispatch);//every 10 minutes
                 // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
               // else if(input.type === 'day'){
