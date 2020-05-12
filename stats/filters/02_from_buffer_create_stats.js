@@ -215,12 +215,13 @@ module.exports = function(payload){
               // tag.combine(group.metadata.tag)
               // metadata = Object.merge(metadata, group.metadata)
               if(!metadata[grouped]) metadata[grouped] = {};
-              
+
               Object.each(group.metadata, function(val, metadata_prop){
                 if(
                   metadata_prop !== 'timestamp'
                   && metadata_prop !== 'type'
                   && metadata_prop !== 'path'
+                  && metadata_prop !== 'tag'
                   && metadata_prop !== group_index.split('.')[1]
                 ){
                   if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
