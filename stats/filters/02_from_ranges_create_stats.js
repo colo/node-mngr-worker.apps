@@ -121,9 +121,10 @@ module.exports = function(payload){
         // Array.each(doc_data, function(group, arr_index){
         Array.each(doc.data, function(group, arr_index){
           debug('GROUP', group)
+          // process.exit(1)
 
           let path = group.metadata.path
-          metadata = {}
+          // let _metadata = {}
 
           debug_internals('PATH', path)
 
@@ -135,23 +136,25 @@ module.exports = function(payload){
             let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
             // tag.combine(group.metadata.tag)
             // metadata = Object.merge(metadata, group.metadata)
+            if(!metadata[grouped]) metadata[grouped] = {};
+
             Object.each(group.metadata, function(val, metadata_prop){
               if(
                 metadata_prop !== 'timestamp'
-                || metadata_prop !== 'type'
-                || metadata_prop !== 'path'
-                || metadata_prop !== group_index.split('.')[1]
+                && metadata_prop !== 'type'
+                && metadata_prop !== 'path'
+                && metadata_prop !== group_index.split('.')[1]
               ){
-                if(!metadata[metadata_prop]) metadata[metadata_prop] = []
+                if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
 
                 if(!Array.isArray(val))
                   val = [val]
 
-                metadata[metadata_prop].combine(val)
+                metadata[grouped][metadata_prop].combine(val)
               }
             })
 
-            debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped)
+            debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
             // process.exit(1)
 
             if(!values[grouped]) values[grouped] = {};
@@ -323,10 +326,10 @@ module.exports = function(payload){
               * add other metadata fields like "domain" for logs
               */
 
-              if(metadata.tag)
-                metadata.tag.combine([group_prop])
+              if(metadata[grouped].tag)
+                metadata[grouped].tag.combine([group_prop])
 
-              new_doc['metadata'] = Object.merge(metadata, {
+              new_doc['metadata'] = Object.merge(metadata[grouped], {
                 type: type,
                 path: path,
                 range: {
