@@ -151,9 +151,11 @@ module.exports = function(payload){
 
               let data = distinct_doc[first_level_group][second_level_group]
 
-              req.query.filter.push(
-                "r.row('"+first_level_group+"')('"+second_level_group+"').eq('"+data+"')"
-              )
+              if(data !== undefined){
+                req.query.filter.push(
+                  "r.row('"+first_level_group+"')('"+second_level_group+"').eq('"+data+"')"
+                )
+              }
 
               // if(type === 'minute'){
               //   req.query.filter.push("r.row('metadata')('type').eq('periodical')")

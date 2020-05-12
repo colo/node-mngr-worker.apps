@@ -78,7 +78,8 @@ module.exports = function(payload){
               }
               else if(input.type === 'hour'){
                 // return cron.schedule('0 * * * *', dispatch);//every hour 0x:00
-                return cron.schedule('*/10 * * * *', dispatch);//every 10 minutes
+                // return cron.schedule('*/10 * * * *', dispatch);//every 10 minutes
+                return cron.schedule('* * * * *', dispatch);//every minute
                 // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
               // else if(input.type === 'day'){
