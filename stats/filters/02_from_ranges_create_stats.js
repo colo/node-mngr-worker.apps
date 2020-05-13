@@ -143,7 +143,7 @@ module.exports = function(payload){
                 metadata_prop !== 'timestamp'
                 && metadata_prop !== 'type'
                 && metadata_prop !== 'path'
-                && metadata_prop !== 'tag'
+                // && metadata_prop !== 'tag'
                 && metadata_prop !== group_index.split('.')[1]
               ){
                 if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
