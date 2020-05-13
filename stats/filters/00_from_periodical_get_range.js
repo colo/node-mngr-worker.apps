@@ -117,19 +117,23 @@ module.exports = function(payload){
       // }
 
       if(type === 'minute'){
+        start = roundSeconds( start )
         end = start + MINUTE
       }
       else if(type === 'hour'){
+        start = roundMinutes( start )
         end = start + HOUR
       }
       else if(type === 'day'){
+        start = roundHours( start )
         end = start + DAY
       }
       else if(type === 'week'){
+        start = roundHours( start )
         end = start + WEEK
       }
 
-      end = roundSeconds( end )
+      // end = roundSeconds( end )
 
       debug('date from %s to %s - end %s', new Date(start), new Date(end), new Date(while_end))
 
@@ -332,7 +336,7 @@ module.exports = function(payload){
           end = start + WEEK
         }
 
-        end = roundSeconds( end )
+        // end = roundSeconds( end )
       }
 
       // process.exit(1)
