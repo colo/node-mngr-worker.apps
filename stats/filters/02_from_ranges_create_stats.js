@@ -358,18 +358,33 @@ module.exports = function(payload){
 
             delete new_doc['metadata'].id
 
-            new_doc['metadata'].timestamp = new_doc.metadata.range.start
-
-            if(type === 'day'){
-              new_doc['metadata'].timestamp = roundHours(new_doc['metadata'].timestamp + HOUR)
+            // new_doc['metadata'].timestamp = new_doc.metadata.range.start
+            //
+            // if(type === 'day'){
+            //   new_doc['metadata'].timestamp = roundHours(new_doc['metadata'].timestamp + HOUR)
+            // }
+            // else if(type === 'hour'){
+            //   new_doc['metadata'].timestamp = roundMinutes(new_doc['metadata'].timestamp + MINUTE)
+            // }
+            // else{
+            //   new_doc['metadata'].timestamp = roundSeconds(new_doc['metadata'].timestamp + SECOND)
+            // }
+            let round
+            if(type === 'second'){
+              round = roundMilliseconds
+            }
+            else if(type === 'minute'){
+              round = roundSeconds
             }
             else if(type === 'hour'){
-              new_doc['metadata'].timestamp = roundMinutes(new_doc['metadata'].timestamp + MINUTE)
+              round = roundMinutes
             }
-            else{
-              new_doc['metadata'].timestamp = roundSeconds(new_doc['metadata'].timestamp + SECOND)
+            else if(type === 'day'){
+              round = roundHours
             }
 
+            new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
+            
             new_doc.id = new_doc.metadata[group_prop]+
               // '.historical.minute.'+
               '.'+type+'.'+
