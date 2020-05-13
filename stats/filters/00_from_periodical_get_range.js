@@ -103,18 +103,33 @@ module.exports = function(payload){
       start = doc.metadata.range.start
       while_end = doc.metadata.range.end
 
+      // if(type === 'minute'){
+      //   end = roundSeconds( start + MINUTE )
+      // }
+      // else if(type === 'hour'){
+      //   end = roundMinutes( start + HOUR)
+      // }
+      // else if(type === 'day'){
+      //   end = roundHours( start + DAY )
+      // }
+      // else if(type === 'week'){
+      //   end = roundHours( start + WEEK)
+      // }
+
       if(type === 'minute'){
-        end = roundSeconds( start + MINUTE )
+        end = start + MINUTE
       }
       else if(type === 'hour'){
-        end = roundMinutes( start + HOUR)
+        end = start + HOUR
       }
       else if(type === 'day'){
-        end = roundHours( start + DAY )
+        end = start + DAY
       }
       else if(type === 'week'){
-        end = roundHours( start + WEEK)
+        end = start + WEEK
       }
+
+      end = roundSeconds( end )
 
       debug('date from %s to %s - end %s', new Date(start), new Date(end), new Date(while_end))
 
@@ -184,15 +199,15 @@ module.exports = function(payload){
               }
               else if(type === 'hour'){
                 req.query.filter.push("r.row('metadata')('type').eq('minute')")
-                start  = roundMinutes(start)
+                // start  = roundMinutes(start)
               }
               else if(type === 'day'){
                 req.query.filter.push("r.row('metadata')('type').eq('hour')")
-                start  = roundHours(start)
+                // start  = roundHours(start)
               }
               else if(type === 'week'){
                 req.query.filter.push("r.row('metadata')('type').eq('day')")
-                start  = roundHours(start)
+                // start  = roundHours(start)
               }
 
               // process.exit(1)
@@ -292,18 +307,32 @@ module.exports = function(payload){
         // // next({id: 'munin.default', hosts, paths, range}, opts, next, pipeline)
 
         start = end
+        // if(type === 'minute'){
+        //   end = roundSeconds( start + MINUTE )
+        // }
+        // else if(type === 'hour'){
+        //   end = roundMinutes( start + HOUR)
+        // }
+        // else if(type === 'day'){
+        //   end = roundHours( start + DAY )
+        // }
+        // else if(type === 'week'){
+        //   end = roundHours( start + WEEK)
+        // }
         if(type === 'minute'){
-          end = roundSeconds( start + MINUTE )
+          end = start + MINUTE
         }
         else if(type === 'hour'){
-          end = roundMinutes( start + HOUR)
+          end = start + HOUR
         }
         else if(type === 'day'){
-          end = roundHours( start + DAY )
+          end = start + DAY
         }
         else if(type === 'week'){
-          end = roundHours( start + WEEK)
+          end = start + WEEK
         }
+
+        end = roundSeconds( end )
       }
 
       // process.exit(1)
