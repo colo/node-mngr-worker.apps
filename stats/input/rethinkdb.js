@@ -253,7 +253,7 @@ module.exports = new Class({
                 req.query.filter.push("r.row('metadata')('type').eq('minute')")
               }
 
-              debug_internals('register', req);
+              // debug_internals('register', req);
               // process.exit(1)
               req.params = req.params || {}
 

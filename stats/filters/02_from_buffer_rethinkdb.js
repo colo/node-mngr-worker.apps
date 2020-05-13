@@ -89,12 +89,12 @@ module.exports = function(payload){
   // const stat = require('../libs/stat')[type]
 
   let filter = function(buffer, opts, next, pipeline){
-    debug('3rd filter %o %o', buffer)
+    // debug('3rd filter %o %o', buffer)
     // process.exit(1)
 
     if((buffer.id === 'changes' || buffer.id === 'periodical') && buffer.data.length > 0){
-      if(buffer.id === 'periodical')
-        buffer.data = buffer.data[0]
+      // if(buffer.id === 'periodical')
+      //   buffer.data = buffer.data[0]
 
       Array.each(buffer.data, function(doc, _index){
         // debug('3rd filter DOC %o', doc)
@@ -123,6 +123,9 @@ module.exports = function(payload){
           active: doc.query_engine.clients_active
         }
         clients_doc.id = clients_doc.metadata.id
+        // debug('3rd filter DOC %o', doc)
+        // process.exit(1)
+
         sanitize_filter(
           clients_doc,
           opts,
