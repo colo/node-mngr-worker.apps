@@ -117,21 +117,24 @@ module.exports = function(payload){
       // }
 
       if(type === 'minute'){
-        start = roundSeconds( start )
+        // start = roundSeconds( start )
         end = start + MINUTE
       }
       else if(type === 'hour'){
-        start = roundMinutes( start )
+        // start = roundMinutes( start )
         end = start + HOUR
       }
       else if(type === 'day'){
-        start = roundHours( start )
+        // start = roundHours( start )
         end = start + DAY
       }
       else if(type === 'week'){
-        start = roundHours( start )
+        // start = roundHours( start )
         end = start + WEEK
       }
+
+      if(while_end < end)
+        end = while_end
 
       // end = roundSeconds( end )
 

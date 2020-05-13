@@ -384,7 +384,7 @@ module.exports = function(payload){
             }
 
             new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
-            
+
             new_doc.id = new_doc.metadata[group_prop]+
               // '.historical.minute.'+
               '.'+type+'.'+
