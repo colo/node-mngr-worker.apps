@@ -90,7 +90,7 @@ module.exports = function(payload){
 
   let filter = function(buffer, opts, next, pipeline){
     debug('3rd filter %o %o', buffer)
-    process.exit(1)
+    // process.exit(1)
 
     if((buffer.id === 'changes' || buffer.id === 'periodical') && buffer.data && buffer.data.length > 0){
       // if(buffer.id === 'periodical')
