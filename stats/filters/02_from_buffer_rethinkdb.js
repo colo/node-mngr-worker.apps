@@ -89,10 +89,10 @@ module.exports = function(payload){
   // const stat = require('../libs/stat')[type]
 
   let filter = function(buffer, opts, next, pipeline){
-    // debug('3rd filter %o %o', buffer)
-    // process.exit(1)
+    debug('3rd filter %o %o', buffer)
+    process.exit(1)
 
-    if((buffer.id === 'changes' || buffer.id === 'periodical') && buffer.data.length > 0){
+    if((buffer.id === 'changes' || buffer.id === 'periodical') && buffer.data && buffer.data.length > 0){
       // if(buffer.id === 'periodical')
       //   buffer.data = buffer.data[0]
 
