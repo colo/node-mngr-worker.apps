@@ -85,7 +85,7 @@ module.exports = function(){
         //
 
         // delete entry_point[key]
-        if(!entry_point[key].ip) entry_point[key] = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
+        if(!entry_point[key] || !entry_point[key].ip) entry_point[key] = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
 
         // let stat = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
         let data_values = Object.values(value);
