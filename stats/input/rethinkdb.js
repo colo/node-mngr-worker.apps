@@ -702,21 +702,24 @@ module.exports = new Class({
               let _default = function(){
                 let start, end
 
+                /**
+                * maybe full_range = should do minus MINUTE/HOUR/etc
+                **/
                 if(app.options.type === 'minute'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundSeconds(end - MINUTE)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundSeconds(end)//- MINUTE
                 }
                 else if(app.options.type === 'hour'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundMinutes(end - MINUTE)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundMinutes(end)//  - MINUTE
                 }
                 else if(app.options.type === 'day'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end - MINUTE)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end)// - MINUTE
                 }
                 else if(app.options.type === 'week'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end - WEEK)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end) - WEEK
                 }
 
                 req.opt = req.opt || {}
