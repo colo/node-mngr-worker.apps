@@ -9,6 +9,8 @@ const ss_stat = require('../../libs/stat')
 
 let remote_addr = {}
 
+let counter = 0
+
 module.exports = function(){
   return {
     delete: {
@@ -76,9 +78,16 @@ module.exports = function(){
     geoip: {
       doc: function(entry_point, value, key){
         debug_internals('doc %s %o', key, value)
-        delete entry_point[key]
+        // if(counter === 1){
+        //   process.exit(1)
+        // }
+        // counter += 1
+        //
 
-        let stat = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
+        // delete entry_point[key]
+        if(!entry_point[key].ip) entry_point[key] = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
+
+        // let stat = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
         let data_values = Object.values(value);
 
         Array.each(data_values, function(data){
@@ -88,48 +97,48 @@ module.exports = function(){
             ipAddress = data.traits.ipAddress
           }
 
-          if(ipAddress && !stat.ip[ipAddress]) stat.ip[ipAddress] = { count: 0 }
+          if(ipAddress && !entry_point[key].ip[ipAddress]) entry_point[key].ip[ipAddress] = { count: 0 }
 
-          if(stat.ip[ipAddress]) stat.ip[ipAddress].count +=1
+          if(entry_point[key].ip[ipAddress]) entry_point[key].ip[ipAddress].count +=1
 
-          if(data.location && stat.ip[ipAddress]){
-            // if(!stat.ip[ipAddress].location) stat.ip[ipAddress].location= {}
+          if(data.location && entry_point[key].ip[ipAddress]){
+            // if(!entry_point[key].ip[ipAddress].location) entry_point[key].ip[ipAddress].location= {}
             // let geo_id = data.location.longitude + ':' + data.location.latitude
 
-            if(!stat.ip[ipAddress].location) stat.ip[ipAddress].location = Object.merge(Object.clone(data.location), {city: undefined, country: undefined, continent: undefined})
+            if(!entry_point[key].ip[ipAddress].location) entry_point[key].ip[ipAddress].location = Object.merge(Object.clone(data.location), {city: undefined, country: undefined, continent: undefined})
 
-            // stat.ip[ipAddress].location.count +=1
-            stat.ip[ipAddress].location.city = (data.city && data.city.names && data.city.names.en) ? data.city.names.en : undefined
-            stat.ip[ipAddress].location.country = (data.country && data.country.names && data.country.names.en) ? data.country.names.en : undefined
-            stat.ip[ipAddress].location.continent = (data.continent && data.continent.names && data.continent.names.en) ? data.continent.names.en : undefined
+            // entry_point[key].ip[ipAddress].location.count +=1
+            entry_point[key].ip[ipAddress].location.city = (data.city && data.city.names && data.city.names.en) ? data.city.names.en : undefined
+            entry_point[key].ip[ipAddress].location.country = (data.country && data.country.names && data.country.names.en) ? data.country.names.en : undefined
+            entry_point[key].ip[ipAddress].location.continent = (data.continent && data.continent.names && data.continent.names.en) ? data.continent.names.en : undefined
           }
 
           Object.each(data, function(item, name){
 
 
-            if(stat.ip[ipAddress]){
+            if(entry_point[key].ip[ipAddress]){
 
-              // if((item.geonameId || (item.names && item.geonameId.en)) && !stat.ip[ipAddress][name]) stat.ip[ipAddress][name] = {}
-              // if((item.geonameId) && !stat.ip[ipAddress][name]) stat.ip[ipAddress][name] = {}
+              // if((item.geonameId || (item.names && item.geonameId.en)) && !entry_point[key].ip[ipAddress][name]) entry_point[key].ip[ipAddress][name] = {}
+              // if((item.geonameId) && !entry_point[key].ip[ipAddress][name]) entry_point[key].ip[ipAddress][name] = {}
 
               if(item.geonameId){
-                // if(!stat.ip[ipAddress][name].geonameId) stat.ip[ipAddress][name].geonameId = {}
-                // if(!stat.ip[ipAddress][name].geonameId[item.geonameId]) stat.ip[ipAddress][name].geonameId[item.geonameId] = 0
-                // stat.ip[ipAddress][name].geonameId[item.geonameId] +=1
+                // if(!entry_point[key].ip[ipAddress][name].geonameId) entry_point[key].ip[ipAddress][name].geonameId = {}
+                // if(!entry_point[key].ip[ipAddress][name].geonameId[item.geonameId]) entry_point[key].ip[ipAddress][name].geonameId[item.geonameId] = 0
+                // entry_point[key].ip[ipAddress][name].geonameId[item.geonameId] +=1
 
-                if(!stat.ip[ipAddress][name]) stat.ip[ipAddress][name] = {geonameId : item.geonameId, name: undefined}
+                if(!entry_point[key].ip[ipAddress][name]) entry_point[key].ip[ipAddress][name] = {geonameId : item.geonameId, name: undefined}
 
-                // stat.ip[ipAddress][name][item.geonameId].count +=1
+                // entry_point[key].ip[ipAddress][name][item.geonameId].count +=1
 
-                if(item.names && item.names.en && stat.ip[ipAddress][name].name === undefined){
-                  stat.ip[ipAddress][name].name = item.names.en
+                if(item.names && item.names.en && entry_point[key].ip[ipAddress][name].name === undefined){
+                  entry_point[key].ip[ipAddress][name].name = item.names.en
                 }
               }
 
               // if(item.names && item.names.en ){
-              //   if(!stat.ip[ipAddress][name].names) stat.ip[ipAddress][name].names = {}
-              //   if(!stat.ip[ipAddress][name].names[item.names.en]) stat.ip[ipAddress][name].names[item.names.en] = 0
-              //   stat.ip[ipAddress][name].names[item.names.en] +=1
+              //   if(!entry_point[key].ip[ipAddress][name].names) entry_point[key].ip[ipAddress][name].names = {}
+              //   if(!entry_point[key].ip[ipAddress][name].names[item.names.en]) entry_point[key].ip[ipAddress][name].names[item.names.en] = 0
+              //   entry_point[key].ip[ipAddress][name].names[item.names.en] +=1
               // }
 
             }
@@ -140,22 +149,22 @@ module.exports = function(){
 
         })
 
-        Object.each(stat, function(val, prop){
+        Object.each(entry_point[key], function(val, prop){
           if(prop !== 'ip' || prop !== 'location'){
-            Object.each(stat.ip, function(ip_val, ip){
-              if(ip_val[prop] && ip_val[prop].name && stat[prop])
-                stat[prop][ip_val[prop].name] = (stat[prop][ip_val[prop].name]) ? stat[prop][ip_val[prop].name] + ip_val.count : ip_val.count
+            Object.each(entry_point[key].ip, function(ip_val, ip){
+              if(ip_val[prop] && ip_val[prop].name && entry_point[key][prop])
+                entry_point[key][prop][ip_val[prop].name] = (entry_point[key][prop][ip_val[prop].name]) ? entry_point[key][prop][ip_val[prop].name] + ip_val.count : ip_val.count
 
             })
           }
 
           if(prop === 'location'){
-            Object.each(stat.ip, function(ip_val, ip){
-              if(ip_val['location'] && ip_val['location'].latitude && ip_val['location'].longitude && stat['location']){
+            Object.each(entry_point[key].ip, function(ip_val, ip){
+              if(ip_val['location'] && ip_val['location'].latitude && ip_val['location'].longitude && entry_point[key]['location']){
                 let geoip_id = ip_val['location'].latitude +':'+ ip_val['location'].longitude
-                if(!stat['location'][geoip_id]) stat['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: 0})
+                if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: 0})
 
-                stat['location'][geoip_id].count += 1
+                entry_point[key]['location'][geoip_id].count += 1
               }
 
             })
@@ -163,9 +172,9 @@ module.exports = function(){
 
         })
 
-        debug_internals('doc %o', stat)
-        // process.exit(1)
-        entry_point[key] = stat
+        debug_internals('doc %o', entry_point[key])
+        // // process.exit(1)
+        // entry_point[key] = stat
         // process.exit(1)
         return entry_point
 
