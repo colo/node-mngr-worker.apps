@@ -140,7 +140,7 @@ module.exports = function(payload){
 
       debug('date from %s to %s - end %s', new Date(start), new Date(end), new Date(while_end))
 
-      while(end <= while_end){
+      do{
         // let ranges = []
         let ranges = {
           id: "range",
@@ -340,7 +340,7 @@ module.exports = function(payload){
         }
 
         // end = roundSeconds( end )
-      }
+      } while(end <= while_end)
 
       // process.exit(1)
 
