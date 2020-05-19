@@ -77,7 +77,7 @@ module.exports = function(){
     },
     geoip: {
       doc: function(entry_point, value, key){
-        debug_internals('doc %s %o', key, value, Object.getLength(value))
+        debug_internals('doc %s %o', key, value)
         // if(counter === 1){
         //   process.exit(1)
         // }
@@ -172,8 +172,8 @@ module.exports = function(){
 
         })
 
-        debug_internals('doc %o', Object.getLength(entry_point[key].ip))
-        // process.exit(1)
+        debug_internals('doc %o', entry_point[key])
+        // // process.exit(1)
         // entry_point[key] = stat
         // process.exit(1)
         return entry_point

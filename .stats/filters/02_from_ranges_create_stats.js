@@ -297,8 +297,7 @@ module.exports = function(payload){
 
               }
 
-              debug_internals('HOOK DOC KEY %s %s', key, _key, value)
-              // if(_key === "geoip")
+              debug_internals('HOOK DOC KEY %s %s', key, _key)
               // process.exit(1)
 
               if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){

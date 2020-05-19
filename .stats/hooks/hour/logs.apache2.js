@@ -123,7 +123,7 @@ module.exports = function(){
     },
     geoip: {
       doc: function(entry_point, value, key){
-        debug('method - doc', entry_point, key, value, Object.getLength(value))
+        // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = {}
 

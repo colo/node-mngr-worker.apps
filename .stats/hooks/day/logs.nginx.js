@@ -23,7 +23,7 @@ module.exports = function(){
     },
     unique_visitors: {
       doc: function(entry_point, value, key){
-        debug('method - doc', entry_point, value, key)
+        // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = 0
         if(!entry_point[key]) entry_point[key] = 0
@@ -48,7 +48,6 @@ module.exports = function(){
         // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = {}
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
 
         let data_values = Object.values(value);
@@ -80,7 +79,6 @@ module.exports = function(){
         // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = {}
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
 
         let data_values = Object.values(value);
@@ -122,12 +120,20 @@ module.exports = function(){
       }
     },
     geoip: {
+    // generic_agent_or_geoip: {
+    //   generic_agent_or_geoip: new RegExp('^(^user\_agent|geoip)$'),
+      // key: function(entry_point, timestamp, value, key){
+      //   debug_internals('key %s %o', key, value)
+      //   process.exit(1)
+      // },
+      // value: function(entry_point, timestamp, value, key){
+      //   debug_internals('value %s %o', key, value)
+      //   process.exit(1)
+      // },
       doc: function(entry_point, value, key){
-        debug('method - doc', entry_point, key, value, Object.getLength(value))
+        // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = {}
-
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
 
         let data_values = Object.values(value);
@@ -203,8 +209,8 @@ module.exports = function(){
         // delete entry_point[key]
         // entry_point[key] = {}
 
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
+
 
         let data_values = Object.values(value);
         Array.each(data_values, function(val){
@@ -239,7 +245,6 @@ module.exports = function(){
         return entry_point
       }
     },
-
     body_bytes_sent: {
       doc: function(entry_point, value, key){
         debug('body_bytes_sent - doc', entry_point, value, key)
