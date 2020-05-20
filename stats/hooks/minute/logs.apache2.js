@@ -162,9 +162,11 @@ module.exports = function(){
             Object.each(entry_point[key].ip, function(ip_val, ip){
               if(ip_val['location'] && ip_val['location'].latitude && ip_val['location'].longitude && entry_point[key]['location']){
                 let geoip_id = ip_val['location'].latitude +':'+ ip_val['location'].longitude
-                if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: 0})
+                // if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: 0})
+                if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: []})
 
-                entry_point[key]['location'][geoip_id].count += 1
+                // entry_point[key]['location'][geoip_id].count += 1
+                entry_point[key]['location'][geoip_id].count.push(ip)
               }
 
             })
@@ -172,7 +174,9 @@ module.exports = function(){
 
         })
 
-        debug_internals('doc %o', Object.getLength(entry_point[key].ip))
+        delete entry_point[key].ip
+
+        debug_internals('doc %o', Object.getLength(entry_point[key].location))
         // process.exit(1)
         // entry_point[key] = stat
         // process.exit(1)
