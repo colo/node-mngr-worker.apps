@@ -120,20 +120,12 @@ module.exports = function(){
       }
     },
     geoip: {
-    // generic_agent_or_geoip: {
-    //   generic_agent_or_geoip: new RegExp('^(^user\_agent|geoip)$'),
-      // key: function(entry_point, timestamp, value, key){
-      //   debug_internals('key %s %o', key, value)
-      //   process.exit(1)
-      // },
-      // value: function(entry_point, timestamp, value, key){
-      //   debug_internals('value %s %o', key, value)
-      //   process.exit(1)
-      // },
       doc: function(entry_point, value, key){
-        // debug('method - doc', entry_point, value, key)
+        debug('method - doc', entry_point, key, value, Object.getLength(value))
         // delete entry_point[key]
         // entry_point[key] = {}
+
+        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
 
         let data_values = Object.values(value);
@@ -165,9 +157,10 @@ module.exports = function(){
                 if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
 
                 if(val.count){
-                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: 0})
+                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: []})
 
-                  entry_point[key][item][data_item].count += val.count
+                  // entry_point[key][item][data_item].count += val.count
+                  entry_point[key][item][data_item].count.append(val.count)
                 }
                 else{
                   entry_point[key][item][data_item] += val

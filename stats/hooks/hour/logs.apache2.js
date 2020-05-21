@@ -159,9 +159,10 @@ module.exports = function(){
                 if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
 
                 if(val.count){
-                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: 0})
+                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: []})
 
-                  entry_point[key][item][data_item].count += val.count
+                  // entry_point[key][item][data_item].count += val.count
+                  entry_point[key][item][data_item].count.append(val.count)
                 }
                 else{
                   entry_point[key][item][data_item] += val
