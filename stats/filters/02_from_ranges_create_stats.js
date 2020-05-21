@@ -377,19 +377,19 @@ module.exports = function(payload){
             // let round
             if(type === 'second'){
               new_doc.metadata.range.start = roundMilliseconds(new_doc.metadata.range.start)
-              new_doc.metadata.range.end = new_doc.metadata.range.end + SECOND
+              new_doc.metadata.range.end = roundMilliseconds(new_doc.metadata.range.start + SECOND)
             }
             else if(type === 'minute'){
               new_doc.metadata.range.start = roundSeconds(new_doc.metadata.range.start)
-              new_doc.metadata.range.end = new_doc.metadata.range.end + MINUTE
+              new_doc.metadata.range.end = roundSeconds(new_doc.metadata.range.start + MINUTE)
             }
             else if(type === 'hour'){
               new_doc.metadata.range.start = roundMinutes(new_doc.metadata.range.start)
-              new_doc.metadata.range.end = new_doc.metadata.range.end + HOUR
+              new_doc.metadata.range.end = roundMinutes(new_doc.metadata.range.start + HOUR)
             }
             else if(type === 'day'){
               new_doc.metadata.range.start = roundHours(new_doc.metadata.range.start)
-              new_doc.metadata.range.end = new_doc.metadata.range.end + DAY
+              new_doc.metadata.range.end = roundHours(new_doc.metadata.range.start + DAY)
             }
 
             new_doc['metadata'].timestamp = new_doc.metadata.range.start
