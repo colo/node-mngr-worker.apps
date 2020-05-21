@@ -374,32 +374,32 @@ module.exports = function(payload){
             // else{
             //   new_doc['metadata'].timestamp = roundSeconds(new_doc['metadata'].timestamp + SECOND)
             // }
-            let round, metadata_id_end
+            // let round
             if(type === 'second'){
-              round = roundMilliseconds
-              metadata_id_end = round(new_doc.metadata.range.end) + SECOND
+              new_doc.metadata.range.start = roundMilliseconds(new_doc.metadata.range.start)
+              new_doc.metadata.range.end = new_doc.metadata.range.end + SECOND
             }
             else if(type === 'minute'){
-              round = roundSeconds
-              metadata_id_end = round(new_doc.metadata.range.end) + MINUTE
+              new_doc.metadata.range.start = roundSeconds(new_doc.metadata.range.start)
+              new_doc.metadata.range.end = new_doc.metadata.range.end + MINUTE
             }
             else if(type === 'hour'){
-              round = roundMinutes
-              metadata_id_end = round(new_doc.metadata.range.end) + HOUR
+              new_doc.metadata.range.start = roundMinutes(new_doc.metadata.range.start)
+              new_doc.metadata.range.end = new_doc.metadata.range.end + HOUR
             }
             else if(type === 'day'){
-              round = roundHours
-              metadata_id_end = round(new_doc.metadata.range.end) + DAY
+              new_doc.metadata.range.start = roundHours(new_doc.metadata.range.start)
+              new_doc.metadata.range.end = new_doc.metadata.range.end + DAY
             }
 
-            new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
+            new_doc['metadata'].timestamp = new_doc.metadata.range.start
 
             new_doc.id = new_doc.metadata[group_prop]+
               // '.historical.minute.'+
               '.'+type+'.'+
               new_doc.metadata.path+'@'+
               new_doc.metadata.range.start+'-'+
-              metadata_id_end
+              new_doc.metadata.range.end
               // +'@'+Date.now()
 
             // if(path !== 'os.procs'){
