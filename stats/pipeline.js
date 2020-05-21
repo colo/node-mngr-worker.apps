@@ -85,8 +85,9 @@ module.exports = function(payload){
               // else if(input.type === 'day'){
               else{
                 // return cron.schedule('0 0 * * *', dispatch);//every day...00:00
-                return cron.schedule('0 * * * *', dispatch);//every hour 0x:00
-                // return cron.schedule('*/10 * * * * *', dispatch);//testing ML
+                // return cron.schedule('0 * * * *', dispatch);//every hour 0x:00
+                // return cron.schedule('* * * * *', dispatch);//every minute
+                return cron.schedule('*/10 * * * * *', dispatch);//testing ML
               }
     				},
     				// periodical: 15000,

@@ -95,7 +95,7 @@ module.exports = function(payload){
     // process.exit(1)
 
     if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === table && doc.data){
-      debug('process filter %o', doc)
+      // debug('process filter %o', doc)
       // process.exit(1)
       let values = {};
       let first, last
@@ -120,13 +120,15 @@ module.exports = function(payload){
 
         // Array.each(doc_data, function(group, arr_index){
         Array.each(doc.data, function(group, arr_index){
-          debug('GROUP', group)
-          // process.exit(1)
-
           let path = group.metadata.path
           // let _metadata = {}
 
-          debug_internals('PATH', path)
+          // if(group.metadata.domain == 'XXXX'){
+          //   debug('GROUP', group.metadata) //, values['XXXX']['logs.educativa']['hits'] group.metadata.timestamp, group.data.hits
+          // //   process.exit(1)
+          // }
+
+          // debug_internals('PATH', path)
 
           if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
@@ -155,7 +157,7 @@ module.exports = function(payload){
               }
             })
 
-            debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
+            // debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
             // process.exit(1)
 
             if(!values[grouped]) values[grouped] = {};
@@ -178,7 +180,7 @@ module.exports = function(payload){
             //   process.exit(1)
             // }
             // if(path === 'os.procs'){
-              debug_internals('HOOKs', hooks)
+              // debug_internals('HOOKs', hooks)
               // process.exit(1)
             // }
 
@@ -186,7 +188,7 @@ module.exports = function(payload){
             Object.each(group.data, function(value, key){//item real data
 
               let _key = key
-              debug('KEY', key)
+              // debug('KEY', key)
               // process.exit(1)
 
               if(hooks[path]){
@@ -215,7 +217,7 @@ module.exports = function(payload){
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
                   values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
 
-                  if(values[grouped][path][key] == undefined)
+                  if(values[grouped][path][key] === undefined)
                     delete values[grouped][path][key]
                 }
                 else{
@@ -269,9 +271,11 @@ module.exports = function(payload){
 
 //
 //
-      // if(values.colo && values.colo)
-      // debug_internals('values %o', values)
-      // process.exit(1)
+      // if(values.XXXX){
+      //   debug_internals('values %o', values.XXXX['logs.educativa']['hits'])
+      //   process.exit(1)
+      // }
+
       let group_prop = group_index.split('.')[1]
 
       if(Object.getLength(values) > 0){
@@ -370,18 +374,22 @@ module.exports = function(payload){
             // else{
             //   new_doc['metadata'].timestamp = roundSeconds(new_doc['metadata'].timestamp + SECOND)
             // }
-            let round
+            let round, metadata_id_end
             if(type === 'second'){
               round = roundMilliseconds
+              metadata_id_end = round(new_doc.metadata.range.end) + SECOND
             }
             else if(type === 'minute'){
               round = roundSeconds
+              metadata_id_end = round(new_doc.metadata.range.end) + MINUTE
             }
             else if(type === 'hour'){
               round = roundMinutes
+              metadata_id_end = round(new_doc.metadata.range.end) + HOUR
             }
             else if(type === 'day'){
               round = roundHours
+              metadata_id_end = round(new_doc.metadata.range.end) + DAY
             }
 
             new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
@@ -391,7 +399,7 @@ module.exports = function(payload){
               '.'+type+'.'+
               new_doc.metadata.path+'@'+
               new_doc.metadata.range.start+'-'+
-              new_doc.metadata.range.end
+              metadata_id_end
               // +'@'+Date.now()
 
             // if(path !== 'os.procs'){

@@ -434,18 +434,22 @@ module.exports = function(payload){
 
               delete new_doc['metadata'].id
 
-              let round
+              let round, metadata_id_end
               if(type === 'second'){
                 round = roundMilliseconds
+                metadata_id_end = round(new_doc.metadata.range.end) + SECOND
               }
               else if(type === 'minute'){
                 round = roundSeconds
+                metadata_id_end = round(new_doc.metadata.range.end) + MINUTE
               }
               else if(type === 'hour'){
                 round = roundMinutes
+                metadata_id_end = round(new_doc.metadata.range.end) + HOUR
               }
               else if(type === 'day'){
                 round = roundHours
+                metadata_id_end = round(new_doc.metadata.range.end) + DAY
               }
 
               new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
@@ -456,7 +460,7 @@ module.exports = function(payload){
                 '.'+type+'.'+
                 new_doc.metadata.path+'@'+
                 new_doc.metadata.range.start+'-'+
-                new_doc.metadata.range.end
+                metadata_id_end
                 // +'@'+Date.now()
 
               // if(path !== 'os.procs'){
