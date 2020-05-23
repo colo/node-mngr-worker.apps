@@ -169,9 +169,7 @@ module.exports = function(payload){
                   req.query.filter.push(doc.metadata.filter)
                 }
               }
-              /**
-              * instead of including a filter by "group_index", filter by selected data || metadata
-              *
+
               let first_level_group = group_index.split('.')[0]
               let second_level_group = group_index.split('.')[1]
 
@@ -182,7 +180,7 @@ module.exports = function(payload){
                   "r.row('"+first_level_group+"')('"+second_level_group+"').eq('"+data+"')"
                 )
               }
-              **/
+
 
               if(distinct_doc.data && Object.getLength(distinct_doc.data) > 0){
                 Object.each(distinct_doc.data, function(data, prop){
