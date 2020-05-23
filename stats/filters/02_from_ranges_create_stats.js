@@ -276,6 +276,9 @@ module.exports = function(payload){
       //   process.exit(1)
       // }
 
+        // debug_internals('values %o', values)
+        // process.exit(1)
+
       let group_prop = group_index.split('.')[1]
 
       if(Object.getLength(values) > 0){
