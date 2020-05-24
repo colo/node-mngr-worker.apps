@@ -139,6 +139,7 @@ module.exports = function(payload){
             // tag.combine(group.metadata.tag)
             // metadata = Object.merge(metadata, group.metadata)
             if(!metadata[grouped]) metadata[grouped] = {};
+            if(!metadata[grouped][path]) metadata[grouped][path] = {};
 
             Object.each(group.metadata, function(val, metadata_prop){
               if(
@@ -148,12 +149,12 @@ module.exports = function(payload){
                 // && metadata_prop !== 'tag'
                 && metadata_prop !== group_index.split('.')[1]
               ){
-                if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
+                if(!metadata[grouped][path][metadata_prop]) metadata[grouped][path][metadata_prop] = []
 
                 if(!Array.isArray(val))
                   val = [val]
 
-                metadata[grouped][metadata_prop].combine(val)
+                metadata[grouped][path][metadata_prop].combine(val)
               }
             })
 
@@ -284,9 +285,8 @@ module.exports = function(payload){
       if(Object.getLength(values) > 0){
         Object.each(values, function(grouped_data, grouped){
 
-          let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
-
           Object.each(grouped_data, function(data, path){
+            let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
 
             Object.each(data, function(value, key){
               let _key = key
@@ -315,19 +315,7 @@ module.exports = function(payload){
                 //   debug_internals('value %s %o', key, new_doc.data)
               }
               else{
-                // let data_values = Object.values(value);
-                // let min = ss.min(data_values);
-                // let max = ss.max(data_values);
 
-                // new_doc['data'][key] = {
-                //   // samples : value,
-                //   min : min,
-                //   max : max,
-                //   mean : ss.mean(data_values),
-                //   median : ss.median(data_values),
-                //   mode : ss.mode(data_values),
-                //   range: max - min
-                // };
                 new_doc['data'][key] = stat(value)
               }
 
@@ -335,10 +323,10 @@ module.exports = function(payload){
               * add other metadata fields like "domain" for logs
               */
 
-              if(metadata[grouped].tag)
-                metadata[grouped].tag.combine([group_prop])
+              if(metadata[grouped][path].tag)
+                metadata[grouped][path].tag.combine([group_prop])
 
-              new_doc['metadata'] = Object.merge(metadata[grouped], {
+              new_doc['metadata'] = Object.merge(metadata[grouped][path], {
                 type: type,
                 path: path,
                 range: {
