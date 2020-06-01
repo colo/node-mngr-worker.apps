@@ -17,7 +17,10 @@ module.exports = function(val, opts, next, pipeline){
 			let used_doc_data_info = {}
 			Array.each(val, function(_doc){
 
-				if((conf.type_filter && conf.type_filter.test(_doc.type)) || !conf.type_filter){
+				if(
+					((conf.type_filter && conf.type_filter.test(_doc.type)) || !conf.type_filter)
+					&& ((conf.mount_filter && conf.mount_filter.test(_doc.mount_point)) || !conf.mount_filter)
+				){
 					let mount_point = _doc.mount_point
 					// let used = {
 					// 	percentage: _doc.percentage *1
