@@ -104,7 +104,7 @@ module.exports = function(payload){
     				periodical: function(dispatch){
     					// return cron.schedule('14,29,44,59 * * * * *', dispatch);//every 15 secs
               // if(type === 'minute'){
-                return cron.schedule('* * * * *', dispatch);//every minute
+                return cron.schedule('*/5 * * * * *', dispatch);//every minute
               // }
               // else{
               //   return cron.schedule('0 * * * *', dispatch);//every hour
@@ -202,50 +202,60 @@ module.exports = function(payload){
 
           debug('2nd filter groups %O', hosts)
           // process.exit(1)
-          async.eachLimit(hosts, 10, function(host, callback){//max forks => 5
+          async.eachLimit(hosts, 20, function(host, callback){//max forks => 5
           // async.eachOf(hosts, function(host, index, callback){//max forks => 5
             debug('2nd filter groups %O', host)
+            try{
+              if(!forks[host]){
+                forks[host] = fork(process.cwd()+'/apps/educativa/checks/libs/fork_filter', [
+                  path.join(process.cwd(), '/apps/educativa/checks/filters/vhosts'),
+                ])
 
-            if(!forks[host]){
-              forks[host] = fork(process.cwd()+'/apps/educativa/checks/libs/fork_filter', [
-                path.join(process.cwd(), '/apps/educativa/checks/filters/vhosts'),
-              ])
+                forks[host].on('message', function(msg){
+                  let data = msg.result
+                  let doc = msg.doc
+                  debug('result %o %o', data, doc)
+                  // process.exit(1)
+                  // delete forks[host]
 
-              forks[host].on('message', function(msg){
-                let data = msg.result
-                let doc = msg.doc
-                // debug('result %o %o', data, doc)
+                  next(data, opts, next, pipeline)
+                  try{
+                    callback()
+                  }
+                  catch(e){
+                    debug('callback err', e)
+                  }
 
-                // delete forks[host]
-                next(data, opts, next, pipeline)
-                callback()
+                  // // process.exit(1)
+                  // // let doc = Object.clone(real_data)
+                  //
+                  // let key = Object.keys(data)[0]
+                  // doc.data = data[key]
+                  // doc.metadata.format = format
+                  // // next(doc, opts, next, pipeline)
+                  //
+                  // sanitize_filter(
+                  //   doc,
+                  //   opts,
+                  //   pipeline.output.bind(pipeline),
+                  //   pipeline
+                  // )
+                  //
+                  // // // process.exit(1)
+                })
 
+              }
 
-                // // process.exit(1)
-                // // let doc = Object.clone(real_data)
-                //
-                // let key = Object.keys(data)[0]
-                // doc.data = data[key]
-                // doc.metadata.format = format
-                // // next(doc, opts, next, pipeline)
-                //
-                // sanitize_filter(
-                //   doc,
-                //   opts,
-                //   pipeline.output.bind(pipeline),
-                //   pipeline
-                // )
-                //
-                // // // process.exit(1)
+              forks[host].send({
+                params: [host, hosts_urls[host]],
+                // doc:  Object.clone(real_data)
               })
-
             }
-
-            forks[host].send({
-              params: [host, hosts_urls[host]],
-              // doc:  Object.clone(real_data)
-            })
-
+            catch(e){
+              debug('ERROR', e)
+              // process.exit(1)
+              callback()
+            }
           }, function(err) {
 
               // if any of the file processing produced an error, err would equal that error

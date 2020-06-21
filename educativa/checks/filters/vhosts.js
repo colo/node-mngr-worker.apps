@@ -11,9 +11,9 @@ module.exports = function(host, urls, cb){//sanitize + metadata
 
   let docs = []
 
-  async.eachLimit(urls, 1, function(url, callback){//current nginx limit 5r/s
+  async.eachLimit(urls, 5, function(url, callback){//current nginx limit 5r/s
 
-    request.head({uri: url, timeout: 60000}, function(error, response, body){
+    request.head({uri: url, timeout: 5000}, function(error, response, body){
       if(response && response.statusCode)
         debug('request result %s %s %O ', host, url, response.statusCode)
 
@@ -65,7 +65,8 @@ module.exports = function(host, urls, cb){//sanitize + metadata
       }
       else{
         Object.each(error, function(value, key){
-          error[key] = value.toString()
+          if(value && value !== null)
+            error[key] = value.toString()
         })
         doc.data = error
         doc.data.uri = url
@@ -98,7 +99,7 @@ module.exports = function(host, urls, cb){//sanitize + metadata
         cb(docs)
         setTimeout(function(){
           process.exit(0)
-        }, 2000)
+        }, 1000)
 
         // console.log('All files have been processed successfully');
       }
