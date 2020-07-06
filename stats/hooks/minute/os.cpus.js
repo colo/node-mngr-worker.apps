@@ -50,9 +50,9 @@ module.exports = function(){
             let ts = doc[i][0]
 
 
-            data[ts] = (doc[i][1] > (cores * 10000 )) ? doc[i][1] / 2 : doc[i][1]
+            data[ts] = (doc[i][1] > (cores * 1000 )) ? doc[i][1] / 2 : doc[i][1] //10000 was for old node version (looks like a bug, 1000 makes sense)
 
-            if (data[ts] > (cores * 10000 ))
+            if (data[ts] > (cores * 1000 )) //10000 was for old node version (looks like a bug, 1000 makes sense)
               delete data[ts]
           }
         }
@@ -64,7 +64,7 @@ module.exports = function(){
       entry_point.io = {}
       Object.each(entry_point.idle, function(val, ts){
 
-        let _io = (cores * 10000 ) - (val + entry_point.irq[ts] + entry_point.nice[ts] + entry_point.sys[ts] + entry_point.user[ts])
+        let _io = (cores * 1000 ) - (val + entry_point.irq[ts] + entry_point.nice[ts] + entry_point.sys[ts] + entry_point.user[ts]) //10000 was for old node version (looks like a bug, 1000 makes sense)
         entry_point.io[ts] = (_io < 0) ? 0 : _io
       })
 
