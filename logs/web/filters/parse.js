@@ -82,7 +82,7 @@ module.exports = function(doc, opts, next, pipeline){
 
     let blacklisted = false
     Object.each(result, function(value, property){
-      if(blacklisted === false && __white_black_lists_filter(whitelist[property], blacklist[property], property) === false)
+      if(blacklisted === false && __white_black_lists_filter(whitelist[property], blacklist[property], value) === false)
         blacklisted = true
     })
 
