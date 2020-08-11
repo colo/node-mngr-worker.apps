@@ -29,8 +29,11 @@ module.exports = function(){
         delete entry_point[key]
         entry_point[key] = {}
 
-        Object.each(value, function(row, timestamp){
-          let data_values = Object.values(row);
+        Object.each(value, function(data_values, timestamp){
+          // let data_values = Object.values(row);
+          if(!Array.isArray(data_values))
+            data_values = [data_values]
+
           Array.each(data_values, function(method){
             if(typeof method !== 'string')
               method = JSON.stringify(method)
@@ -67,10 +70,12 @@ module.exports = function(){
             entry_point['hits'] += val
           })
 
-        //   // debug('method - doc', entry_point, value)
-        //   // process.exit(1)
-        //   remote_addr = value//save it for building "unique_visitors"
+
         }
+
+        // debug('method - doc', entry_point, value)
+        // process.exit(1)
+
 
         return entry_point
       }
@@ -79,16 +84,25 @@ module.exports = function(){
     duration: {
       doc: function(entry_point, value, key){
         debug_internals('doc %s %o', key, value)
+        // process.exit(1)
+
         delete entry_point[key]
 
         // let stat = {}
         // let data_values = Object.values(value);
         let arr = []
-        Object.each(value, function(row, timestamp){
-          Object.each(row, function(data, key){
-            row[key] = (data / NANOSECOND).toFixed(1) * 1
+        Object.each(value, function(data_values, timestamp){
+          if(!Array.isArray(data_values))
+            data_values = [data_values]
+
+          Array.each(data_values, function(duration){
+            duration = (duration / NANOSECOND).toFixed(1) * 1
+            arr.push(duration)
           })
-          arr.combine(row)
+          // Object.each(row, function(data, key){
+          //   row[key] = (data / NANOSECOND).toFixed(1) * 1
+          // })
+          // arr.combine(row)
         })
 
         entry_point[key] = ss_stat(arr)
@@ -100,8 +114,8 @@ module.exports = function(){
         // entry_point[key] = ss_stat(value)
 
         debug_internals('doc %s %o', key, entry_point[key])
+        process.exit(1)
 
-        // process.exit(1)
         return entry_point
       },
     },

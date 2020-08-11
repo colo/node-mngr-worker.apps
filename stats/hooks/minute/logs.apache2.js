@@ -3,8 +3,6 @@
 var debug = require('debug')('Server:Apps:Stat:Hook:Minute:Logs:Apache2');
 var debug_internals = require('debug')('Server:Apps:Stat:Hook:Minute:Logs:Apache2:Internals');
 
-// let networkInterfaces = {} //temp obj to save data
-// let ss = require('simple-statistics')
 const ss_stat = require('../../libs/stat')
 
 let remote_addr = {}
@@ -47,13 +45,18 @@ module.exports = function(){
       //   return entry_point
       // },
       doc: function(entry_point, value, key){
-        // debug('method - doc', entry_point, value, key)
-        // process.exit(1)
+        // if(key === 'remote_addr'){
+        //   debug('method - doc', entry_point, value, key)
+        //   process.exit(1)
+        // }
 
         delete entry_point[key]
         entry_point[key] = {}
-        Object.each(value, function(data, timestamp){
-          let data_values = Object.values(data);
+        Object.each(value, function(data_values, timestamp){
+          // let data_values = Object.values(data);
+
+          if(!Array.isArray(data_values))
+            data_values = [data_values]
 
           Array.each(data_values, function(method){
             if(typeof method !== 'string')
@@ -63,12 +66,15 @@ module.exports = function(){
             entry_point[key][method] +=1
           })
 
-          if(key === 'remote_addr'){
-            // debug('method - doc', entry_point, value)
-            // process.exit(1)
-            remote_addr = data//save it for building "unique_visitors"
-          }
+
         })
+
+        if(key === 'remote_addr'){
+          // debug('method - doc', entry_point, value)
+          // process.exit(1)
+          remote_addr = value//save it for building "unique_visitors"
+        }
+
 
         // let data_values = Object.values(value);
         //
@@ -96,18 +102,26 @@ module.exports = function(){
         delete entry_point[key]
 
         let stat = {}
-        Object.each(value, function(row, timestamp){
-          let data_values = Object.values(row);
+        Object.each(value, function(data_values, timestamp){
+          // let data_values = Object.values(row);
+
+
+          if(!Array.isArray(data_values))
+            data_values = [data_values]
 
           Array.each(data_values, function(data){
             // if(!stat[key]) stat[key] = {}
-            Object.each(data, function(item, name){
-              if(name !== 'uri'){
-                if(!stat[name]) stat[name] = {}
-                if(!stat[name][item]) stat[name][item] = 0
-                stat[name][item] +=1
-              }
-            })
+            if(data !== undefined && data !== null){
+              Object.each(data, function(item, name){
+                if(name !== 'uri'){
+                  if(!stat[name]) stat[name] = {}
+                  if(!stat[name][item]) stat[name][item] = 0
+                  stat[name][item] +=1
+                }
+              })
+            }
+
+
 
           })
         })
@@ -144,8 +158,10 @@ module.exports = function(){
         // delete entry_point[key]
         if(!entry_point[key] || !entry_point[key].ip) entry_point[key] = {ip: {}, city: {}, country: {}, continent: {}, location: {}, registeredCountry: {}}
 
-        Object.each(value, function(row, timestamp){
-          let data_values = Object.values(row);
+        Object.each(value, function(data_values, timestamp){
+          // let data_values = Object.values(row);
+          if(!Array.isArray(data_values))
+            data_values = [data_values]
 
           Array.each(data_values, function(data){
 
@@ -260,26 +276,34 @@ module.exports = function(){
         delete entry_point[key]
 
         let stat = {}
-        Object.each(value, function(row, timestamp){
-          let data_values = Object.values(row);
+        Object.each(value, function(data_values, timestamp){
+          // let data_values = Object.values(row);
+          if(!Array.isArray(data_values))
+            data_values = [data_values]
 
           Array.each(data_values, function(data){
             // if(!stat[key]) stat[key] = {}
-            Object.each(data, function(item, name){
-              // if(name !== 'major' && name !== 'minor'){
-                if(!stat[name]) stat[name] = {}
-                Object.each(item, function(val, key){
-                  if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor' && val !== null){
-                    if(!stat[name][key]) stat[name][key] = {}
-                    if(!stat[name][key][val]) stat[name][key][val] = 0
-                    stat[name][key][val] += 1
+            if(data !== undefined && data !== null){
+              Object.each(data, function(item, name){
+                // if(name !== 'major' && name !== 'minor'){
+                  if(!stat[name]) stat[name] = {}
+                  if(item !== undefined && item !== null){
+                    Object.each(item, function(val, key){
+                      if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor' && val !== null){
+                        if(!stat[name][key]) stat[name][key] = {}
+                        if(!stat[name][key][val]) stat[name][key][val] = 0
+                        stat[name][key][val] += 1
+                      }
+                    })
                   }
-                })
-              // }
+
+                // }
 
 
 
-            })
+              })
+            }
+
 
           })
         })
@@ -288,13 +312,22 @@ module.exports = function(){
         entry_point[key] = stat
 
         let unique_visitors_ip_uas = {}
-        Object.each(remote_addr, function(ip, ts){
-          if(!unique_visitors_ip_uas[ip]) unique_visitors_ip_uas[ip] = []
+        Object.each(remote_addr, function(ips, ts){
+          if(!Array.isArray(ips)) ips = [ips]
 
-          unique_visitors_ip_uas[ip].combine([JSON.stringify(value[ts])])//save ua for this IP
+          Array.each(ips, function(ip){
+            if(!unique_visitors_ip_uas[ip]) unique_visitors_ip_uas[ip] = []
+            let uas = value[ts]
+            if(!Array.isArray(uas))
+              uas = [uas]
 
+            Array.each(uas, function(ua){
+              unique_visitors_ip_uas[ip].combine([JSON.stringify(ua)])//save ua for this IP
+            })
 
+          })
         })
+
         let unique_visitors = 0
         let unique_visitors_by_ip = {}
         Object.each(unique_visitors_ip_uas, function(uas, ip){
@@ -306,8 +339,9 @@ module.exports = function(){
           unique_visitors_by_ip[ip] = uas.length
         })
 
-        // debug('user_agent|remote_addr %o %o %o', unique_visitors_ip_uas, unique_visitors)
+        // debug('user_agent|remote_addr %o %o %o', unique_visitors_ip_uas, unique_visitors_by_ip, unique_visitors, entry_point[key])
         // process.exit(1)
+
         entry_point['unique_visitors'] = unique_visitors
         entry_point['unique_visitors_by_ip'] = unique_visitors_by_ip
         return entry_point
