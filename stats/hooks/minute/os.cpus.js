@@ -30,10 +30,12 @@ module.exports = function(){
     //   }
     // },
     post_values: function(entry_point){
-      debug('POST_VALUES', entry_point)
+      // debug('POST_VALUES', entry_point)
       // process.exit(1)
 
       let cores = entry_point.cores[Object.keys(entry_point.cores)[0]]
+
+
 
       Object.each(entry_point, function(data, prop){
         if(prop !== 'cores'){
@@ -44,7 +46,11 @@ module.exports = function(){
           for(let i = 0; i < tss.length; i++){
             doc[i] = [tss[i], values[i]]
           }
+
+          doc.sort((a,b) => (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0))
+
           doc = chart.watch.transform(doc, this, chart)
+
           data = {}
           for(let i = 0; i < doc.length; i++){ //back to Object
             let ts = doc[i][0]
@@ -68,6 +74,9 @@ module.exports = function(){
         entry_point.io[ts] = (_io < 0) ? 0 : _io
       })
 
+      // debug('POST_VALUES', entry_point, cores)
+      // process.exit(1)
+      //
       return entry_point
     }
 

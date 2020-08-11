@@ -584,7 +584,7 @@ module.exports = new Class({
                     req.query,
                     1,
                     function(sub_query, callback) {
-                      sub_query = Object.merge(req, Object.clone(sub_query))
+                      sub_query = Object.merge(Object.clone(req), Object.clone(sub_query))
                       debug('RANGE array sub_query %o', sub_query)
                       // process.exit(1)
 
@@ -1010,7 +1010,7 @@ module.exports = new Class({
                   req.query,
                   1,
                   function(sub_query, callback) {
-                    sub_query = Object.merge(req, Object.clone(sub_query))
+                    sub_query = Object.merge(Object.clone(req), Object.clone(sub_query))
                     debug('RANGE array sub_query %o', sub_query)
                     // process.exit(1)
 

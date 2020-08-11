@@ -28,9 +28,8 @@ module.exports = function(){
     //     return entry_point
     //   }
     // },
-    post_values: function(entry_point){
-      debug('POST_VALUES', entry_point)
-      // process.exit(1)
+    post_values: function(entry_point, timestamp, value, key){
+
       Object.each(entry_point, function(data, prop){
         let tss = Object.keys(data)
         let values = Object.values(data)
@@ -39,6 +38,9 @@ module.exports = function(){
         for(let i = 0; i < tss.length; i++){
           doc[i] = [tss[i], values[i]]
         }
+
+        doc.sort((a,b) => (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0))
+
         doc = chart.watch.transform(doc, this, chart)
         data = {}
         for(let i = 0; i < doc.length; i++){ //back to Object
@@ -47,6 +49,10 @@ module.exports = function(){
         }
         entry_point[prop] = data
       })
+
+      // debug_internals('post_values %s %o %d %o', key, value, timestamp, entry_point)
+      // process.exit(1)
+
       return entry_point
     }
 

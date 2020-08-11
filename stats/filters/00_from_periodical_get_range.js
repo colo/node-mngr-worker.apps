@@ -76,7 +76,7 @@ module.exports = function(payload){
   let group_index = (opts && opts.group_index !== undefined) ? opts.group_index : DEFAULT_GROUP_INDEX
 
   let filter = function(doc, opts, next, pipeline){
-    debug('1st filter %o', doc, table, group_index)
+    // debug('1st filter %o', doc, table, group_index)
     // process.exit(1)
 
     if(doc && ( doc.id === 'periodical' || doc.id === 'once_range' ) && doc.data && doc.metadata && doc.metadata.from === table){
