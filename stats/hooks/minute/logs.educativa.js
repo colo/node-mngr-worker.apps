@@ -113,8 +113,8 @@ module.exports = function(){
 
         // entry_point[key] = ss_stat(value)
 
-        debug_internals('doc %s %o', key, entry_point[key])
-        process.exit(1)
+        // debug_internals('doc %s %o', key, entry_point[key])
+        // process.exit(1)
 
         return entry_point
       },
