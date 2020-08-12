@@ -171,6 +171,11 @@ module.exports = function(){
             if(data.traits && data.traits.ipAddress){
               ipAddress = data.traits.ipAddress
             }
+            // else {
+            //   debug('no ip %o', data)
+            //   process.exit(1)
+            // }
+
 
             if(ipAddress && !entry_point[key].ip[ipAddress]) entry_point[key].ip[ipAddress] = { count: 0 }
 
@@ -183,9 +188,9 @@ module.exports = function(){
               if(!entry_point[key].ip[ipAddress].location) entry_point[key].ip[ipAddress].location = Object.merge(Object.clone(data.location), {city: undefined, country: undefined, continent: undefined})
 
               // entry_point[key].ip[ipAddress].location.count +=1
-              entry_point[key].ip[ipAddress].location.city = (data.city && data.city.names && data.city.names.en) ? data.city.names.en : undefined
-              entry_point[key].ip[ipAddress].location.country = (data.country && data.country.names && data.country.names.en) ? data.country.names.en : undefined
-              entry_point[key].ip[ipAddress].location.continent = (data.continent && data.continent.names && data.continent.names.en) ? data.continent.names.en : undefined
+              entry_point[key].ip[ipAddress].location.city = (data.city && data.city.names && data.city.names.en) ? data.city.names.en : 'Unknown'
+              entry_point[key].ip[ipAddress].location.country = (data.country && data.country.names && data.country.names.en) ? data.country.names.en : 'Unknown'
+              entry_point[key].ip[ipAddress].location.continent = (data.continent && data.continent.names && data.continent.names.en) ? data.continent.names.en : 'Unknown'
             }
 
             Object.each(data, function(item, name){
@@ -240,13 +245,16 @@ module.exports = function(){
 
           if(prop === 'location'){
             Object.each(entry_point[key].ip, function(ip_val, ip){
+              // debug('IP VAL', ip_val)
+              // process.exit(1)
+
               if(ip_val['location'] && ip_val['location'].latitude && ip_val['location'].longitude && entry_point[key]['location']){
                 let geoip_id = ip_val['location'].latitude +':'+ ip_val['location'].longitude
                 // if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: 0})
-                if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {count: []})
+                if(!entry_point[key]['location'][geoip_id]) entry_point[key]['location'][geoip_id] = Object.merge(Object.clone(ip_val.location), {ips: [], count: 0})
 
-                // entry_point[key]['location'][geoip_id].count += 1
-                entry_point[key]['location'][geoip_id].count.push(ip)
+                entry_point[key]['location'][geoip_id].count += ip_val.count
+                entry_point[key]['location'][geoip_id].ips.push(ip)
               }
 
             })
