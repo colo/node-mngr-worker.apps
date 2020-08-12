@@ -156,11 +156,11 @@ module.exports = function(){
 
                 if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
 
-                if(val.count){
-                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: []})
+                if(val.ips){
+                  if(!entry_point[key][item][data_item].ips) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {ips: []})
 
                   // entry_point[key][item][data_item].count += val.count
-                  entry_point[key][item][data_item].count.append(val.count)
+                  entry_point[key][item][data_item].ips.combine(val.ips)
                 }
                 else{
                   entry_point[key][item][data_item] += val
