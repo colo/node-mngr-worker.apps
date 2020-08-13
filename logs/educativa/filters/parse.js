@@ -95,7 +95,7 @@ module.exports = function(doc, opts, next, pipeline){
               path: 'logs.'+doc.log_type,
               domain: doc.domain,
               timestamp: doc_ts,
-              // timestamp: Date.now(), //DEVEL ONLY
+              _timestamp: Date.now(), //doc creation
               // tag: [doc.log_type, 'web', 'protocol', 'url', 'uri', 'schema', doc.input],
               tag: [doc.log_type, doc.input],
               type: 'periodical'
