@@ -219,6 +219,7 @@ module.exports = function(payload){
               Object.each(group.metadata, function(val, metadata_prop){
                 if(
                   metadata_prop !== 'timestamp'
+                  && metadata_prop !== '_timestamp'
                   && metadata_prop !== 'type'
                   && metadata_prop !== 'path'
                   // && metadata_prop !== 'tag'
@@ -277,15 +278,36 @@ module.exports = function(payload){
                 }
 
 
-                // if(path == 'os.procs')
-                //   debug_internals('KEY %s %s', key, _key)
+                // if(!values[grouped][path][key]){
+                //
+                //   if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+                //     values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
+                //
+                //     if(values[grouped][path][key] == undefined)
+                //       delete values[grouped][path][key]
+                //   }
+                //   else{
+                //     values[grouped][path][key] = {};
+                //   }
+                // }
+                //
+                //
+                //
+                //
+                // if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+                //   values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
+                //
+                // }
+                // else{
+                //   values[grouped][path][key][timestamp] = value
+                // }
 
                 if(!values[grouped][path][key]){
 
                   if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
                     values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
 
-                    if(values[grouped][path][key] == undefined)
+                    if(values[grouped][path][key] === undefined)
                       delete values[grouped][path][key]
                   }
                   else{
@@ -293,49 +315,47 @@ module.exports = function(payload){
                   }
                 }
 
-
-
-
+                /**
+                * from 02_from_ranges_create_stats (untested in this filter)
+                */
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
                   values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
 
                 }
                 else{
-                  // debug('VALUE', type, path, _key, (hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'), value)
-
-                  // if(type === 'minute' || value['mean'] === undefined){
-                  // // if(type === 'minute'){
-                  //   values[grouped][path][key][timestamp] = value;
-                  // }
-                  // else{
-                  //   /**
-                  //   * from historical
-                  //   * */
-                  //   values[grouped][path][key][timestamp] = value['mean']
-                  // }
-                  values[grouped][path][key][timestamp] = value
-
-
-
+                  if(!values[grouped][path][key][timestamp]){
+                    values[grouped][path][key][timestamp] = value
+                  }
+                  else if(Array.isArray(values[grouped][path][key][timestamp])){
+                    values[grouped][path][key][timestamp].push(value)
+                  }
+                  else{
+                    let _tmp = values[grouped][path][key][timestamp]
+                    values[grouped][path][key][timestamp] = [_tmp]
+                    values[grouped][path][key][timestamp].push(value)
+                  }
                 }
 
 
               });
 
-              // debug('VALUES %o', values)
 
-              // if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+              // if(arr_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
               //   values[grouped][path] = hooks[path].post_values(values[grouped][path])
+              //
               // }
-              if(arr_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-                values[grouped][path] = hooks[path].post_values(values[grouped][path])
-
-                // if(/^os\.blockdevices/.test(path)){
-                //   debug_internals('os.blockdevices ', values[grouped][path])
-                //   process.exit(1)
-                // }
+              /**
+              * from 02_from_ranges_create_stats (untested in this filter)
+              */
+              if(arr_index == doc.data.length -1){
+                // process.exit(1)
+                Object.each(hooks, function(hook, path){
+                  if(typeof hook.post_values == 'function'){
+                    values[grouped][path] = hook.post_values(values[grouped][path])
+                  }
+                })
+                // values[grouped][path] = hooks[path].post_values(values[grouped][path])
               }
-
 
             }//__white_black_lists_filter
 

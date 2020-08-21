@@ -146,6 +146,7 @@ module.exports = function(payload){
             Object.each(group.metadata, function(val, metadata_prop){
               if(
                 metadata_prop !== 'timestamp'
+                && metadata_prop !== '_timestamp'
                 && metadata_prop !== 'type'
                 && metadata_prop !== 'path'
                 // && metadata_prop !== 'tag'
