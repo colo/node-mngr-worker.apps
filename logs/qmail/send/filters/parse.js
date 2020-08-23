@@ -176,8 +176,8 @@ module.exports = function(doc, opts, next, pipeline){
       metadata: {
         host: doc.hostname,
         // path: 'logs.nginx.'+doc.domain,
-        path: 'logs.'+doc.log_type+'.'+type,
-        // domain: doc.domain,
+        path: 'logs.'+doc.log_type,
+        domain: type,
         timestamp: doc_ts,
         _timestamp: Date.now(), //doc creation
         tag: [doc.log_type, type, doc.input],
