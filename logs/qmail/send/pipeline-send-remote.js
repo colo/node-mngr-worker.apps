@@ -23,7 +23,7 @@ const roundMilliseconds = function(timestamp){
 * to test different type of tags
 **/
 
-let HttpReceiverOutput = require('../../http-receiver/output')
+let HttpReceiverOutput = require('../../../http-receiver/output')
 
 module.exports = function(payload){
   let {input, output, filters, opts} = payload
