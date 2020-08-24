@@ -154,42 +154,45 @@ module.exports = function(doc, opts, next, pipeline){
 
     }
 
-    debug('LOG', type, data)
-    data.tai64 = arr[0]
+    if(type !== undefined){
+      debug('LOG', type, data)
+      data.tai64 = arr[0]
 
-    // data.log = doc.log
+      // data.log = doc.log
 
-    let timestamp = getTimestamp(doc.log)
-    let doc_ts = (isNaN(timestamp)) ?  Date.now() : timestamp
+      let timestamp = getTimestamp(doc.log)
+      let doc_ts = (isNaN(timestamp)) ?  Date.now() : timestamp
 
-    let ts = Date.now()
-    ts += (doc.counter) ? '-'+doc.counter : ''
+      let ts = Date.now()
+      ts += (doc.counter) ? '-'+doc.counter : ''
 
-    // Object.each(result, function(value, key){
-    //   if(value === null || value === undefined)
-    //     delete result[key]
-    // })
+      // Object.each(result, function(value, key){
+      //   if(value === null || value === undefined)
+      //     delete result[key]
+      // })
 
-    let new_doc = {
-      id: doc.hostname+'.'+opts.input.options.id+'.'+doc.log_type+'.'+type+'@'+ts,
-      data: data,
-      metadata: {
-        host: doc.hostname,
-        // path: 'logs.nginx.'+doc.domain,
-        path: 'logs.'+doc.log_type,
-        domain: type,
-        timestamp: doc_ts,
-        _timestamp: Date.now(), //doc creation
-        tag: [doc.log_type, type, doc.input],
-        type: 'periodical'
+      let new_doc = {
+        id: doc.hostname+'.'+opts.input.options.id+'.'+doc.log_type+'.'+type+'@'+ts,
+        data: data,
+        metadata: {
+          host: doc.hostname,
+          // path: 'logs.nginx.'+doc.domain,
+          path: 'logs.'+doc.log_type,
+          domain: type,
+          timestamp: doc_ts,
+          _timestamp: Date.now(), //doc creation
+          tag: [doc.log_type, type, doc.input],
+          type: 'periodical'
+        }
       }
+
+      // if(type !== 'status' && type !== 'delivery.starting' && type !== 'msg.new' && type !== 'msg.info'){
+      //   debug('parsed line', new_doc)
+      //   process.exit(1)
+      // }
+
+      next(new_doc)
     }
 
-    // if(type !== 'status' && type !== 'delivery.starting' && type !== 'msg.new' && type !== 'msg.info'){
-    //   debug('parsed line', new_doc)
-    //   process.exit(1)
-    // }
-
-    next(new_doc)
 
 }
