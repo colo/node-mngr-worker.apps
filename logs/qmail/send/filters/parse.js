@@ -78,7 +78,8 @@ module.exports = function(doc, opts, next, pipeline){
     let arr = doc.log.split(' ')
     debug('parse %o', arr)
 
-    let type, data
+    let type = undefined
+    let data = {}
 
     switch (arr[1]) {
       case 'status:':
@@ -150,7 +151,6 @@ module.exports = function(doc, opts, next, pipeline){
           response: arr[4],
         }
         break;
-      default:
 
     }
 
