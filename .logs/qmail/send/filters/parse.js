@@ -86,12 +86,12 @@ module.exports = function(doc, opts, next, pipeline){
         type = 'status'
         data = {
           local: {
-            used: arr[3].split('/')[0] * 1,
-            max: arr[3].split('/')[1] * 1,
+            used: arr[3].split('/')[0],
+            max: arr[3].split('/')[1],
           },
           remote: {
-            used: arr[5].split('/')[0] * 1,
-            max: arr[5].split('/')[1] * 1,
+            used: arr[5].split('/')[0],
+            max: arr[5].split('/')[1],
           },
         }
         break;

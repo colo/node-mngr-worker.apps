@@ -584,7 +584,7 @@ module.exports = new Class({
                     req.query,
                     1,
                     function(sub_query, callback) {
-                      sub_query = Object.merge(req, Object.clone(sub_query))
+                      sub_query = Object.merge(Object.clone(req), Object.clone(sub_query))
                       debug('RANGE array sub_query %o', sub_query)
                       // process.exit(1)
 
@@ -702,21 +702,25 @@ module.exports = new Class({
               let _default = function(){
                 let start, end
 
+                /**
+                * maybe full_range = should do minus MINUTE/HOUR/etc
+                **/
                 if(app.options.type === 'minute'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundSeconds(end - MINUTE)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundSeconds(end - SECOND)//- MINUTE
                 }
                 else if(app.options.type === 'hour'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundMinutes(end - MINUTE)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundMinutes(end - MINUTE)//  - MINUTE
                 }
                 else if(app.options.type === 'day'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end - MINUTE)
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end- HOUR)// - MINUTE
                 }
                 else if(app.options.type === 'week'){
                   end = (req.opt && req.opt.range) ? req.opt.range.end : Date.now()
-                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end - WEEK)
+                  // start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end) - WEEK
+                  start  = (req.opt && req.opt.range) ? req.opt.range.start : roundHours(end - HOUR - WEEK)
                 }
 
                 req.opt = req.opt || {}
@@ -1006,7 +1010,7 @@ module.exports = new Class({
                   req.query,
                   1,
                   function(sub_query, callback) {
-                    sub_query = Object.merge(req, Object.clone(sub_query))
+                    sub_query = Object.merge(Object.clone(req), Object.clone(sub_query))
                     debug('RANGE array sub_query %o', sub_query)
                     // process.exit(1)
 

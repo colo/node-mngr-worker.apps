@@ -1,0 +1,31 @@
+{
+  "name": "login",
+  "version": "0.0.1",
+  "description": "Login App",
+  "author": {
+    "name": "Luciano Bueno",
+    "email": "glamero@gmail.com"
+  },
+  "main": "./",
+  "engines": {
+    "node": ">= 0.10.21"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": [
+    "login",
+    "authentication"
+  ],
+  "dependencies": {
+    "event-stream": "^4.0.1",
+    "js-pipeline.output.rethinkdb": "git+https://github.com/colo/js-pipeline.output.rethinkdb.git",
+    "node-app": "git+https://github.com/colo/node-app.git",
+    "tail": "^2.0.3"
+  }
+}

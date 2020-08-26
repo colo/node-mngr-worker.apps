@@ -1,0 +1,36 @@
+{
+  "name": "login",
+  "version": "0.0.1",
+  "description": "Login App",
+  "author": {
+    "name": "Luciano Bueno",
+    "email": "glamero@gmail.com"
+  },
+  "main": "./",
+  "engines": {
+    "node": ">= 0.10.21"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    }
+  ],
+  "keywords": [
+    "login",
+    "authentication"
+  ],
+  "dependencies": {
+    "@maxmind/geoip2-node": "^0.5.0",
+    "@robojones/nginx-log-parser": "0.0.6",
+    "esprima": "^4.0.1",
+    "ip": "^1.1.5",
+    "moment": "^2.24.0",
+    "node-html-parser": "^1.1.15",
+    "qs": "^6.7.0",
+    "referer-parser": "0.0.3",
+    "ua-parser2": "^0.4.2"
+  }
+}

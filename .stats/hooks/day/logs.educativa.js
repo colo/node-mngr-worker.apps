@@ -10,7 +10,7 @@ const ss_stat = require('../../libs/stat')
 
 module.exports = function(){
   return {
-    
+
     generic: {
       generic: new RegExp('^(action|cgi|course|type|user)$'),
       doc: function(entry_point, value, key){
@@ -43,9 +43,13 @@ module.exports = function(){
       }
     },
     hits: {
+      // value: function(entry_point, timestamp, value, key){
+      //   debug('method - doc', entry_point, value, key)
+      // },
       doc: function(entry_point, value, key){
         debug('method - doc', entry_point, value, key)
-        // process.exit(1)
+        // if(entry_point[key] && entry_point[key] !== 0)
+        //   process.exit(1)
         // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = 0
         // entry_point[key] = {}

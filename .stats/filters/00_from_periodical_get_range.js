@@ -76,7 +76,7 @@ module.exports = function(payload){
   let group_index = (opts && opts.group_index !== undefined) ? opts.group_index : DEFAULT_GROUP_INDEX
 
   let filter = function(doc, opts, next, pipeline){
-    debug('1st filter %o', doc, table, group_index)
+    // debug('1st filter %o', doc, table, group_index)
     // process.exit(1)
 
     if(doc && ( doc.id === 'periodical' || doc.id === 'once_range' ) && doc.data && doc.metadata && doc.metadata.from === table){
@@ -156,6 +156,7 @@ module.exports = function(payload){
 
             if(path === undefined || __white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
               debug('path %s %o', path, distinct_doc, group_index.split('.')[0], group_index.split('.')[1])
+              // process.exit(1)
 
 
               // let start, end
@@ -168,6 +169,7 @@ module.exports = function(payload){
                   req.query.filter.push(doc.metadata.filter)
                 }
               }
+
               let first_level_group = group_index.split('.')[0]
               let second_level_group = group_index.split('.')[1]
 
@@ -177,6 +179,25 @@ module.exports = function(payload){
                 req.query.filter.push(
                   "r.row('"+first_level_group+"')('"+second_level_group+"').eq('"+data+"')"
                 )
+              }
+
+
+              if(distinct_doc.data && Object.getLength(distinct_doc.data) > 0){
+                Object.each(distinct_doc.data, function(data, prop){
+                  req.query.filter.push(
+                    "r.row('data')('"+prop+"').eq('"+data+"')"
+                  )
+                })
+
+              }
+
+              if(distinct_doc.metadata && Object.getLength(distinct_doc.metadata) > 0){
+                Object.each(distinct_doc.metadata, function(data, prop){
+                  req.query.filter.push(
+                    "r.row('metadata')('"+prop+"').eq('"+data+"')"
+                  )
+                })
+
               }
 
               // if(type === 'minute'){
@@ -246,7 +267,8 @@ module.exports = function(payload){
                   }
                 )
               )
-
+              // debug('path %s %o %o', path, distinct_doc, ranges.query)
+              // process.exit(1)
 
 
               // })

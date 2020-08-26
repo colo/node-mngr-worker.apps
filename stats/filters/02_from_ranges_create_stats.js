@@ -109,191 +109,200 @@ module.exports = function(payload){
       last = doc.data[0].metadata.timestamp;
 
       first = doc.data[doc.data.length - 1].metadata.timestamp;
-      // Array.each(doc.data, function(doc_data, d_index){
-      //
-      //   debug('DOC DATA', doc_data)
-      //   process.exit(1)
-      //
-      //   last = doc_data[0].metadata.timestamp;
-      //
-      //   first = doc_data[doc_data.length - 1].metadata.timestamp;
 
-        // Array.each(doc_data, function(group, arr_index){
-        Array.each(doc.data, function(group, arr_index){
-          let path = group.metadata.path
-          // let _metadata = {}
 
-          // if(group.metadata.domain == 'XXXX'){
-          //   debug('GROUP', group.metadata) //, values['XXXX']['logs.educativa']['hits'] group.metadata.timestamp, group.data.hits
-          // //   process.exit(1)
-          // }
+      Array.each(doc.data, function(group, arr_index){
+        let path = group.metadata.path
+        // let _metadata = {}
 
-          // debug_internals('PATH', path)
+        // if(group.metadata.domain == 'XXXX'){
+        //   debug('GROUP', group.metadata) //, values['XXXX']['logs.educativa']['hits'] group.metadata.timestamp, group.data.hits
+        // //   process.exit(1)
+        // }
 
-          if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+        // debug_internals('PATH', path)
 
-            // let data = doc.data
-            let timestamp = group.metadata.timestamp;
-            // let host = group.metadata.host
-            let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
-            // tag.combine(group.metadata.tag)
-            // metadata = Object.merge(metadata, group.metadata)
-            // debug_internals('GROUPED %s', grouped)
-            // process.exit(1)
-            if(!metadata[grouped]) metadata[grouped] = {};
-            if(!metadata[grouped][path]) metadata[grouped][path] = {};
+        if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
-            Object.each(group.metadata, function(val, metadata_prop){
-              if(
-                metadata_prop !== 'timestamp'
-                && metadata_prop !== '_timestamp'
-                && metadata_prop !== 'type'
-                && metadata_prop !== 'path'
-                // && metadata_prop !== 'tag'
-                && metadata_prop !== group_index.split('.')[1]
-              ){
-                if(!metadata[grouped][path][metadata_prop]) metadata[grouped][path][metadata_prop] = []
+          // let data = doc.data
+          let timestamp = group.metadata.timestamp;
+          // let host = group.metadata.host
+          let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
+          // tag.combine(group.metadata.tag)
+          // metadata = Object.merge(metadata, group.metadata)
+          // debug_internals('GROUPED %s', grouped)
+          // process.exit(1)
+          if(!metadata[grouped]) metadata[grouped] = {};
+          if(!metadata[grouped][path]) metadata[grouped][path] = {};
 
-                if(!Array.isArray(val))
-                  val = [val]
+          Object.each(group.metadata, function(val, metadata_prop){
+            if(
+              metadata_prop !== 'timestamp'
+              && metadata_prop !== '_timestamp'
+              && metadata_prop !== 'type'
+              && metadata_prop !== 'path'
+              // && metadata_prop !== 'tag'
+              && metadata_prop !== group_index.split('.')[1]
+            ){
+              if(!metadata[grouped][path][metadata_prop]) metadata[grouped][path][metadata_prop] = []
 
-                metadata[grouped][path][metadata_prop].combine(val)
-              }
-            })
+              if(!Array.isArray(val))
+                val = [val]
 
-            // debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
-            // process.exit(1)
+              metadata[grouped][path][metadata_prop].combine(val)
+            }
+          })
 
-            if(!values[grouped]) values[grouped] = {};
-            if(!values[grouped][path]) values[grouped][path] = {};
+          // debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
+          // process.exit(1)
 
+          if(!values[grouped]) values[grouped] = {};
+          if(!values[grouped][path]) values[grouped][path] = {};
+
+          // try{
+          let _require = traverse_path_require(type, hooks_path, path)
             // try{
-              let _require = traverse_path_require(type, hooks_path, path)
-              // try{
-              //   //debug_internals('HOOK path %s', path)
-              //   let _require = require('../hooks/'+type+'/'+path)
-              if(_require)
-                hooks[path] = _require
-              // //debug_internals('HOOK path %s', path)
-              // let _require = require('../hooks/'+type+'/'+path)
-              // if(_require)
-              //   hooks[path] = _require
+            //   //debug_internals('HOOK path %s', path)
+            //   let _require = require('../hooks/'+type+'/'+path)
+          if(_require)
+            hooks[path] = _require
+            // //debug_internals('HOOK path %s', path)
+            // let _require = require('../hooks/'+type+'/'+path)
+            // if(_require)
+            //   hooks[path] = _require
+          // }
+          // catch(e){
+          //   debug_internals('no hook file for %s %o', path, e)
+          //   process.exit(1)
+          // }
+          // if(path === 'os.procs'){
+            // debug_internals('HOOKs', hooks)
+            // process.exit(1)
+          // }
+          Object.each(hooks, function(hook, hook_path){
+            if(hook_path === path && typeof hook.pre_values == 'function'){
+              values[grouped][path] = hook.pre_values(values[grouped][path], group)
+            }
+          })
+
+          Object.each(group.data, function(value, key){//item real data
+
+            let _key = key
+            // debug('KEY %s %o %d', key, value, Object.getLength(group.data))
+            // process.exit(1)
+
+            if(hooks[path]){
+              Object.each(hooks[path], function(hook_data, hook_key){
+                // if(path == 'os.blockdevices')
+                //   //debug_internals('KEY %s %s', key, hook_key)
+
+                if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
+                  // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
+
+                  if(hook_data[hook_key].test(_key))//if regexp match
+                    _key = hook_key
+                }
+                // else{
+                //
+                // }
+              })
+
+            }
+
+            // if(arr_index == 0){
+              // process.exit(1)
+
+              // values[grouped][path] = hooks[path].post_values(values[grouped][path])
             // }
-            // catch(e){
-            //   debug_internals('no hook file for %s %o', path, e)
+
+            // if(path == 'os.cpus'){
+            //   debug_internals('KEY %s %s', key, _key, grouped, hooks)
             //   process.exit(1)
             // }
-            // if(path === 'os.procs'){
-              // debug_internals('HOOKs', hooks)
-              // process.exit(1)
-            // }
 
+            if(!values[grouped][path][key]){
 
-            Object.each(group.data, function(value, key){//item real data
+              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+                values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key, group.metadata)
 
-              let _key = key
-              // debug('KEY %s %o %d', key, value, Object.getLength(group.data))
-              // process.exit(1)
-
-              if(hooks[path]){
-                Object.each(hooks[path], function(hook_data, hook_key){
-                  // if(path == 'os.blockdevices')
-                  //   //debug_internals('KEY %s %s', key, hook_key)
-
-                  if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
-                    // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
-
-                    if(hook_data[hook_key].test(_key))//if regexp match
-                      _key = hook_key
-                  }
-                  // else{
-                  //
-                  // }
-                })
-
-              }
-
-              // if(path == 'os.cpus'){
-              //   debug_internals('KEY %s %s', key, _key, grouped, hooks)
-              //   process.exit(1)
-              // }
-
-              if(!values[grouped][path][key]){
-
-                if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
-                  values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
-
-                  if(values[grouped][path][key] === undefined)
-                    delete values[grouped][path][key]
-                }
-                else{
-                  values[grouped][path][key] = {};
-                }
-              }
-
-
-              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
-                values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
-
+                if(values[grouped][path][key] === undefined)
+                  delete values[grouped][path][key]
               }
               else{
-                // if(type === 'minute' || value['mean'] === undefined){
-                //   values[grouped][path][key][timestamp] = value;
-                // }
-                // else{
-                //   /**
-                //   * from historical
-                //   * */
-                //   values[grouped][path][key][timestamp] = value['mean']
-                // }
-
-                // values[grouped][path][key][timestamp] = value
-                if(!values[grouped][path][key][timestamp]){
-                  values[grouped][path][key][timestamp] = value
-                }
-                else if(Array.isArray(values[grouped][path][key][timestamp])){
-                  values[grouped][path][key][timestamp].push(value)
-                }
-                else{
-                  let _tmp = values[grouped][path][key][timestamp]
-                  values[grouped][path][key][timestamp] = [_tmp]
-                  values[grouped][path][key][timestamp].push(value)
-                }
-
-                // if(!values[grouped][path][key][timestamp]) values[grouped][path][key][timestamp] = []
-                // values[grouped][path][key][timestamp].push(value)
+                values[grouped][path][key] = {};
+              }
+            }
 
 
+            if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+              values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key, group.metadata)
 
+            }
+            else if(values[grouped][path][key]){
+              // if(type === 'minute' || value['mean'] === undefined){
+              //   values[grouped][path][key][timestamp] = value;
+              // }
+              // else{
+              //   /**
+              //   * from historical
+              //   * */
+              //   values[grouped][path][key][timestamp] = value['mean']
+              // }
 
+              // values[grouped][path][key][timestamp] = value
+              if(!values[grouped][path][key][timestamp]){
+                values[grouped][path][key][timestamp] = value
+              }
+              else if(Array.isArray(values[grouped][path][key][timestamp])){
+                values[grouped][path][key][timestamp].push(value)
+              }
+              else{
+                let _tmp = values[grouped][path][key][timestamp]
+                values[grouped][path][key][timestamp] = [_tmp]
+                values[grouped][path][key][timestamp].push(value)
               }
 
+              // if(!values[grouped][path][key][timestamp]) values[grouped][path][key][timestamp] = []
+              // values[grouped][path][key][timestamp].push(value)
 
-            });
 
-            // if(path === 'os.cpus'){
-            //   debug_internals('HOOK DOC KEY %s %o ', path, hooks, arr_index, doc.data.length)
-            //   process.exit(1)
-            // }
 
-            // if(arr_index == doc.data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-            if(arr_index == doc.data.length -1){
-              // process.exit(1)
-              Object.each(hooks, function(hook, path){
-                if(typeof hook.post_values == 'function'){
-                  values[grouped][path] = hook.post_values(values[grouped][path])
-                }
-              })
-              // values[grouped][path] = hooks[path].post_values(values[grouped][path])
+
             }
-          }//__white_black_lists_filter
+
+
+          });
+
+          // if(path === 'os.cpus'){
+          //   debug_internals('HOOK DOC KEY %s %o ', path, hooks, arr_index, doc.data.length)
+          //   process.exit(1)
+          // }
+
+          // if(arr_index == doc.data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+          // if(arr_index == doc.data.length -1){
+          //   Object.each(hooks, function(hook, hook_path){
+          //     if(hook_path === path && typeof hook.post_values == 'function'){
+          //       values[grouped][path] = hook.post_values(values[grouped][path], group.metadata)
+          //     }
+          //   })
+          // }
+        }//__white_black_lists_filter
 
 
 
 
+      })
+
+      Object.each(values, function(group, grouped){
+        Object.each(group, function(data, path){
+          Object.each(hooks, function(hook, hook_path){
+            if(hook_path === path && typeof hook.post_values == 'function'){
+              values[grouped][path] = hook.post_values(values[grouped][path], group.metadata)
+            }
+          })
         })
+      })
 
-      // })
 
 
 
@@ -302,15 +311,12 @@ module.exports = function(payload){
 //
 //
       // if(values.XXXX){
-      //   debug_internals('values %o', values.XXXX['logs.educativa']['hits'])
+      //   debug_internals('values %o', values.XXXX['logs.nginx'])
       //   process.exit(1)
       // }
-      // if(values.perseus){
-      //   debug_internals('values %o', values.perseus['logs.nginx'])
-      //   process.exit(1)
-      // }
-        // debug_internals('values %o', values)
-        // process.exit(1)
+
+      debug_internals('values %s', JSON.stringify(values))
+      // process.exit(1)
 
       let group_prop = group_index.split('.')[1]
 
@@ -336,7 +342,7 @@ module.exports = function(payload){
 
               }
 
-              debug_internals('HOOK DOC KEY %s %s %s', path, key, _key, value)
+              // debug_internals('HOOK DOC KEY %s %s %s', path, key, _key, value)
               // if(_key === "geoip")
               // process.exit(1)
 
@@ -442,8 +448,8 @@ module.exports = function(payload){
               // +'@'+Date.now()
 
             // if(/^logs/.test(new_doc.metadata.path)){
-            // debug('NEW DOC %o', new_doc)
-            // process.exit(1)
+            debug('NEW DOC %o', JSON.stringify(new_doc))
+            process.exit(1)
             // }
 
             new_doc['metadata'].id = new_doc.id

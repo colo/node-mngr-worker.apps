@@ -1,10 +1,8 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Nginx');
-var debug_internals = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Nginx:Internals');
+var debug = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Apache2');
+var debug_internals = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Apache2:Internals');
 
-// let networkInterfaces = {} //temp obj to save data
-// let ss = require('simple-statistics')
 const ss_stat = require('../../libs/stat')
 
 
@@ -23,7 +21,7 @@ module.exports = function(){
     },
     unique_visitors: {
       doc: function(entry_point, value, key){
-        debug('method - doc', entry_point, value, key)
+        // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = 0
         if(!entry_point[key]) entry_point[key] = 0
@@ -48,7 +46,6 @@ module.exports = function(){
         // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = {}
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
 
         let data_values = Object.values(value);
@@ -80,7 +77,6 @@ module.exports = function(){
         // debug('method - doc', entry_point, value, key)
         // delete entry_point[key]
         // entry_point[key] = {}
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
 
         let data_values = Object.values(value);
@@ -123,7 +119,7 @@ module.exports = function(){
     },
     geoip: {
       doc: function(entry_point, value, key){
-        // debug('method - doc', entry_point, value, key)
+        debug('method - doc', entry_point, key, value, Object.getLength(value))
         // delete entry_point[key]
         // entry_point[key] = {}
 
@@ -158,10 +154,11 @@ module.exports = function(){
 
                 if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
 
-                if(val.count){
-                  if(!entry_point[key][item][data_item].count) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {count: 0})
+                if(val.ips){
+                  if(!entry_point[key][item][data_item].ips) entry_point[key][item][data_item] = Object.merge(Object.clone(val), {ips: []})
 
-                  entry_point[key][item][data_item].count += val.count
+                  // entry_point[key][item][data_item].count += val.count
+                  entry_point[key][item][data_item].ips.combine(val.ips)
                 }
                 else{
                   entry_point[key][item][data_item] += val
@@ -203,8 +200,8 @@ module.exports = function(){
         // delete entry_point[key]
         // entry_point[key] = {}
 
-        // delete entry_point[key]
         if(!entry_point[key]) entry_point[key] = {}
+
 
         let data_values = Object.values(value);
         Array.each(data_values, function(val){
@@ -239,7 +236,6 @@ module.exports = function(){
         return entry_point
       }
     },
-
     body_bytes_sent: {
       doc: function(entry_point, value, key){
         debug('body_bytes_sent - doc', entry_point, value, key)

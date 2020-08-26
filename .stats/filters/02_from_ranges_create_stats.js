@@ -91,7 +91,7 @@ module.exports = function(payload){
   // const stat = require('../libs/stat')[type]
 
   let filter = function(doc, opts, next, pipeline){
-    debug('3rd filter %o', doc)
+    // debug('3rd filter %o', doc)
     // process.exit(1)
 
     if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === table && doc.data){
@@ -120,13 +120,15 @@ module.exports = function(payload){
 
         // Array.each(doc_data, function(group, arr_index){
         Array.each(doc.data, function(group, arr_index){
-          debug('GROUP', group)
-          // process.exit(1)
-
           let path = group.metadata.path
           // let _metadata = {}
 
-          debug_internals('PATH', path)
+          // if(group.metadata.domain == 'XXXX'){
+          //   debug('GROUP', group.metadata) //, values['XXXX']['logs.educativa']['hits'] group.metadata.timestamp, group.data.hits
+          // //   process.exit(1)
+          // }
+
+          // debug_internals('PATH', path)
 
           if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
 
@@ -136,26 +138,30 @@ module.exports = function(payload){
             let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
             // tag.combine(group.metadata.tag)
             // metadata = Object.merge(metadata, group.metadata)
+            // debug_internals('GROUPED %s', grouped)
+            // process.exit(1)
             if(!metadata[grouped]) metadata[grouped] = {};
+            if(!metadata[grouped][path]) metadata[grouped][path] = {};
 
             Object.each(group.metadata, function(val, metadata_prop){
               if(
                 metadata_prop !== 'timestamp'
+                && metadata_prop !== '_timestamp'
                 && metadata_prop !== 'type'
                 && metadata_prop !== 'path'
                 // && metadata_prop !== 'tag'
                 && metadata_prop !== group_index.split('.')[1]
               ){
-                if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
+                if(!metadata[grouped][path][metadata_prop]) metadata[grouped][path][metadata_prop] = []
 
                 if(!Array.isArray(val))
                   val = [val]
 
-                metadata[grouped][metadata_prop].combine(val)
+                metadata[grouped][path][metadata_prop].combine(val)
               }
             })
 
-            debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
+            // debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
             // process.exit(1)
 
             if(!values[grouped]) values[grouped] = {};
@@ -178,7 +184,7 @@ module.exports = function(payload){
             //   process.exit(1)
             // }
             // if(path === 'os.procs'){
-              debug_internals('HOOKs', hooks)
+              // debug_internals('HOOKs', hooks)
               // process.exit(1)
             // }
 
@@ -186,7 +192,7 @@ module.exports = function(payload){
             Object.each(group.data, function(value, key){//item real data
 
               let _key = key
-              debug('KEY', key)
+              // debug('KEY %s %o %d', key, value, Object.getLength(group.data))
               // process.exit(1)
 
               if(hooks[path]){
@@ -207,15 +213,17 @@ module.exports = function(payload){
 
               }
 
-              // if(path == 'os.procs')
-              //   debug_internals('KEY %s %s', key, _key)
+              // if(path == 'os.cpus'){
+              //   debug_internals('KEY %s %s', key, _key, grouped, hooks)
+              //   process.exit(1)
+              // }
 
               if(!values[grouped][path][key]){
 
                 if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
                   values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
 
-                  if(values[grouped][path][key] == undefined)
+                  if(values[grouped][path][key] === undefined)
                     delete values[grouped][path][key]
                 }
                 else{
@@ -239,7 +247,22 @@ module.exports = function(payload){
                 //   values[grouped][path][key][timestamp] = value['mean']
                 // }
 
-                values[grouped][path][key][timestamp] = value
+                // values[grouped][path][key][timestamp] = value
+                if(!values[grouped][path][key][timestamp]){
+                  values[grouped][path][key][timestamp] = value
+                }
+                else if(Array.isArray(values[grouped][path][key][timestamp])){
+                  values[grouped][path][key][timestamp].push(value)
+                }
+                else{
+                  let _tmp = values[grouped][path][key][timestamp]
+                  values[grouped][path][key][timestamp] = [_tmp]
+                  values[grouped][path][key][timestamp].push(value)
+                }
+
+                // if(!values[grouped][path][key][timestamp]) values[grouped][path][key][timestamp] = []
+                // values[grouped][path][key][timestamp].push(value)
+
 
 
 
@@ -248,11 +271,20 @@ module.exports = function(payload){
 
             });
 
-            // if(d_index == doc.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-            //   values[grouped][path] = hooks[path].post_values(values[grouped][path])
+            // if(path === 'os.cpus'){
+            //   debug_internals('HOOK DOC KEY %s %o ', path, hooks, arr_index, doc.data.length)
+            //   process.exit(1)
             // }
-            if(arr_index == doc.data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-              values[grouped][path] = hooks[path].post_values(values[grouped][path])
+
+            // if(arr_index == doc.data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+            if(arr_index == doc.data.length -1){
+              // process.exit(1)
+              Object.each(hooks, function(hook, path){
+                if(typeof hook.post_values == 'function'){
+                  values[grouped][path] = hook.post_values(values[grouped][path])
+                }
+              })
+              // values[grouped][path] = hooks[path].post_values(values[grouped][path])
             }
           }//__white_black_lists_filter
 
@@ -269,17 +301,24 @@ module.exports = function(payload){
 
 //
 //
-      // if(values.colo && values.colo)
-      // debug_internals('values %o', values)
-      // process.exit(1)
+      // if(values.XXXX){
+      //   debug_internals('values %o', values.XXXX['logs.educativa']['hits'])
+      //   process.exit(1)
+      // }
+      // if(values.perseus){
+      //   debug_internals('values %o', values.perseus['logs.nginx'])
+      //   process.exit(1)
+      // }
+        // debug_internals('values %o', values)
+        // process.exit(1)
+
       let group_prop = group_index.split('.')[1]
 
       if(Object.getLength(values) > 0){
         Object.each(values, function(grouped_data, grouped){
 
-          let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
-
           Object.each(grouped_data, function(data, path){
+            let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
 
             Object.each(data, function(value, key){
               let _key = key
@@ -297,7 +336,8 @@ module.exports = function(payload){
 
               }
 
-              debug_internals('HOOK DOC KEY %s %s', key, _key)
+              debug_internals('HOOK DOC KEY %s %s %s', path, key, _key, value)
+              // if(_key === "geoip")
               // process.exit(1)
 
               if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
@@ -307,30 +347,33 @@ module.exports = function(payload){
                 //   debug_internals('value %s %o', key, new_doc.data)
               }
               else{
-                // let data_values = Object.values(value);
-                // let min = ss.min(data_values);
-                // let max = ss.max(data_values);
+                let arr = []
+                Object.each(value, function(row, timestamp){
+                  // debug_internals('HOOK DOC KEY %s %o %o', row,timestamp)
+                  if(Array.isArray(row)){
+                    arr.combine(row)
+                  }
+                  else{
+                    arr.push(row)
+                  }
+                  // debug_internals('HOOK DOC KEY %s %o %o', arr)
+                  // process.exit(1)
+                })
+                new_doc['data'][key] = stat(arr)
+                // new_doc['data'][key] = stat(value)
+                // debug_internals('HOOK DOC KEY %s %o %o', key, value, new_doc['data'][key])
+                // process.exit(1)
 
-                // new_doc['data'][key] = {
-                //   // samples : value,
-                //   min : min,
-                //   max : max,
-                //   mean : ss.mean(data_values),
-                //   median : ss.median(data_values),
-                //   mode : ss.mode(data_values),
-                //   range: max - min
-                // };
-                new_doc['data'][key] = stat(value)
               }
 
               /**
               * add other metadata fields like "domain" for logs
               */
 
-              if(metadata[grouped].tag)
-                metadata[grouped].tag.combine([group_prop])
+              if(metadata[grouped][path].tag)
+                metadata[grouped][path].tag.combine([group_prop])
 
-              new_doc['metadata'] = Object.merge(metadata[grouped], {
+              new_doc['metadata'] = Object.merge(metadata[grouped][path], {
                 type: type,
                 path: path,
                 range: {
@@ -369,34 +412,40 @@ module.exports = function(payload){
             // else{
             //   new_doc['metadata'].timestamp = roundSeconds(new_doc['metadata'].timestamp + SECOND)
             // }
-            let round
+            // let round
+            let metadata_id_end
             if(type === 'second'){
-              round = roundMilliseconds
+              new_doc.metadata.range.start = roundMilliseconds(new_doc.metadata.range.start)
+              metadata_id_end = roundMilliseconds(new_doc.metadata.range.start + SECOND)
             }
             else if(type === 'minute'){
-              round = roundSeconds
+              new_doc.metadata.range.start = roundSeconds(new_doc.metadata.range.start)
+              metadata_id_end = roundSeconds(new_doc.metadata.range.start + MINUTE)
             }
             else if(type === 'hour'){
-              round = roundMinutes
+              new_doc.metadata.range.start = roundMinutes(new_doc.metadata.range.start)
+              metadata_id_end = roundMinutes(new_doc.metadata.range.start + HOUR)
             }
             else if(type === 'day'){
-              round = roundHours
+              new_doc.metadata.range.start = roundHours(new_doc.metadata.range.start)
+              metadata_id_end = roundHours(new_doc.metadata.range.start + DAY)
             }
 
-            new_doc['metadata'].timestamp = round(new_doc.metadata.range.end)
+            new_doc['metadata'].timestamp = new_doc.metadata.range.start
 
             new_doc.id = new_doc.metadata[group_prop]+
               // '.historical.minute.'+
               '.'+type+'.'+
               new_doc.metadata.path+'@'+
               new_doc.metadata.range.start+'-'+
-              new_doc.metadata.range.end
+              metadata_id_end
               // +'@'+Date.now()
 
-            // if(path !== 'os.procs'){
-            debug('NEW DOC %o', new_doc)
+            // if(/^logs/.test(new_doc.metadata.path)){
+            // debug('NEW DOC %o', new_doc)
             // process.exit(1)
             // }
+
             new_doc['metadata'].id = new_doc.id
 
             sanitize_filter(
