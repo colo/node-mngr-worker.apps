@@ -448,8 +448,8 @@ module.exports = function(payload){
               // +'@'+Date.now()
 
             // if(/^logs/.test(new_doc.metadata.path)){
-            debug('NEW DOC %o', JSON.stringify(new_doc))
-            process.exit(1)
+            // debug('NEW DOC %o', JSON.stringify(new_doc))
+            // process.exit(1)
             // }
 
             new_doc['metadata'].id = new_doc.id
