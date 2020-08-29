@@ -315,7 +315,7 @@ module.exports = function(payload){
       //   process.exit(1)
       // }
 
-      debug_internals('values %s', JSON.stringify(values))
+      // debug_internals('values %s', JSON.stringify(values))
       // process.exit(1)
 
       let group_prop = group_index.split('.')[1]
