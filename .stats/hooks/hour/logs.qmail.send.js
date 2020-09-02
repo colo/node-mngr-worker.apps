@@ -11,7 +11,31 @@ let remote_addr = {}
 
 module.exports = function(){
   return {
-
+    // pre_values: function(entry_point, group){
+    //   debug_internals('pre_values %o %o', entry_point, group)
+    //   process.exit(1)
+    //
+    //   let key = group.metadata.domain
+    //   let timestamp = group.metadata.timestamp
+    //   let tai64 = group.data.tai64
+    //
+    //   if(key === "status"){//unmodified
+    //     // if(!entry_point[key]) entry_point[key] = []
+    //     // entry_point[key].push(group.data)
+    //   }
+    //   else if(key !== "msg.end" && tai64){
+    //     if(!entry_point[key]) entry_point[key] = {}
+    //     if(!entry_point[key][tai64]) entry_point[key][tai64] = []
+    //     let data = Object.clone(group.data)
+    //     data.timestamp = timestamp
+    //     delete data.tai64
+    //     entry_point[key][tai64].push(data)
+    //   }
+    //
+    //
+    //   // process.exit(1)
+    //   return entry_point
+    // },
     post_values: function(entry_point, metadata){
       debug_internals('post_values ---------------------------------------------')
       debug_internals('post_values ---------------------------------------------')
@@ -42,21 +66,157 @@ module.exports = function(){
 
         })
 
-
+        /**
+        * don't delete messages, will bbe used on "day" stats
+        **/
+        //for every msg check if there exist a "starting" delivery that match, else, delete
+        // Object.each(entry_point['messages'], function(msg, msg_id){
+        //   let found = false
+        //   Object.each(entry_point['delivery']['starting'], function(delivery, id){
+        //       if(delivery.msg === msg_id)
+        //         found = true
+        //   })
+        //
+        //   if(found === false)
+        //     delete entry_point['messages'][msg_id]
+        // })
       }
 
-
+      // debug_internals('post_values %s %o', JSON.stringify(entry_point), metadata)
+      // process.exit(1)
+      // let delivery = {
+      //   starting: {},
+      //   status: {},
+      //   finished: {}
+      // }
+      //
+      // let messages = {}
+      //
+      // if(entry_point['delivery.starting'] && Object.getLength(entry_point['delivery.starting']) > 0){
+      //   Object.each(entry_point['delivery.starting'], function(data_delivery_starting, tai64_delivery_starting){
+      //     Array.each(data_delivery_starting, function(delivery_starting){
+      //       let id = delivery_starting.id
+      //       delivery.finished[id] = delivery_starting
+      //       delivery.finished[id].delivery = delivery_starting.timestamp
+      //       delete delivery.finished[id].timestamp
+      //     })
+      //   })
+      //
+      //   //merge msg data
+      //   if(entry_point['msg.info'] && Object.getLength(entry_point['msg.info']) > 0){
+      //     Object.each(delivery.finished, function(_delivery, id){
+      //       Object.each(entry_point['msg.info'], function(msg_info, taig64_msg_info){
+      //         Array.each(msg_info, function(msg, msg_index){
+      //           if(_delivery.msg === msg.msg){
+      //             delivery.finished[id] = Object.merge(_delivery, msg)
+      //             delivery.finished[id].start = msg.timestamp
+      //             delete delivery.finished[id].timestamp
+      //           }
+      //           else{
+      //             messages[msg.msg] = Object.clone(msg)
+      //             messages[msg.msg].start = msg.timestamp
+      //             delete messages[msg.msg].timestamp
+      //           }
+      //         })
+      //       })
+      //
+      //     })
+      //   }
+      //
+      //   if(entry_point['msg.bounce'] && Object.getLength(entry_point['msg.bounce']) > 0){
+      //     Object.each(delivery.finished, function(_delivery, id){
+      //       Object.each(entry_point['msg.bounce'], function(msg_info, taig64_msg_info){
+      //         Array.each(msg_info, function(msg, msg_index){
+      //           if(_delivery.msg === msg.msg){
+      //             delivery.finished[id].bounce = msg.timestamp
+      //           }
+      //         })
+      //       })
+      //
+      //     })
+      //   }
+      //
+      //
+      //   //add status response to 'finished' or 'status'
+      //   if(entry_point['delivery.status'] && Object.getLength(entry_point['delivery.status']) > 0){
+      //     Object.each(entry_point['delivery.status'], function(data_delivery_status, tai64_delivery_status){
+      //       Array.each(data_delivery_status, function(delivery_status){
+      //         let id = delivery_status.id
+      //         if(!delivery.finished[id]){//if there wasn't a 'delivery.start' for this id
+      //           delivery.status[id] = delivery_status
+      //           delivery.status[id].end = delivery_status.timestamp
+      //           delete delivery.status[id].timestamp
+      //         }
+      //         else{
+      //           delivery.finished[id] = Object.merge(delivery.finished[id], delivery_status)
+      //           delivery.finished[id].end = delivery_status.timestamp
+      //           delete delivery.finished[id].timestamp
+      //         }
+      //
+      //       })
+      //     })
+      //   }
+      //
+      //
+      //   // move 'undefined' delivers to 'starting'
+      //   Object.each(delivery.finished, function(_delivery, id){
+      //     if(!delivery.response && !_delivery.status){
+      //       delivery.starting[id] = _delivery
+      //       delete delivery.finished[id]
+      //     }
+      //   })
+      // }
+      //
+      // Object.each(entry_point, function(point, key){
+      //   // if(/^((?!^status).)*$'/.test(key)) //not status* key
+      //   if(key !== 'status.local' && key !== 'status.remote') //not status* key
+      //     delete entry_point[key]
+      // })
+      //
+      // Object.each(delivery, function(data, key){
+      //   if(Object.getLength(data) === 0)
+      //     delete delivery[key]
+      // })
+      //
+      // Object.each(messages, function(data, key){
+      //   if(Object.getLength(data) === 0)
+      //     delete messages[key]
+      // })
+      //
+      // if(Object.getLength(delivery) > 0)
+      //   entry_point['delivery'] = delivery
+      //
+      // if(Object.getLength(messages) > 0)
+      //   entry_point['messages'] = messages
+      //
+      // // debug_internals('post_values %s', JSON.stringify(entry_point) )
+      //
+      //
+      // // process.exit(1)
       return entry_point
     },
     generic: {
       generic: new RegExp('^.+$'),
       // generic: new RegExp('^((?!^status).)*$'), // on "doc" keys are "status.local | status.remote | delivery | messages"
       key: function(entry_point, timestamp, value, key, metadata){
+        // debug_internals('key %o', entry_point, timestamp, value, key, metadata)
+        // process.exit(1)
+        //
+        // if(metadata.domain === 'status' && key !== 'tai64'){
+        //   if(!entry_point['status.'+key]) entry_point['status.'+key] = {}
+        //   // process.exit(1)
+        // }
+        //
+        // if(key === 'status' && entry_point && entry_point[key]){
+        //   delete entry_point[key]
+        // }
+        // else
         if(!entry_point[key]) entry_point[key] = {}
 
         return entry_point
       },
       value: function(entry_point, timestamp, value, key, metadata){
+
 
           if(!entry_point[key]) entry_point[key] = {}
 

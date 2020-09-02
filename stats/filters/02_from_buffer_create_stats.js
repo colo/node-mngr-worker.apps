@@ -556,9 +556,36 @@ module.exports = function(payload){
         if(Object.getLength(values) > 0){
           Object.each(values, function(grouped_data, grouped){
 
-
+            let final_grouped_data = {}
 
             Object.each(grouped_data, function(data, path){
+              if(hooks[path] && typeof hooks[path].pre_doc == 'function'){
+                final_grouped_data = hooks[path].pre_doc(final_grouped_data, data, path)
+
+                /**
+                * we may have changed original path or added new ones,
+                * so we need to copy metadata info & hooks to the new path
+                **/
+                let paths = Object.keys(final_grouped_data)
+                Array.each(paths, function(_path){
+                  metadata[grouped][_path] = Object.clone(metadata[grouped][path])
+                  if(hooks[path])
+                    hooks[_path] = hooks[path]
+                })
+
+
+                // if(path == 'os.mounts')
+                //   debug_internals('value %s %o', key, new_doc.data)
+              }
+              else{
+                final_grouped_data = grouped_data
+              }
+            })
+
+            // debug('GROUPED %s %o', grouped, JSON.stringify(final_grouped_data))
+            // process.exit(1)
+
+            Object.each(final_grouped_data, function(data, path){
 
               let new_doc = {data: {}, metadata: {tag: [], range: {start: null, end: null}}};
 

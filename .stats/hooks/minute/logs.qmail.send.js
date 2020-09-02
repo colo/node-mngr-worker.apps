@@ -159,43 +159,6 @@ module.exports = function(){
       // process.exit(1)
       return entry_point
     },
-    pre_doc: function(entry_point, value, path){
-      // debug_internals('pre_doc %o %o %s', entry_point, value, path)
-      Object.each(value, function(data, prop){
-        if(/^status/.test(prop)){
-          let new_path = path+'.status'
-          if(!entry_point[new_path]) entry_point[new_path] = {}
-          // let status = prop.split('.')[1]
-          // entry_point[new_path][status] = data
-          entry_point[new_path][prop] = data
-        }
-        else if(/^delivery/.test(prop)){
-          if(data.finished)
-            entry_point[path+'.delivered'] = data.finished
-
-            // delete data.finished
-          // }
-          // else {
-          /**
-          * don't remove 'finished' as is needed for 'docs', remove there
-          **/
-          if(!entry_point[path]) entry_point[path] = {}
-          entry_point[path][prop] = data
-          // }
-        }
-        else{
-          if(!entry_point[path]) entry_point[path] = {}
-          entry_point[path][prop] = data
-        }
-
-      })
-      // debug_internals('pre_doc %o %o %s', JSON.stringify(entry_point), path)
-      // process.exit(1)
-      return entry_point
-    },
-    /**
-    * per key
-    **/
     generic: {
       generic: new RegExp('^.+$'),
       // generic: new RegExp('^((?!^status).)*$'), // on "doc" keys are "status.local | status.remote | delivery | messages"
@@ -327,9 +290,6 @@ module.exports = function(){
           })
           // entry_point[key] = ss_stat(value)
         }
-
-        if(key === 'delivery' && entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
-
         return entry_point
       }
     },

@@ -187,191 +187,366 @@ module.exports = function(payload){
         first = real_data[0].metadata.timestamp;
 
         last = real_data[real_data.length - 1].metadata.timestamp;
-        // Array.each(real_data, function(doc_data, d_index){
-        //
-        //   debug('DOC DATA', doc_data)
-        //   process.exit(1)
-        //
-        //   last = doc_data[0].metadata.timestamp;
-        //
-        //   first = doc_data[doc_data.length - 1].metadata.timestamp;
 
-          // Array.each(doc_data, function(group, group_index){
-          Array.each(real_data, function(group, arr_index){
-            debug('GROUP', group)
+          // Array.each(real_data, function(group, arr_index){
+          //   debug('GROUP', group)
+          //   // process.exit(1)
+          //
+          //   let path = group.metadata.path
+          //
+          //
+          //   debug_internals('PATH', path)
+          //
+          //   if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+          //
+          //     // let data = real_data
+          //     let timestamp = group.metadata.timestamp;
+          //     // let host = group.metadata.host
+          //     let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
+          //     // tag.combine(group.metadata.tag)
+          //     // metadata = Object.merge(metadata, group.metadata)
+          //     if(!metadata[grouped]) metadata[grouped] = {};
+          //
+          //     Object.each(group.metadata, function(val, metadata_prop){
+          //       if(
+          //         metadata_prop !== 'timestamp'
+          //         && metadata_prop !== '_timestamp'
+          //         && metadata_prop !== 'type'
+          //         && metadata_prop !== 'path'
+          //         // && metadata_prop !== 'tag'
+          //         && metadata_prop !== group_index.split('.')[1]
+          //       ){
+          //         if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
+          //
+          //         if(!Array.isArray(val))
+          //           val = [val]
+          //
+          //         metadata[grouped][metadata_prop].combine(val)
+          //       }
+          //     })
+          //
+          //     if(!values[grouped]) values[grouped] = {};
+          //     if(!values[grouped][path]) values[grouped][path] = {};
+          //
+          //     let _require = traverse_path_require(type, hooks_path, path)
+          //     // try{
+          //     //   //debug_internals('HOOK path %s', path)
+          //     //   let _require = require('../hooks/'+type+'/'+path)
+          //     if(_require)
+          //       hooks[path] = _require
+          //     // }
+          //     // catch(e){
+          //     //   debug_internals('no hook file for %s %o', path, e)
+          //     // }
+          //     // if(path === 'os.cpus'){
+          //     debug_internals('HOOKs', path, _require)
+          //       // process.exit(1)
+          //     // }
+          //
+          //
+          //     Object.each(group.data, function(value, key){//item real data
+          //
+          //       let _key = key
+          //       debug('KEY', key)
+          //
+          //
+          //       if(hooks[path]){
+          //         Object.each(hooks[path], function(hook_data, hook_key){
+          //           // if(path == 'os.blockdevices')
+          //           //   //debug_internals('KEY %s %s', key, hook_key)
+          //
+          //           if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
+          //             // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
+          //
+          //             if(hook_data[hook_key].test(_key))//if regexp match
+          //               _key = hook_key
+          //           }
+          //           // else{
+          //           //
+          //           // }
+          //         })
+          //
+          //       }
+          //
+          //
+          //       // if(!values[grouped][path][key]){
+          //       //
+          //       //   if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+          //       //     values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
+          //       //
+          //       //     if(values[grouped][path][key] == undefined)
+          //       //       delete values[grouped][path][key]
+          //       //   }
+          //       //   else{
+          //       //     values[grouped][path][key] = {};
+          //       //   }
+          //       // }
+          //       //
+          //       //
+          //       //
+          //       //
+          //       // if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+          //       //   values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
+          //       //
+          //       // }
+          //       // else{
+          //       //   values[grouped][path][key][timestamp] = value
+          //       // }
+          //
+          //       if(!values[grouped][path][key]){
+          //
+          //         if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+          //           values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
+          //
+          //           if(values[grouped][path][key] === undefined)
+          //             delete values[grouped][path][key]
+          //         }
+          //         else{
+          //           values[grouped][path][key] = {};
+          //         }
+          //       }
+          //
+          //       /**
+          //       * from 02_from_ranges_create_stats (untested in this filter)
+          //       */
+          //       if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+          //         values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
+          //
+          //       }
+          //       else{
+          //         if(!values[grouped][path][key][timestamp]){
+          //           values[grouped][path][key][timestamp] = value
+          //         }
+          //         else if(Array.isArray(values[grouped][path][key][timestamp])){
+          //           values[grouped][path][key][timestamp].push(value)
+          //         }
+          //         else{
+          //           let _tmp = values[grouped][path][key][timestamp]
+          //           values[grouped][path][key][timestamp] = [_tmp]
+          //           values[grouped][path][key][timestamp].push(value)
+          //         }
+          //       }
+          //
+          //
+          //     });
+          //
+          //
+          //     // if(arr_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+          //     //   values[grouped][path] = hooks[path].post_values(values[grouped][path])
+          //     //
+          //     // }
+          //     /**
+          //     * from 02_from_ranges_create_stats (untested in this filter)
+          //     */
+          //     if(arr_index == doc.data.length -1){
+          //       // process.exit(1)
+          //       Object.each(hooks, function(hook, path){
+          //         if(typeof hook.post_values == 'function'){
+          //           values[grouped][path] = hook.post_values(values[grouped][path])
+          //         }
+          //       })
+          //       // values[grouped][path] = hooks[path].post_values(values[grouped][path])
+          //     }
+          //
+          //   }//__white_black_lists_filter
+          //
+          //
+          //
+          //
+          // })
+
+        Array.each(doc.data, function(group, arr_index){
+          let path = group.metadata.path
+          // let _metadata = {}
+
+          // if(group.metadata.domain == 'XXXX'){
+          //   debug('GROUP', group.metadata) //, values['XXXX']['logs.educativa']['hits'] group.metadata.timestamp, group.data.hits
+          // //   process.exit(1)
+          // }
+
+          // debug_internals('PATH', path)
+
+          if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
+
+            // let data = doc.data
+            let timestamp = group.metadata.timestamp;
+            // let host = group.metadata.host
+            let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
+            // tag.combine(group.metadata.tag)
+            // metadata = Object.merge(metadata, group.metadata)
+            // debug_internals('GROUPED %s', grouped)
+            // process.exit(1)
+            if(!metadata[grouped]) metadata[grouped] = {};
+            if(!metadata[grouped][path]) metadata[grouped][path] = {};
+
+            Object.each(group.metadata, function(val, metadata_prop){
+              if(
+                metadata_prop !== 'timestamp'
+                && metadata_prop !== '_timestamp'
+                && metadata_prop !== 'type'
+                && metadata_prop !== 'path'
+                // && metadata_prop !== 'tag'
+                && metadata_prop !== group_index.split('.')[1]
+              ){
+                if(!metadata[grouped][path][metadata_prop]) metadata[grouped][path][metadata_prop] = []
+
+                if(!Array.isArray(val))
+                  val = [val]
+
+                metadata[grouped][path][metadata_prop].combine(val)
+              }
+            })
+
+            // debug_internals('INDEX', DEFAULT_GROUP_INDEX, group_index, grouped, metadata[grouped])
             // process.exit(1)
 
-            let path = group.metadata.path
+            if(!values[grouped]) values[grouped] = {};
+            if(!values[grouped][path]) values[grouped][path] = {};
 
-
-            debug_internals('PATH', path)
-
-            if(__white_black_lists_filter(paths_whitelist, paths_blacklist, path)){
-
-              // let data = real_data
-              let timestamp = group.metadata.timestamp;
-              // let host = group.metadata.host
-              let grouped = group[group_index.split('.')[0]][group_index.split('.')[1]]
-              // tag.combine(group.metadata.tag)
-              // metadata = Object.merge(metadata, group.metadata)
-              if(!metadata[grouped]) metadata[grouped] = {};
-
-              Object.each(group.metadata, function(val, metadata_prop){
-                if(
-                  metadata_prop !== 'timestamp'
-                  && metadata_prop !== '_timestamp'
-                  && metadata_prop !== 'type'
-                  && metadata_prop !== 'path'
-                  // && metadata_prop !== 'tag'
-                  && metadata_prop !== group_index.split('.')[1]
-                ){
-                  if(!metadata[grouped][metadata_prop]) metadata[grouped][metadata_prop] = []
-
-                  if(!Array.isArray(val))
-                    val = [val]
-
-                  metadata[grouped][metadata_prop].combine(val)
-                }
-              })
-
-              if(!values[grouped]) values[grouped] = {};
-              if(!values[grouped][path]) values[grouped][path] = {};
-
-              let _require = traverse_path_require(type, hooks_path, path)
+            // try{
+            let _require = traverse_path_require(type, hooks_path, path)
               // try{
               //   //debug_internals('HOOK path %s', path)
               //   let _require = require('../hooks/'+type+'/'+path)
-              if(_require)
-                hooks[path] = _require
-              // }
-              // catch(e){
-              //   debug_internals('no hook file for %s %o', path, e)
-              // }
-              // if(path === 'os.cpus'){
-              debug_internals('HOOKs', path, _require)
-                // process.exit(1)
-              // }
+            if(_require)
+              hooks[path] = _require
+              // //debug_internals('HOOK path %s', path)
+              // let _require = require('../hooks/'+type+'/'+path)
+              // if(_require)
+              //   hooks[path] = _require
+            // }
+            // catch(e){
+            //   debug_internals('no hook file for %s %o', path, e)
+            //   process.exit(1)
+            // }
+            // if(path === 'os.procs'){
+              // debug_internals('HOOKs', hooks)
+              // process.exit(1)
+            // }
+            Object.each(hooks, function(hook, hook_path){
+              if(hook_path === path && typeof hook.pre_values == 'function'){
+                values[grouped][path] = hook.pre_values(values[grouped][path], group)
+              }
+            })
 
+            Object.each(group.data, function(value, key){//item real data
 
-              Object.each(group.data, function(value, key){//item real data
+              let _key = key
+              // debug('KEY %s %o %d', key, value, Object.getLength(group.data))
+              // process.exit(1)
 
-                let _key = key
-                debug('KEY', key)
+              if(hooks[path]){
+                Object.each(hooks[path], function(hook_data, hook_key){
+                  // if(path == 'os.blockdevices')
+                  //   //debug_internals('KEY %s %s', key, hook_key)
 
+                  if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
+                    // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
 
-                if(hooks[path]){
-                  Object.each(hooks[path], function(hook_data, hook_key){
-                    // if(path == 'os.blockdevices')
-                    //   //debug_internals('KEY %s %s', key, hook_key)
-
-                    if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
-                      // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
-
-                      if(hook_data[hook_key].test(_key))//if regexp match
-                        _key = hook_key
-                    }
-                    // else{
-                    //
-                    // }
-                  })
-
-                }
-
-
-                // if(!values[grouped][path][key]){
-                //
-                //   if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
-                //     values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
-                //
-                //     if(values[grouped][path][key] == undefined)
-                //       delete values[grouped][path][key]
-                //   }
-                //   else{
-                //     values[grouped][path][key] = {};
-                //   }
-                // }
-                //
-                //
-                //
-                //
-                // if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
-                //   values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
-                //
-                // }
-                // else{
-                //   values[grouped][path][key][timestamp] = value
-                // }
-
-                if(!values[grouped][path][key]){
-
-                  if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
-                    values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key)
-
-                    if(values[grouped][path][key] === undefined)
-                      delete values[grouped][path][key]
+                    if(hook_data[hook_key].test(_key))//if regexp match
+                      _key = hook_key
                   }
-                  else{
-                    values[grouped][path][key] = {};
-                  }
-                }
-
-                /**
-                * from 02_from_ranges_create_stats (untested in this filter)
-                */
-                if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
-                  values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key)
-
-                }
-                else{
-                  if(!values[grouped][path][key][timestamp]){
-                    values[grouped][path][key][timestamp] = value
-                  }
-                  else if(Array.isArray(values[grouped][path][key][timestamp])){
-                    values[grouped][path][key][timestamp].push(value)
-                  }
-                  else{
-                    let _tmp = values[grouped][path][key][timestamp]
-                    values[grouped][path][key][timestamp] = [_tmp]
-                    values[grouped][path][key][timestamp].push(value)
-                  }
-                }
-
-
-              });
-
-
-              // if(arr_index == real_data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
-              //   values[grouped][path] = hooks[path].post_values(values[grouped][path])
-              //
-              // }
-              /**
-              * from 02_from_ranges_create_stats (untested in this filter)
-              */
-              if(arr_index == doc.data.length -1){
-                // process.exit(1)
-                Object.each(hooks, function(hook, path){
-                  if(typeof hook.post_values == 'function'){
-                    values[grouped][path] = hook.post_values(values[grouped][path])
-                  }
+                  // else{
+                  //
+                  // }
                 })
-                // values[grouped][path] = hooks[path].post_values(values[grouped][path])
+
               }
 
-            }//__white_black_lists_filter
+              // if(arr_index == 0){
+                // process.exit(1)
+
+                // values[grouped][path] = hooks[path].post_values(values[grouped][path])
+              // }
+
+              // if(path == 'os.cpus'){
+              //   debug_internals('KEY %s %s', key, _key, grouped, hooks)
+              //   process.exit(1)
+              // }
+
+              if(!values[grouped][path][key]){
+
+                if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+                  values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key, group.metadata)
+
+                  if(values[grouped][path][key] === undefined)
+                    delete values[grouped][path][key]
+                }
+                else{
+                  values[grouped][path][key] = {};
+                }
+              }
+
+
+              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+                values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key, group.metadata)
+
+              }
+              else if(values[grouped][path][key]){
+                // if(type === 'minute' || value['mean'] === undefined){
+                //   values[grouped][path][key][timestamp] = value;
+                // }
+                // else{
+                //   /**
+                //   * from historical
+                //   * */
+                //   values[grouped][path][key][timestamp] = value['mean']
+                // }
+
+                // values[grouped][path][key][timestamp] = value
+                if(!values[grouped][path][key][timestamp]){
+                  values[grouped][path][key][timestamp] = value
+                }
+                else if(Array.isArray(values[grouped][path][key][timestamp])){
+                  values[grouped][path][key][timestamp].push(value)
+                }
+                else{
+                  let _tmp = values[grouped][path][key][timestamp]
+                  values[grouped][path][key][timestamp] = [_tmp]
+                  values[grouped][path][key][timestamp].push(value)
+                }
+
+                // if(!values[grouped][path][key][timestamp]) values[grouped][path][key][timestamp] = []
+                // values[grouped][path][key][timestamp].push(value)
 
 
 
 
+              }
+
+
+            });
+
+            // if(path === 'os.cpus'){
+            //   debug_internals('HOOK DOC KEY %s %o ', path, hooks, arr_index, doc.data.length)
+            //   process.exit(1)
+            // }
+
+            // if(arr_index == doc.data.length -1 && hooks[path] && typeof hooks[path].post_values == 'function'){
+            // if(arr_index == doc.data.length -1){
+            //   Object.each(hooks, function(hook, hook_path){
+            //     if(hook_path === path && typeof hook.post_values == 'function'){
+            //       values[grouped][path] = hook.post_values(values[grouped][path], group.metadata)
+            //     }
+            //   })
+            // }
+          }//__white_black_lists_filter
+
+
+
+
+        })
+
+        Object.each(values, function(group, grouped){
+          Object.each(group, function(data, path){
+            Object.each(hooks, function(hook, hook_path){
+              if(hook_path === path && typeof hook.post_values == 'function'){
+                values[grouped][path] = hook.post_values(values[grouped][path], group.metadata)
+              }
+            })
           })
+        })
 
-        // })
-
-
-
-
-
-  //
-  //
         // if(values.colo){
         //   debug_internals('values %o', values.colo)
         //   // process.exit(1)
@@ -414,7 +589,7 @@ module.exports = function(payload){
                   new_doc['data'][key] = stat(value)
                 }
 
-                debug_internals('HOOK DOC KEY %s %o', key, new_doc['data'][key])
+                // debug_internals('HOOK DOC KEY %s %o', key, new_doc['data'][key])
                 // process.exit(1)
 
 
@@ -484,7 +659,7 @@ module.exports = function(payload){
                 // +'@'+Date.now()
 
               // if(path !== 'os.procs'){
-              // debug('NEW DOC %o', new_doc)
+              // debug('NEW DOC %o', JSON.parse(new_doc))
               // process.exit(1)
               // }
               new_doc['metadata'].id = new_doc.id
