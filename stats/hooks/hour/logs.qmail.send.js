@@ -13,8 +13,8 @@ module.exports = function(){
   return {
 
     post_values: function(entry_point, metadata){
-      debug_internals('post_values ---------------------------------------------')
-      debug_internals('post_values ---------------------------------------------')
+      // debug_internals('post_values ---------------------------------------------')
+      // debug_internals('post_values ---------------------------------------------')
 
       //merge msg data
       if(
@@ -60,9 +60,17 @@ module.exports = function(){
 
           if(!entry_point[key]) entry_point[key] = {}
 
-          if(key === 'delivery'){
-            if(!entry_point[key]['finished']) entry_point[key]['finished'] = {}
-            entry_point[key]['finished'] = Object.merge(entry_point[key]['finished'], Object.clone(value['finished']))
+          // if(key === 'delivery'){
+          if(metadata.path === 'logs.qmail.send.delivered'){
+            // if(!entry_point[key]['finished']) entry_point[key]['finished'] = {}
+            // entry_point[key]['finished'] = Object.merge(entry_point[key]['finished'], Object.clone(value['finished']))
+            entry_point[key] = Object.merge(entry_point[key], Object.clone(value))
+
+            // debug_internals('key %o', entry_point, timestamp, value, key, metadata)
+            //
+            // process.exit(1)
+
+            return entry_point
           }
           else if(/^status/.test(key)){
 
@@ -119,89 +127,11 @@ module.exports = function(){
       // generic: new RegExp('^((?!^tai64).)*$'),
       doc: function(entry_point, value, key){
         debug('method - doc', key)
-        // key === status (delete tai64)
 
-        // let from = {
-        //   domains:{},
-        //   rcpt:{},
-        // }
-        // let to = {
-        //   domains:{},
-        //   rcpt:{},
-        // }
-        // let failed = {
-        //   domains:{},
-        //   rcpt:{},
-        // }
-        // // let domain_from = {}
-        // // let domain_to = {}
-        // //
-        // // let failed_to = {}
 
         if(key !== 'status.local' && key !== 'status.remote'){
           entry_point[key] = value
-          //
-          // Object.each(value, function(row, prop){
-          //   Object.each(row, function(data, id){
-          //     if(data.from){
-          //       if(!from.rcpt[data.from]) from.rcpt[data.from] = 0
-          //       from.rcpt[data.from] += 1
-          //
-          //       let domain = (data.from.indexOf('@') > -1) ?  /\@(.*)/.exec(data.from) : []
-          //       if(domain[1]){
-          //         domain[1] = domain[1].replace('>', '')
-          //         if(!from.domains[domain[1]]) from.domains[domain[1]] = 0
-          //         from.domains[domain[1]] += 1
-          //       }
-          //
-          //     }
-          //
-          //     if(data.to){
-          //       if(!to.rcpt[data.to]) to.rcpt[data.to] = 0
-          //       to.rcpt[data.to] += 1
-          //
-          //       let domain = (data.to.indexOf('@') > -1) ?  /\@(.*)/.exec(data.to) : []
-          //       if(domain[1]){
-          //         domain[1] = domain[1].replace('>', '')
-          //         if(!to.domains[domain[1]]) to.domains[domain[1]] = 0
-          //         to.domains[domain[1]] += 1
-          //       }
-          //
-          //       if(data.status && data.status !== 'success'){
-          //         if(!failed.rcpt[data.to]) failed.rcpt[data.to] = 0
-          //         failed.rcpt[data.to] += 1
-          //
-          //         if(domain[1]){//on failed.domains save an array of failed responses
-          //           if(!failed.domains[domain[1]]) failed.domains[domain[1]] = []
-          //           failed.domains[domain[1]].push(data.response || data.status)
-          //         }
-          //       }
-          //     }
-          //   })
-          // })
-          //
-          // Object.each(from, function(data, prop){
-          //   if(Object.getLength(data) === 0)
-          //     delete from[prop]
-          // })
-          //
-          // if(Object.getLength(from) > 0)
-          //   entry_point['from'] = from
-          //
-          // Object.each(to, function(data, prop){
-          //   if(Object.getLength(data) === 0)
-          //     delete to[prop]
-          // })
-          //
-          // if(Object.getLength(to) > 0)
-          //   entry_point['to'] = to
-          //
-          // Object.each(failed, function(data, prop){
-          //   if(Object.getLength(data) === 0)
-          //     delete failed[prop]
-          // })
-          // if(Object.getLength(failed) > 0)
-          //   entry_point['failed'] = failed
+
         }
         else{
           debug_internals('HOOK DOC KEY %s %o', key, value)
@@ -213,6 +143,9 @@ module.exports = function(){
           })
           // entry_point[key] = ss_stat(value)
         }
+
+        if(key === 'delivery' && entry_point['delivery'] && entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
+
         return entry_point
       }
     },
