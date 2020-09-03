@@ -247,6 +247,11 @@ module.exports = function(){
           domains:{},
           rcpt:{},
         }
+
+        let success = {
+          domains:{},
+          rcpt:{},
+        }
         // let domain_from = {}
         // let domain_to = {}
         //
@@ -290,6 +295,13 @@ module.exports = function(){
                     failed.domains[domain[1]].push(data.response || data.status)
                   }
                 }
+                else if (data.status) {
+                  if(!success.rcpt[data.to]) success.rcpt[data.to] = 0
+                  success.rcpt[data.to] += 1
+
+                  if(!success.domains[domain[1]]) success.domains[domain[1]] = 0
+                  success.domains[domain[1]] += 1
+                }
               }
             })
           })
@@ -314,8 +326,17 @@ module.exports = function(){
             if(Object.getLength(data) === 0)
               delete failed[prop]
           })
+
+          Object.each(success, function(data, prop){
+            if(Object.getLength(data) === 0)
+              delete success[prop]
+          })
+
           if(Object.getLength(failed) > 0)
             entry_point['failed'] = failed
+
+          if(Object.getLength(success) > 0)
+            entry_point['success'] = success
         }
         else{
           debug_internals('HOOK DOC KEY %s %o', key, value)

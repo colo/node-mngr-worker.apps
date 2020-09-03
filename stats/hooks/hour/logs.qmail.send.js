@@ -84,7 +84,7 @@ module.exports = function(){
             // process.exit(1)
             return entry_point
           }
-          else if(/^(from|to|failed)/.test(key)){
+          else if(/^(from|to|failed|success)/.test(key)){
             Object.each(value, function(data, prop){
 
               if(!entry_point[key][prop]) entry_point[key][prop] = {}
