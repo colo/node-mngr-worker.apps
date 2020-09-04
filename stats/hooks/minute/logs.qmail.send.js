@@ -106,9 +106,18 @@ module.exports = function(){
           Object.each(entry_point['delivery.status'], function(data_delivery_status, tai64_delivery_status){
             Array.each(data_delivery_status, function(delivery_status){
               let id = delivery_status.id
-              if(!delivery.finished[id]){//if there wasn't a 'delivery.start' for this id
-                delivery.status[id] = delivery_status
-                delivery.status[id].end = delivery_status.timestamp
+              if(!delivery.finished[id] || delivery_status.status === 'deferral'){//if there wasn't a 'delivery.start' for this id
+                if(delivery.finished[id] && delivery_status.status === 'deferral'){
+                  delivery_status = Object.merge(delivery.finished[id], delivery_status)
+                  delivery.status[id] = delivery_status
+                  delivery.status[id].deferral = delivery_status.timestamp
+                  delete delivery.finished[id]
+                }
+                else{
+                  delivery.status[id] = delivery_status
+                  delivery.status[id].end = delivery_status.timestamp
+                }
+                
                 delete delivery.status[id].timestamp
               }
               else{
@@ -124,7 +133,7 @@ module.exports = function(){
 
         // move 'undefined' delivers to 'starting'
         Object.each(delivery.finished, function(_delivery, id){
-          if(!delivery.response && !_delivery.status){
+          if(!_delivery.response && !_delivery.status){
             delivery.starting[id] = _delivery
             delete delivery.finished[id]
           }
