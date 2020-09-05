@@ -377,7 +377,7 @@ module.exports = function(payload){
               // process.exit(1)
 
               if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].doc == 'function'){
-                new_doc.data = hooks[path][_key].doc(new_doc.data, value, key)
+                new_doc.data = hooks[path][_key].doc(new_doc.data, value, key, path)
 
                 // if(path == 'os.mounts')
                 //   debug_internals('value %s %o', key, new_doc.data)
@@ -480,7 +480,7 @@ module.exports = function(payload){
               // +'@'+Date.now()
 
             // if(/send$/.test(new_doc.metadata.path)){
-            // debug('NEW DOC %o', JSON.stringify(new_doc))
+            // debug('NEW DOC %o', JSON.stringify(new_doc), new_doc.metadata.path)
             // process.exit(1)
             // }
 

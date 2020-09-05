@@ -117,7 +117,7 @@ module.exports = function(){
                   delivery.status[id] = delivery_status
                   delivery.status[id].end = delivery_status.timestamp
                 }
-                
+
                 delete delivery.status[id].timestamp
               }
               else{
@@ -178,13 +178,28 @@ module.exports = function(){
           // entry_point[new_path][status] = data
           entry_point[new_path][prop] = data
         }
+        else if(/^messages/.test(prop)){
+          let new_path = path+'.queue'
+          if(!entry_point[new_path]) entry_point[new_path] = {}
+          entry_point[new_path][prop] = data
+
+          if(!entry_point[path]) entry_point[path] = {}
+          entry_point[path][prop] = data
+        }
         else if(/^delivery/.test(prop)){
           if(data.finished)
             entry_point[path+'.delivered'] = data.finished
 
-            // delete data.finished
-          // }
-          // else {
+          if(!entry_point[path+'.queue']) entry_point[path+'.queue'] = {}
+          if(!entry_point[path+'.queue'].delivery) entry_point[path+'.queue'].delivery = {}
+
+          if(data.starting)
+            entry_point[path+'.queue'].delivery.starting = data.starting
+
+          if(data.status)
+            entry_point[path+'.queue'].delivery.status = data.status
+
+
           /**
           * don't remove 'finished' as is needed for 'docs', remove there
           **/
@@ -240,18 +255,19 @@ module.exports = function(){
         return entry_point
       },
       // generic: new RegExp('^((?!^tai64).)*$'),
-      doc: function(entry_point, value, key){
-        debug('method - doc', key)
+      doc: function(entry_point, value, key, path){
+        debug('method - doc', key, path)
+        // process.exit(1)
         // key === status (delete tai64)
 
         let from = {
           domains:{},
           rcpt:{},
         }
-        let to = {
-          domains:{},
-          rcpt:{},
-        }
+        // let to = {
+        //   domains:{},
+        //   rcpt:{},
+        // }
         let failed = {
           domains:{},
           rcpt:{},
@@ -266,7 +282,8 @@ module.exports = function(){
         //
         // let failed_to = {}
 
-        if(key !== 'status.local' && key !== 'status.remote'){
+        // if(key !== 'status.local' && key !== 'status.remote'){
+        if(path === 'logs.qmail.send'){
           entry_point[key] = value
 
           Object.each(value, function(row, prop){
@@ -285,15 +302,15 @@ module.exports = function(){
               }
 
               if(data.to){
-                if(!to.rcpt[data.to]) to.rcpt[data.to] = 0
-                to.rcpt[data.to] += 1
-
+                // if(!to.rcpt[data.to]) to.rcpt[data.to] = 0
+                // to.rcpt[data.to] += 1
+                //
                 let domain = (data.to.indexOf('@') > -1) ?  /\@(.*)/.exec(data.to) : []
-                if(domain[1]){
-                  domain[1] = domain[1].replace('>', '')
-                  if(!to.domains[domain[1]]) to.domains[domain[1]] = 0
-                  to.domains[domain[1]] += 1
-                }
+                // if(domain[1]){
+                //   domain[1] = domain[1].replace('>', '')
+                //   if(!to.domains[domain[1]]) to.domains[domain[1]] = 0
+                //   to.domains[domain[1]] += 1
+                // }
 
                 if(data.status && data.status !== 'success'){
                   if(!failed.rcpt[data.to]) failed.rcpt[data.to] = 0
@@ -323,13 +340,13 @@ module.exports = function(){
           if(Object.getLength(from) > 0)
             entry_point['from'] = from
 
-          Object.each(to, function(data, prop){
-            if(Object.getLength(data) === 0)
-              delete to[prop]
-          })
+          // Object.each(to, function(data, prop){
+          //   if(Object.getLength(data) === 0)
+          //     delete to[prop]
+          // })
 
-          if(Object.getLength(to) > 0)
-            entry_point['to'] = to
+          // if(Object.getLength(to) > 0)
+          //   entry_point['to'] = to
 
           Object.each(failed, function(data, prop){
             if(Object.getLength(data) === 0)
@@ -341,13 +358,25 @@ module.exports = function(){
               delete success[prop]
           })
 
+          if(!entry_point['to']) entry_point['to'] = {}
+
           if(Object.getLength(failed) > 0)
-            entry_point['failed'] = failed
+            entry_point['to']['failed'] = failed
 
           if(Object.getLength(success) > 0)
-            entry_point['success'] = success
+            entry_point['to']['success'] = success
+
+          if(key === 'delivery'){
+            delete entry_point['delivery']
+            // if(entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
+            // if(entry_point['delivery']['status']) delete entry_point['delivery']['status']
+            // if(entry_point['delivery']['starting']) delete entry_point['delivery']['starting']
+          }
+          else if(key === 'messages'){
+            delete entry_point['messages']
+          }
         }
-        else{
+        else if(path === 'logs.qmail.send.status'){
           debug_internals('HOOK DOC KEY %s %o', key, value)
           // process.exit(1)
           if(!entry_point[key]) entry_point[key] = {}
@@ -357,8 +386,11 @@ module.exports = function(){
           })
           // entry_point[key] = ss_stat(value)
         }
+        else{
+          entry_point[key] = value
+        }
 
-        if(key === 'delivery' && entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
+
 
         return entry_point
       }
