@@ -171,13 +171,14 @@ module.exports = function(){
     pre_doc: function(entry_point, value, path){
       // debug_internals('pre_doc %o %o %s', entry_point, value, path)
       Object.each(value, function(data, prop){
+        //move to another doc
         if(/^status/.test(prop)){
           let new_path = path+'.status'
           if(!entry_point[new_path]) entry_point[new_path] = {}
-          // let status = prop.split('.')[1]
-          // entry_point[new_path][status] = data
+
           entry_point[new_path][prop] = data
         }
+        //create another doc but keep current
         else if(/^messages/.test(prop)){
           let new_path = path+'.queue'
           if(!entry_point[new_path]) entry_point[new_path] = {}
@@ -186,6 +187,7 @@ module.exports = function(){
           if(!entry_point[path]) entry_point[path] = {}
           entry_point[path][prop] = data
         }
+        //create another doc but keep current
         else if(/^delivery/.test(prop)){
           if(data.finished)
             entry_point[path+'.delivered'] = data.finished
@@ -199,10 +201,6 @@ module.exports = function(){
           if(data.status)
             entry_point[path+'.queue'].delivery.status = data.status
 
-
-          /**
-          * don't remove 'finished' as is needed for 'docs', remove there
-          **/
           if(!entry_point[path]) entry_point[path] = {}
           entry_point[path][prop] = data
           // }
@@ -215,6 +213,12 @@ module.exports = function(){
       })
       // debug_internals('pre_doc %o %o %s', JSON.stringify(entry_point), path)
       // process.exit(1)
+
+      //duplicate to new kind of docs, used for hour && day stats
+      if(path === 'logs.qmail.send'){
+        entry_point['logs.qmail.send.stats'] = entry_point['logs.qmail.send']
+      }
+
       return entry_point
     },
     /**
@@ -283,7 +287,7 @@ module.exports = function(){
         // let failed_to = {}
 
         // if(key !== 'status.local' && key !== 'status.remote'){
-        if(path === 'logs.qmail.send'){
+        if(path === 'logs.qmail.send' || path === 'logs.qmail.send.stats'){
           entry_point[key] = value
 
           Object.each(value, function(row, prop){
@@ -366,13 +370,13 @@ module.exports = function(){
           if(Object.getLength(success) > 0)
             entry_point['to']['success'] = success
 
-          if(key === 'delivery'){
+          if(if(path === 'logs.qmail.send' && key === 'delivery'){
             delete entry_point['delivery']
             // if(entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
             // if(entry_point['delivery']['status']) delete entry_point['delivery']['status']
             // if(entry_point['delivery']['starting']) delete entry_point['delivery']['starting']
           }
-          else if(key === 'messages'){
+          else if(if(path === 'logs.qmail.send' && key === 'messages'){
             delete entry_point['messages']
           }
         }
