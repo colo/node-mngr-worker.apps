@@ -287,7 +287,7 @@ module.exports = function(){
         // let failed_to = {}
 
         // if(key !== 'status.local' && key !== 'status.remote'){
-        if(path === 'logs.qmail.send' || path === 'logs.qmail.send.stats'){
+        if(path === 'logs.qmail.send'){
           entry_point[key] = value
 
           Object.each(value, function(row, prop){
@@ -370,13 +370,13 @@ module.exports = function(){
           if(Object.getLength(success) > 0)
             entry_point['to']['success'] = success
 
-          if(if(path === 'logs.qmail.send' && key === 'delivery'){
+          if(key === 'delivery'){
             delete entry_point['delivery']
             // if(entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
             // if(entry_point['delivery']['status']) delete entry_point['delivery']['status']
             // if(entry_point['delivery']['starting']) delete entry_point['delivery']['starting']
           }
-          else if(if(path === 'logs.qmail.send' && key === 'messages'){
+          else if(key === 'messages'){
             delete entry_point['messages']
           }
         }
