@@ -92,11 +92,12 @@ module.exports = function(payload){
 
   let filter = function(doc, opts, next, pipeline){
     // debug('3rd filter %o', doc)
-    // process.exit(1)
+
 
     if(doc && doc.id === 'range' && doc.metadata && doc.metadata.from === table && doc.data){
-      debug('process filter %o', doc)
+      // debug('process filter %s', JSON.stringify(doc))
       // process.exit(1)
+
       let values = {};
       let first, last
       // let tag = []
@@ -479,7 +480,7 @@ module.exports = function(payload){
               metadata_id_end
               // +'@'+Date.now()
 
-            // if(/send$/.test(new_doc.metadata.path)){
+            // if(/stats$/.test(new_doc.metadata.path)){
             // debug('NEW DOC %o', JSON.stringify(new_doc), new_doc.metadata.path)
             // process.exit(1)
             // }

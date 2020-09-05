@@ -288,6 +288,10 @@ module.exports = function(){
 
         // if(key !== 'status.local' && key !== 'status.remote'){
         if(path === 'logs.qmail.send.stats'){
+          // debug('method - doc', key, path, JSON.stringify(value))
+          // process.exit(1)
+
+
           entry_point[key] = value
 
           Object.each(value, function(row, prop){
