@@ -114,10 +114,23 @@ module.exports = function(){
           // process.exit(1)
 
 
-          entry_point[key] = value
+          // entry_point[key] = value
+          if(key !== 'delivery' && key !== 'messages'){
+            entry_point[key] = value
+          }
+          else if(key === 'messages'){
+            if(!entry_point['messages']) entry_point['messages'] = 0
+            entry_point['messages'] += Object.values(value).length
+          }
+
 
           Object.each(value, function(row, prop){
             Object.each(row, function(data, id){
+              if(data.bytes){
+                if(!entry_point['bytes']) entry_point['bytes'] = 0
+                entry_point['bytes'] += data.bytes
+              }
+
               if(data.from){
                 if(!from.rcpt[data.from]) from.rcpt[data.from] = 0
                 from.rcpt[data.from] += 1
@@ -196,15 +209,15 @@ module.exports = function(){
           if(Object.getLength(success) > 0)
             entry_point['to']['success'] = success
 
-          if(key === 'delivery'){
-            delete entry_point['delivery']
-            // if(entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
-            // if(entry_point['delivery']['status']) delete entry_point['delivery']['status']
-            // if(entry_point['delivery']['starting']) delete entry_point['delivery']['starting']
-          }
-          else if(key === 'messages'){
-            delete entry_point['messages']
-          }
+          // if(key === 'delivery'){
+          //   delete entry_point['delivery']
+          //   // if(entry_point['delivery']['finished']) delete entry_point['delivery']['finished']
+          //   // if(entry_point['delivery']['status']) delete entry_point['delivery']['status']
+          //   // if(entry_point['delivery']['starting']) delete entry_point['delivery']['starting']
+          // }
+          // else if(key === 'messages'){
+          //   delete entry_point['messages']
+          // }
         }
         else if(path === 'logs.qmail.send.status'){
           debug_internals('HOOK DOC KEY %s %o', key, value)
