@@ -64,46 +64,42 @@ const roundMilliseconds = function(timestamp){
 
 module.exports = function(http, out){
   const os_output_opts = {
-    rethinkdb: {
-      id: "output.os.rethinkdb",
-      conn: [
-        Object.merge(
-          Object.clone(out),
-          {table: 'os'}
-        )
-      ],
-      module: JSPipelineOutput,
-      buffer:{
-        // // size: 1, //-1
-        // expire: 1001,
-        size: -1, //-1
-        // expire: 0 //ms
-        expire: 1000, //ms
-        periodical: 500 //how often will check if buffer timestamp has expire
-      }
+    id: "output.os.rethinkdb",
+    conn: [
+      Object.merge(
+        Object.clone(out),
+        {table: 'os'}
+      )
+    ],
+    module: JSPipelineOutput,
+    buffer:{
+      // // size: 1, //-1
+      // expire: 1001,
+      size: -1, //-1
+      // expire: 0 //ms
+      expire: 1000, //ms
+      periodical: 500 //how often will check if buffer timestamp has expire
     }
   }
 
   const os_output = new JSPipelineOutput(os_output_opts)
 
   const hosts_output_opts = {
-    rethinkdb: {
-      id: "output.host.rethinkdb",
-      conn: [
-        Object.merge(
-          Object.clone(out),
-          {table: 'hosts'}
-        )
-      ],
-      module: JSPipelineOutput,
-      buffer:{
-        // // size: 1, //-1
-        // expire: 1001,
-        size: -1, //-1
-        // expire: 0 //ms
-        expire: 1000, //ms
-        periodical: 500 //how often will check if buffer timestamp has expire
-      }
+    id: "output.host.rethinkdb",
+    conn: [
+      Object.merge(
+        Object.clone(out),
+        {table: 'hosts'}
+      )
+    ],
+    module: JSPipelineOutput,
+    buffer:{
+      // // size: 1, //-1
+      // expire: 1001,
+      size: -1, //-1
+      // expire: 0 //ms
+      expire: 1000, //ms
+      periodical: 500 //how often will check if buffer timestamp has expire
     }
   }
 
