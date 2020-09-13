@@ -2,18 +2,18 @@
 
 var App = require('node-app-http-client');
 
+
+
+
 module.exports = new Class({
   Extends: App,
 
-  //ON_CONNECT: 'onConnect',
-  //ON_CONNECT_ERROR: 'onConnectError',
-
   options: {
 
-		requests : {
-			once: [
-				{ api: { get: {uri: ''} } },
-			],
+	  requests : {
+			// once: [
+			// 	{ api: { get: {uri: ''} } },
+			// ],
 			periodical: [
 				{ api: { get: {uri: ''} } },
 			],
@@ -30,32 +30,27 @@ module.exports = new Class({
 			routes: {
 				get: [
 					{
-						path: ':prop',
+						path: ':device/:prop',
 						callbacks: ['get'],
-						//version: '',
+						version: '',
+					},
+					{
+						path: ':device',
+						callbacks: ['get'],
+						version: '',
 					},
 					{
 						path: '',
 						callbacks: ['get'],
-						//version: '',
+						version: '',
 					},
 				]
 			},
 
 		},
   },
-  //get_prop: function (err, resp, body, req){
-
-		//if(err){
-			//this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1)+'Error', err);//capitalize first letter
-		//}
-		//else{
-			//this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), body);//capitalize first letter
-		//}
-
-	//},
   get: function (err, resp, body, req){
-		//console.log('OS GET');
+		//console.log('OS BLOCKDEVICES get');
 		//console.log(this.options.requests.current);
 
 		if(err){
@@ -79,46 +74,38 @@ module.exports = new Class({
 		}
 		else{
 			////console.log('success');
+			////console.log(JSON.decode(body));
 
       try{
         let decoded_body = {}
         decoded_body = JSON.decode(body)
 
-        if(req.uri != ''){
+  			if(req.uri != ''){
   				this.fireEvent('on'+req.uri.charAt(0).toUpperCase() + req.uri.slice(1), decoded_body);//capitalize first letter
   			}
   			else{
   				this.fireEvent('onGet', decoded_body);
   			}
 
-  			//this.fireEvent(this.ON_DOC, JSON.decode(body));
+  			//this.fireEvent(this.ON_DOC, decoded_body);
 
   			if(this.options.requests.current.type == 'once'){
-          delete decoded_body.loadavg
-          delete decoded_body.uptime
-          delete decoded_body.freemem
-          if(decoded_body.networkInterfaces){
-            Object.each(decoded_body.networkInterfaces, function(data, iface){
-              delete data.recived
-              delete data.transmited
-            })
-          }
-  				this.fireEvent(this.ON_ONCE_DOC, decoded_body);
+  				this.fireEvent(this.ON_ONCE_DOC, [decoded_body] );
   			}
   			else{
-  				// var original = JSON.decode(body);
-  				var doc = {};
+  				//var original = decoded_body;
+  				//var doc = {};
 
-  				doc.loadavg = decoded_body.loadavg;
-  				doc.uptime = decoded_body.uptime;
-  				doc.freemem = decoded_body.freemem;
-  				doc.totalmem = decoded_body.totalmem;
-  				doc.cpus = decoded_body.cpus;
-  				doc.networkInterfaces = decoded_body.networkInterfaces;
+  				//doc.loadavg = original.loadavg;
+  				//doc.uptime = original.uptime;
+  				//doc.freemem = original.freemem;
+  				//doc.totalmem = original.totalmem;
+  				//doc.cpus = original.cpus;
+  				//doc.networkInterfaces = original.networkInterfaces;
 
-  				this.fireEvent(this.ON_PERIODICAL_DOC, doc);
-
+  				this.fireEvent(this.ON_PERIODICAL_DOC, [decoded_body] );
   				////console.log('STATUS');
+  				////console.log(decoded_body);
   			}
 
       }
@@ -127,17 +114,25 @@ module.exports = new Class({
       }
 
 
-
-
 		}
 
   },
+  //get: function (err, resp, body){
+		////console.log('OS BLOCKDEVICES get');
+
+		////console.log('error');
+		////console.log(err);
+
+		//////console.log('resp');
+		//////console.log(resp);
+
+		////console.log('body');
+		////console.log(body);
+  //},
   initialize: function(options){
 
 		this.parent(options);//override default options
 
-		this.log('os', 'info', 'os started');
+		this.log('os-blockdevices', 'info', 'os-blockdevices started');
   },
-
-
 });

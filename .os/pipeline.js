@@ -12,7 +12,6 @@ let procs_filter = require('./filters/proc'),
     blockdevices_filter = require('./filters/blockdevices'),
     cpus_filter = require('./filters/cpus'),
     mounts_filter = require('./filters/mounts'),
-    host_filter = require('./filters/host'),
     // data_formater_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.data_formater')),
     sanitize_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.sanitize.rethinkdb.template')),
     compress_filter = require(path.join(process.cwd(), '/devel/etc/snippets/filter.zlib.compress'))
@@ -27,7 +26,6 @@ let PollHttp = require('js-pipeline.input.httpclient')
 let OSPollHttp = require('node-app-http-client/load')(PollHttp)
 let ProcsPollHttp = require('node-app-http-client/load')(PollHttp)
 
-let JSPipelineOutput = require('js-pipeline.output.rethinkdb')
 // let HttpReceiverOutput = require('../http-receiver/output')
 
 /**
@@ -63,52 +61,6 @@ const roundMilliseconds = function(timestamp){
 //       : require('./etc/http/dev.conf');
 
 module.exports = function(http, out){
-  const os_output_opts = {
-    rethinkdb: {
-      id: "output.os.rethinkdb",
-      conn: [
-        Object.merge(
-          Object.clone(out),
-          {table: 'os'}
-        )
-      ],
-      module: JSPipelineOutput,
-      buffer:{
-        // // size: 1, //-1
-        // expire: 1001,
-        size: -1, //-1
-        // expire: 0 //ms
-        expire: 1000, //ms
-        periodical: 500 //how often will check if buffer timestamp has expire
-      }
-    }
-  }
-
-  const os_output = new JSPipelineOutput(os_output_opts)
-
-  const hosts_output_opts = {
-    rethinkdb: {
-      id: "output.host.rethinkdb",
-      conn: [
-        Object.merge(
-          Object.clone(out),
-          {table: 'hosts'}
-        )
-      ],
-      module: JSPipelineOutput,
-      buffer:{
-        // // size: 1, //-1
-        // expire: 1001,
-        size: -1, //-1
-        // expire: 0 //ms
-        expire: 1000, //ms
-        periodical: 500 //how often will check if buffer timestamp has expire
-      }
-    }
-  }
-
-  const hosts_output = new JSPipelineOutput(hosts_output_opts)
-
   let conf = {
    input: [
   	{
@@ -274,10 +226,6 @@ module.exports = function(http, out){
       function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
 
-        // debug('1st filter %o', doc, opts)
-        // if(opts.type === 'once')
-        //   process.exit(1)
-
         let host = input_type.options.id
         let module = app.options.id
 
@@ -285,7 +233,6 @@ module.exports = function(http, out){
         // debug(app.options.id)
 
         // if(app.options.id == 'os.procs'){
-
         if(app.options.id == 'procs'){
 
           procs_filter(
@@ -299,7 +246,7 @@ module.exports = function(http, out){
           if(doc && doc.uptime)
             pipeline.current_uptime = doc.uptime
 
-          if(doc && doc.networkInterfaces && !opts.type === 'once'){//create an extra doc for networkInterfaces
+          if(doc && doc.networkInterfaces){//create an extra doc for networkInterfaces
             networkInterfaces_filter(
               doc.networkInterfaces,
               opts,
@@ -345,53 +292,49 @@ module.exports = function(http, out){
           }
           else{
 
-            if(opts.type === 'once'){
-              // debug('HOST %s', JSON.stringify(doc), opts)
-            	// process.exit(1)
-              host_filter(doc, opts, next, pipeline)
-            }
-            else{
-              let memdoc = {data: {}, metadata: {host: host, path: module+'.memory', tag: ['os']}}
-              Object.each(doc, function(_doc, key){
-                if(/mem/.test(key)){
-                  memdoc.metadata.tag.push(key)
-                  memdoc.data[key] = _doc
-                }
-                else if(key === 'cpus'){
-                  cpus_filter(
-                    _doc,
-                    opts,
-                    next,
-                    pipeline
-                  )
-                }
-                else if(key === 'loadavg'){
-                  let _tmp = Array.clone(_doc)
-                  _doc = {
-                    '1_min': _tmp[0],
-                    '5_min': _tmp[1],
-                    '15_min': _tmp[2]
-                  }
 
-                  next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
-                }
-                else if(key === 'uptime'){
-                  let _tmp = _doc
-                  _doc = {
-                    seconds: _tmp
-                  }
 
-                  next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
-                }
-                else{
-                  next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
-                }
-              })
-
-              if(Object.getLength(memdoc.data) > 0){
-                next(memdoc)
+            let memdoc = {data: {}, metadata: {host: host, path: module+'.memory', tag: ['os']}}
+            Object.each(doc, function(_doc, key){
+              if(/mem/.test(key)){
+                memdoc.metadata.tag.push(key)
+                memdoc.data[key] = _doc
               }
+              else if(key === 'cpus'){
+                cpus_filter(
+                  _doc,
+                  opts,
+                  next,
+                  pipeline
+                )
+              }
+              else if(key === 'loadavg'){
+                let _tmp = Array.clone(_doc)
+                _doc = {
+                  '1_min': _tmp[0],
+                  '5_min': _tmp[1],
+                  '15_min': _tmp[2]
+                }
+
+                next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
+              }
+              else if(key === 'uptime'){
+                let _tmp = _doc
+                _doc = {
+                  seconds: _tmp
+                }
+
+                next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
+              }
+              else{
+                next( {data: _doc, metadata: {host: host, path: module+'.'+key, tag: ['os', key]}} )
+              }
+            })
+
+            if(Object.getLength(memdoc.data) > 0){
+              next(memdoc)
             }
+            // doc = {data: doc, metadata: {host: host, path: module, tag: ['os'].combine(Object.keys(doc))}}
           }
 
           // next(doc)
@@ -436,19 +379,12 @@ module.exports = function(http, out){
       function(doc, opts, next, pipeline){
         let { type, input, input_type, app } = opts
 
+
+        // let host = doc.metadata.host
+        // let module = doc.metadata.path
+
         let timestamp = roundMilliseconds(Date.now())
-
-        if(opts.type === 'once'){
-          // debug('1st filter %s', JSON.stringify(doc), opts)
-          // process.exit(1)
-          doc.id = doc.metadata.host+'.'+doc.metadata.path
-        }
-        else{
-          doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
-        }
-
-        // let timestamp = roundMilliseconds(Date.now())
-        // doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
+        doc.id = doc.metadata.host+'.'+doc.metadata.path+'@'+timestamp
         doc.metadata.timestamp = timestamp
 
         sanitize_filter(
@@ -506,37 +442,26 @@ module.exports = function(http, out){
       // require(path.join(process.cwd(), '/devel/etc/snippets/output.stdout.template')),
   		//require('./snippets/output.stdout.template'),
 
-      function(doc, opts){
-        // debug('1st filter %s', JSON.stringify(doc), opts, hosts_output, os_output)
-        // process.exit(1)
-
-        if(doc.metadata.path === 'host'){
-          hosts_output.fireEvent(hosts_output.ON_SAVE_DOC, doc)
-        }
-        else{
-          os_output.fireEvent(hosts_output.ON_SAVE_DOC, doc)
-        }
-      }
-      // {
-  		// 	rethinkdb: {
-  		// 		id: "output.os.rethinkdb",
-  		// 		conn: [
-      //       Object.merge(
-      //         Object.clone(out),
-      //         {table: 'os'}
-      //       )
-  		// 		],
-  		// 		module: require('js-pipeline.output.rethinkdb'),
-      //     buffer:{
-  		// 			// // size: 1, //-1
-  		// 			// expire: 1001,
-      //       size: -1, //-1
-  		// 			// expire: 0 //ms
-      //       expire: 1000, //ms
-      //       periodical: 500 //how often will check if buffer timestamp has expire
-  		// 		}
-  		// 	}
-  		// }
+      {
+  			rethinkdb: {
+  				id: "output.os.rethinkdb",
+  				conn: [
+            Object.merge(
+              Object.clone(out),
+              {table: 'os'}
+            )
+  				],
+  				module: require('js-pipeline.output.rethinkdb'),
+          buffer:{
+  					// // size: 1, //-1
+  					// expire: 1001,
+            size: -1, //-1
+  					// expire: 0 //ms
+            expire: 1000, //ms
+            periodical: 500 //how often will check if buffer timestamp has expire
+  				}
+  			}
+  		}
 
       // {
   		// 	rethinkdb: {
