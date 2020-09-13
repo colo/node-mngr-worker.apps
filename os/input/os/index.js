@@ -94,15 +94,15 @@ module.exports = new Class({
   			//this.fireEvent(this.ON_DOC, JSON.decode(body));
 
   			if(this.options.requests.current.type == 'once'){
-          delete decoded_body.loadavg
-          delete decoded_body.uptime
-          delete decoded_body.freemem
-          if(decoded_body.networkInterfaces){
-            Object.each(decoded_body.networkInterfaces, function(data, iface){
-              delete data.recived
-              delete data.transmited
-            })
-          }
+          // delete decoded_body.loadavg
+          // delete decoded_body.uptime
+          // delete decoded_body.freemem
+          // if(decoded_body.networkInterfaces){
+          //   Object.each(decoded_body.networkInterfaces, function(data, iface){
+          //     delete data.recived
+          //     delete data.transmited
+          //   })
+          // }
   				this.fireEvent(this.ON_ONCE_DOC, decoded_body);
   			}
   			else{

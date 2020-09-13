@@ -8,6 +8,22 @@ module.exports = function(doc, opts, next, pipeline){
 	let host = input_type.options.id
 	let module = app.options.id
 
+
+	delete doc.loadavg
+	delete doc.uptime
+	delete doc.freemem
+	if(doc.networkInterfaces){
+		Object.each(doc.networkInterfaces, function(data, iface){
+			delete data.recived
+			delete data.transmited
+		})
+	}
+	if(doc.cpus){
+		Array.each(doc.cpus, function(data, core){
+			delete data.times
+		})
+	}
+
 	// debug('HOST %s', JSON.stringify(doc), opts)
 	// process.exit(1)
 	next(
