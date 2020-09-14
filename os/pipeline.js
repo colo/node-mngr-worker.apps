@@ -295,17 +295,17 @@ module.exports = function(http, out){
           if(doc && doc.uptime)
             pipeline.current_uptime = doc.uptime
 
-          if(doc && doc.networkInterfaces && !opts.type === 'once'){//create an extra doc for networkInterfaces
-            networkInterfaces_filter(
-              doc.networkInterfaces,
-              opts,
-              next,
-              pipeline
-            )
-
-            delete doc.networkInterfaces
-
-          }
+          // if(doc && doc.networkInterfaces && opts.type !== 'once'){//create an extra doc for networkInterfaces
+          //   networkInterfaces_filter(
+          //     doc.networkInterfaces,
+          //     opts,
+          //     next,
+          //     pipeline
+          //   )
+          //
+          //   delete doc.networkInterfaces
+          //
+          // }
 
           debug('app.options.id %s', app.options.id)
           if(app.options.id === 'os.mounts'){
@@ -340,7 +340,18 @@ module.exports = function(http, out){
             // // next(doc)
           }
           else{
+            if(doc && doc.networkInterfaces && opts.type !== 'once'){//create an extra doc for networkInterfaces
+              networkInterfaces_filter(
+                doc.networkInterfaces,
+                opts,
+                next,
+                pipeline
+              )
 
+              delete doc.networkInterfaces
+
+            }
+            
             if(opts.type === 'once'){
               // debug('HOST %s', JSON.stringify(doc), opts)
             	// process.exit(1)
