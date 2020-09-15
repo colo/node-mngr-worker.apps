@@ -1,83 +1,61 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:Stat:Hook:Minute:OS:NetworkInterfaces');
-var debug_internals = require('debug')('Server:Apps:Stat:Hook:Minute:OS:NetworkInterfaces:Internals');
+let debug = require('debug')('Server:Apps:Stat:Hook:Minute:OS:NetworkInterfaces'),
+    debug_internals = require('debug')('Server:Apps:Stat:Hook:Minute:OS:NetworkInterfaces:Internals');
 
 // let networkInterfaces = {} //temp obj to save data
-let ss = require('simple-statistics')
+// let ss = require('simple-statistics')
 
+let chart = require('mngr-ui-admin-charts/defaults/dygraph.derived.tabular')
 
-module.exports = {
+module.exports = function(){
+  return {
+    // all: {
+    //   all: new RegExp('^.+$'),
+    //   key: function(entry_point, timestamp, value, key){
+    //     debug('blockdevices KEY', entry_point, timestamp, value, key)
+    //   //   process.exit(1)
+    //     return entry_point
+    //   },
+    //   value: function(entry_point, timestamp, value, key){
+    //     debug('blockdevices VALUE', entry_point, timestamp, value, key)
+    //     // process.exit(1)
+    //     return entry_point
+    //   },
+    //   doc: function(entry_point, value, key){
+    //     debug('blockdevices DOC', entry_point, value, key)
+    //     // process.exit(1)
+    //     return entry_point
+    //   }
+    // },
+    post_values: function(entry_point){
 
-  networkInterface: {
-    networkInterface: new RegExp('^.+$'),
+      Object.each(entry_point, function(data, prop){
+        let tss = Object.keys(data)
+        let values = Object.values(data)
+        //transform needs and array of arrays [[ts,value]...[ts,value]]
+        let doc = []
+        for(let i = 0; i < tss.length; i++){
+          doc[i] = [tss[i], values[i]]
+        }
 
-    value: function(entry_point, timestamp, value, key){
-      // if(!networkInterfaces) networkInterfaces = {};
+        doc.sort((a,b) => (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0))
 
-      // Object.each(value, function(data, iface){
-      //   if(!entry_point[key][iface]) entry_point[key][iface] = {}
+        doc = chart.watch.transform(doc, this, chart)
+        data = {}
+        for(let i = 0; i < doc.length; i++){ //back to Object
+          let ts = doc[i][0]
+          data[ts] = doc[i][1]
+        }
+        entry_point[prop] = data
+      })
 
-        // Object.each(data, function(val, status){//status => if | recived | transmited
-        Object.each(value, function(val, status){//status => if | recived | transmited
-          if(status == 'recived' || status == 'transmited'){
-            Object.each(val, function(prop_val, prop){
-              if(!entry_point[key][prop])
-                entry_point[key][prop] = {}
-
-              if(!entry_point[key][prop][status])
-                entry_point[key][prop][status] = {}
-
-              entry_point[key][prop][status][timestamp] = prop_val * 1
-            })
-          }
-        })
-      // })
-
-      return entry_point
-    },
-    doc: function(entry_point, value, key){
-      let networkInterface = {}
-
-      // let iface = key
-      // Object.each(value, function(iface_data, iface){
-        // if(!networkInterface) networkInterface = {}
-
-        // Object.each(iface_data, function(prop_data, prop){
-        Object.each(value, function(prop_data, prop){
-          if(!networkInterface[prop]) networkInterface[prop] = {}
-
-          Object.each(prop_data, function(status_data, status){
-            if(!networkInterface[prop][status]) networkInterface[prop][status] = {}
-
-            let data_values = Object.values(status_data);
-            let min = ss.min(data_values);
-            let max = ss.max(data_values);
-
-            let data = {
-              // samples: status_data,
-              min : min,
-              max : max,
-              mean : ss.mean(data_values),
-              median : ss.median(data_values),
-              mode : ss.mode(data_values),
-              // sum: ss.sumSimple(data_values),
-              range: max - min,
-            };
-
-            networkInterface[prop][status] = data
-
-          })
-        })
-
-      // })
-
-      debug_internals('networkInterface %o',networkInterface)
-
-      entry_point[key] = Object.clone(networkInterface)
-
+      // debug('POST_VALUES', entry_point)
+      // process.exit(1)
+      //
       return entry_point
     }
-  },
+
+  }
 
 }

@@ -294,11 +294,13 @@ module.exports = function(payload){
 
       })
 
+      // debug_internals('values %s', JSON.stringify(values))
+      // process.exit(1)
       Object.each(values, function(group, grouped){
         Object.each(group, function(data, path){
           Object.each(hooks, function(hook, hook_path){
             if(hook_path === path && typeof hook.post_values == 'function'){
-              values[grouped][path] = hook.post_values(values[grouped][path], group.metadata)
+              values[grouped][path] = hook.post_values(values[grouped][path], metadata[grouped][path], path)
             }
           })
         })
@@ -316,8 +318,7 @@ module.exports = function(payload){
       //   process.exit(1)
       // }
 
-      // debug_internals('values %s', JSON.stringify(values))
-      // process.exit(1)
+
 
       let group_prop = group_index.split('.')[1]
 
@@ -480,8 +481,9 @@ module.exports = function(payload){
               metadata_id_end
               // +'@'+Date.now()
 
-            // if(/stats$/.test(new_doc.metadata.path)){
-            // debug('NEW DOC %o', JSON.stringify(new_doc), new_doc.metadata.path)
+            // if(/^os$/.test(new_doc.metadata.path)){
+            // debug('NEW DOC %s', JSON.stringify(new_doc), new_doc.metadata.path)
+            // // debug('NEW DOC %s', new_doc.metadata.path)
             // process.exit(1)
             // }
 
