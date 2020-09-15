@@ -8,6 +8,7 @@ let debug = require('debug')('Server:Apps:Stat:Hook:Hour:OS'),
 
 let chart = require('mngr-ui-admin-charts/defaults/dygraph.derived.tabular')
 const ss = require('simple-statistics')
+const stat = require('../../libs/stat')
 
 module.exports = function(){
   return {
@@ -26,11 +27,13 @@ module.exports = function(){
       // },
       doc: function(entry_point, value, key, path){
         if(path === 'os'){
+          // debug('DOC %o %s %s', value, key, path) //entry_point, value, key,
+          // process.exit(1)
           // if(/^((?!blockdevices|blocks).)*$/.test(key))
 
           if(key === 'os.uptime'){
             let seconds = []
-            Object.each(value['seconds'], function(data, ts){
+            Object.each(value, function(data, ts){
               seconds.push(data.max)
             })
 
@@ -156,8 +159,9 @@ module.exports = function(){
                   prev = { timestamp: timestamp, value: data[timestamp].median }
                 }
 
-                by_prop[prop] = current
+
               }
+              by_prop[prop] = current
 
             })
 
@@ -177,76 +181,44 @@ module.exports = function(){
               // })
 
             })
-            debug('DOC %o %s %s', idles, key, path) //entry_point, value, key,
+            // debug('DOC %o %s %s', idles, key, path) //entry_point, value, key,
             entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
             // process.exit(1)
           }
+
+          delete entry_point[key]
+        }
+        else{
+          // entry_point = value
+          let arr = []
+          Object.each(value, function(row, timestamp){
+            // debug_internals('HOOK DOC KEY %s %o %o', row,timestamp)
+            if(Array.isArray(row)){
+              arr.combine(row)
+            }
+            else{
+              arr.push(row)
+            }
+            // debug_internals('HOOK DOC KEY %s %o %o', arr)
+            // process.exit(1)
+          })
+          entry_point[key] = stat(arr)
         }
 
-        delete entry_point[key]
+
         // process.exit(1)
         return entry_point
       }
     },
-    // pre_values: function(entry_point, group){
-    //   debug_internals('pre_values %s', JSON.stringify(group))
+    // pre_values: function(entry_point, group, path){
+    //   debug_internals('pre_values %s', JSON.stringify(group), path)
     //   // process.exit(1)
-    //   return entry_point
-    // },
-    // post_values: function(entry_point, metadata, path){
-    //   // debug_internals('post_values %s', JSON.stringify(entry_point), metadata, path)
-    //   // process.exit(1)
-    //
-    //   if(path === 'os.blockdevices'){
-    //     // debug_internals('post_values %s', JSON.stringify(entry_point), metadata, path)
-    //     // process.exit(1)
-    //     Object.each(entry_point, function(data, prop){
-    //       let tss = Object.keys(data)
-    //       let values = Object.values(data)
-    //       //transform needs and array of arrays [[ts,value]...[ts,value]]
-    //       let doc = []
-    //       for(let i = 0; i < tss.length; i++){
-    //         doc[i] = [tss[i], values[i]]
-    //       }
-    //
-    //       doc.sort((a,b) => (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0))
-    //
-    //       doc = chart.watch.transform(doc, this, chart)
-    //       data = {}
-    //       for(let i = 0; i < doc.length; i++){ //back to Object
-    //         let ts = doc[i][0]
-    //         data[ts] = doc[i][1]
-    //       }
-    //       entry_point[prop] = data
-    //     })
-    //   }
-    //   else if(path === 'os.networkInterfaces'){
-    //     // debug_internals('post_values %s', JSON.stringify(entry_point), metadata, path)
-    //     // process.exit(1)
-    //     Object.each(entry_point, function(data, prop){
-    //       let tss = Object.keys(data)
-    //       let values = Object.values(data)
-    //       //transform needs and array of arrays [[ts,value]...[ts,value]]
-    //       let doc = []
-    //       for(let i = 0; i < tss.length; i++){
-    //         doc[i] = [tss[i], values[i]]
-    //       }
-    //
-    //       doc.sort((a,b) => (a[0] > b[0]) ? 1 : ((b[0] > a[0]) ? -1 : 0))
-    //
-    //       doc = chart.watch.transform(doc, this, chart)
-    //       data = {}
-    //       for(let i = 0; i < doc.length; i++){ //back to Object
-    //         let ts = doc[i][0]
-    //         data[ts] = doc[i][1]
-    //       }
-    //       entry_point[prop] = data
-    //     })
-    //   }
-    //
+    //   if(path === 'os')
+    //     entry_point = undefined
     //
     //   return entry_point
     // },
+    
     pre_doc: function(entry_point, value, path){
       debug_internals('pre_doc %s', path)
 

@@ -182,97 +182,101 @@ module.exports = function(payload){
           // }
           Object.each(hooks, function(hook, hook_path){
             if(hook_path === path && typeof hook.pre_values == 'function'){
-              values[grouped][path] = hook.pre_values(values[grouped][path], group)
+              values[grouped][path] = hook.pre_values(values[grouped][path], group, path)
             }
           })
 
-          Object.each(group.data, function(value, key){//item real data
+          if(values[grouped][path] !== undefined){
+            Object.each(group.data, function(value, key){//item real data
 
-            let _key = key
-            // debug('KEY %s %o %d', key, value, Object.getLength(group.data))
-            // process.exit(1)
-
-            if(hooks[path]){
-              Object.each(hooks[path], function(hook_data, hook_key){
-                // if(path == 'os.blockdevices')
-                //   //debug_internals('KEY %s %s', key, hook_key)
-
-                if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
-                  // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
-
-                  if(hook_data[hook_key].test(_key))//if regexp match
-                    _key = hook_key
-                }
-                // else{
-                //
-                // }
-              })
-
-            }
-
-            // if(arr_index == 0){
+              let _key = key
+              // debug('KEY %s %o %d', key, value, Object.getLength(group.data))
               // process.exit(1)
 
-              // values[grouped][path] = hooks[path].post_values(values[grouped][path])
-            // }
+              if(hooks[path]){
+                Object.each(hooks[path], function(hook_data, hook_key){
+                  // if(path == 'os.blockdevices')
+                  //   //debug_internals('KEY %s %s', key, hook_key)
 
-            // if(path == 'os.cpus'){
-            //   debug_internals('KEY %s %s', key, _key, grouped, hooks)
-            //   process.exit(1)
-            // }
+                  if(hook_data[hook_key] && hook_data[hook_key] instanceof RegExp){
+                    // //debug_internals('KEY %s %s %o', key, hook_key, hook_data[hook_key])
 
-            if(!values[grouped][path][key]){
+                    if(hook_data[hook_key].test(_key))//if regexp match
+                      _key = hook_key
+                  }
+                  // else{
+                  //
+                  // }
+                })
 
-              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
-                values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key, group.metadata)
-
-                if(values[grouped][path][key] === undefined)
-                  delete values[grouped][path][key]
               }
-              else{
-                values[grouped][path][key] = {};
-              }
-            }
 
+              // if(arr_index == 0){
+                // process.exit(1)
 
-            if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
-              values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key, group.metadata)
-
-            }
-            else if(values[grouped][path][key]){
-              // if(type === 'minute' || value['mean'] === undefined){
-              //   values[grouped][path][key][timestamp] = value;
-              // }
-              // else{
-              //   /**
-              //   * from historical
-              //   * */
-              //   values[grouped][path][key][timestamp] = value['mean']
+                // values[grouped][path] = hooks[path].post_values(values[grouped][path])
               // }
 
-              // values[grouped][path][key][timestamp] = value
-              if(!values[grouped][path][key][timestamp]){
-                values[grouped][path][key][timestamp] = value
+              // if(path == 'os.cpus'){
+              //   debug_internals('KEY %s %s', key, _key, grouped, hooks)
+              //   process.exit(1)
+              // }
+
+              if(!values[grouped][path][key]){
+
+                if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].key == 'function'){
+                  values[grouped][path] = hooks[path][_key].key(values[grouped][path], timestamp, value, key, group.metadata)
+
+                  if(values[grouped][path][key] === undefined)
+                    delete values[grouped][path][key]
+                }
+                else{
+                  values[grouped][path][key] = {};
+                }
               }
-              else if(Array.isArray(values[grouped][path][key][timestamp])){
-                values[grouped][path][key][timestamp].push(value)
+
+
+              if(hooks[path] && hooks[path][_key] && typeof hooks[path][_key].value == 'function'){
+                values[grouped][path] = hooks[path][_key].value(values[grouped][path], timestamp, value, key, group.metadata)
+
               }
-              else{
-                let _tmp = values[grouped][path][key][timestamp]
-                values[grouped][path][key][timestamp] = [_tmp]
-                values[grouped][path][key][timestamp].push(value)
+              else if(values[grouped][path][key]){
+                // if(type === 'minute' || value['mean'] === undefined){
+                //   values[grouped][path][key][timestamp] = value;
+                // }
+                // else{
+                //   /**
+                //   * from historical
+                //   * */
+                //   values[grouped][path][key][timestamp] = value['mean']
+                // }
+
+                // values[grouped][path][key][timestamp] = value
+                if(!values[grouped][path][key][timestamp]){
+                  values[grouped][path][key][timestamp] = value
+                }
+                else if(Array.isArray(values[grouped][path][key][timestamp])){
+                  values[grouped][path][key][timestamp].push(value)
+                }
+                else{
+                  let _tmp = values[grouped][path][key][timestamp]
+                  values[grouped][path][key][timestamp] = [_tmp]
+                  values[grouped][path][key][timestamp].push(value)
+                }
+
+                // if(!values[grouped][path][key][timestamp]) values[grouped][path][key][timestamp] = []
+                // values[grouped][path][key][timestamp].push(value)
+
+
+
+
               }
 
-              // if(!values[grouped][path][key][timestamp]) values[grouped][path][key][timestamp] = []
-              // values[grouped][path][key][timestamp].push(value)
+
+            })
+          }
 
 
-
-
-            }
-
-
-          });
 
           // if(path === 'os.cpus'){
           //   debug_internals('HOOK DOC KEY %s %o ', path, hooks, arr_index, doc.data.length)
@@ -482,9 +486,9 @@ module.exports = function(payload){
               // +'@'+Date.now()
 
             // if(/^os$/.test(new_doc.metadata.path)){
-            // debug('NEW DOC %s', JSON.stringify(new_doc), new_doc.metadata.path)
-            // // debug('NEW DOC %s', new_doc.metadata.path)
-            // process.exit(1)
+            //   debug('NEW DOC %s', JSON.stringify(new_doc), new_doc.metadata.path)
+            //   // debug('NEW DOC %s', new_doc.metadata.path)
+            //   process.exit(1)
             // }
 
             new_doc['metadata'].id = new_doc.id
