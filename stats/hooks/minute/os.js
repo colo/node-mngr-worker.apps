@@ -111,9 +111,9 @@ module.exports = function(){
                   prev = data[timestamp]
                 }
 
-                by_prop[prop] = current
-              }
 
+              }
+              by_prop[prop] = current
             })
 
             let idles = []
@@ -133,9 +133,13 @@ module.exports = function(){
             entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
             // process.exit(1)
           }
+
+          delete entry_point[key]
+        }
+        else{
+          entry_point = value
         }
 
-        delete entry_point[key]
         // process.exit(1)
         return entry_point
       }
