@@ -8,7 +8,7 @@ let debug = require('debug')('Server:Apps:Stat:Hook:Minute:OS'),
 
 let chart = require('mngr-ui-admin-charts/defaults/dygraph.derived.tabular')
 const ss = require('simple-statistics')
-
+const stat = require('../../libs/stat')
 module.exports = function(){
   return {
     all: {
@@ -137,7 +137,20 @@ module.exports = function(){
           delete entry_point[key]
         }
         else{
-          entry_point = value
+          // entry_point = value
+          let arr = []
+          Object.each(value, function(row, timestamp){
+            // debug_internals('HOOK DOC KEY %s %o %o', row,timestamp)
+            if(Array.isArray(row)){
+              arr.combine(row)
+            }
+            else{
+              arr.push(row)
+            }
+            // debug_internals('HOOK DOC KEY %s %o %o', arr)
+            // process.exit(1)
+          })
+          entry_point[key] = stat(arr)
         }
 
         // process.exit(1)
