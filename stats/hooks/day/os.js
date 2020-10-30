@@ -182,7 +182,8 @@ module.exports = function(){
 
             })
             // debug('DOC %o %s %s', idles, key, path) //entry_point, value, key,
-            entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
+            if(idles.length > 0)
+              entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
             // process.exit(1)
           }
 

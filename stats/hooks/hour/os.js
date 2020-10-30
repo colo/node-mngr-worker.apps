@@ -182,7 +182,9 @@ module.exports = function(){
 
             })
             // debug('DOC %o %s %s', idles, key, path) //entry_point, value, key,
-            entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
+            if(idles.length > 0)
+              entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
+
             // process.exit(1)
           }
 
@@ -218,7 +220,7 @@ module.exports = function(){
     //
     //   return entry_point
     // },
-    
+
     pre_doc: function(entry_point, value, path){
       debug_internals('pre_doc %s', path)
 
