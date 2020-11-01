@@ -31,22 +31,33 @@ module.exports = function(){
 
           if(key === 'os.uptime'){
             let seconds = Object.values(value['seconds'])
-            entry_point['uptime'] = ss.max(seconds)
+            if(seconds.length > 0)
+              entry_point['uptime'] = ss.max(seconds)
           }
           else if(key === 'os.loadavg'){
             let load = Object.values(value['1_min'])
-            entry_point['loadavg'] = ss.median(load).toFixed(2) * 1
+            if(load.length > 0)
+              entry_point['loadavg'] = ss.median(load).toFixed(2) * 1
           }
           else if(key === 'os.mounts.used'){
             Object.each(value, function(data, mount){
               let used = Object.values(data)
               if(!entry_point['mounts.used']) entry_point['mounts.used'] = {}
-              entry_point['mounts.used'][mount] = ss.median(used).toFixed(2) * 1
+              if(used.length > 0)
+                entry_point['mounts.used'][mount] = ss.median(used).toFixed(2) * 1
             })
           }
           else if(key === 'os.memory'){
-            let total = ss.median(Object.values(value['totalmem']))
-            let free = Math.round(ss.median(Object.values(value['freemem'])))
+            let totalmem = Object.values(value['totalmem'])
+            let total = 0
+            if(totalmem.length > 0)
+              total = ss.median(totalmem)
+
+            let freemem = Object.values(value['freemem'])
+            let free = 0
+            if(freemem.length > 0)
+              free = Math.round(ss.median(freemem))
+
             entry_point['memory'] = {}
             entry_point['memory']['totalmem'] = total
             entry_point['memory']['freemem'] = free
@@ -130,7 +141,9 @@ module.exports = function(){
 
             })
             debug('DOC %o %s %s', idles, key, path) //entry_point, value, key,
-            entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
+            if(idles.length > 0)
+              entry_point['cpus.idle'] = ss.median(idles).toFixed(2) * 1
+
             // process.exit(1)
           }
 

@@ -37,15 +37,16 @@ module.exports = function(){
               seconds.push(data.max)
             })
 
-            entry_point['uptime'] = ss.max(seconds)
+            if(seconds.length > 0)
+              entry_point['uptime'] = ss.max(seconds)
           }
           else if(key === 'os.loadavg'){
             let load = []
             Object.each(value['1_min'], function(data, ts){
               load.push(data.median)
             })
-            // let load = Object.values(value['1_min'])
-            entry_point['loadavg'] = ss.median(load).toFixed(2) * 1
+            if(load.length > 0)
+              entry_point['loadavg'] = ss.median(load).toFixed(2) * 1
           }
           else if(key === 'os.mounts.used'){
             Object.each(value, function(data, mount){
@@ -55,7 +56,8 @@ module.exports = function(){
                 used.push(_used.median)
               })
               if(!entry_point['mounts.used']) entry_point['mounts.used'] = {}
-              entry_point['mounts.used'][mount] = ss.median(used).toFixed(2) * 1
+              if(used.length > 0)
+                entry_point['mounts.used'][mount] = ss.median(used).toFixed(2) * 1
             })
           }
           else if(key === 'os.memory'){
@@ -63,14 +65,18 @@ module.exports = function(){
             Object.each(value['totalmem'], function(data, ts){
               total_median.push(data.median)
             })
-            let total = ss.median(total_median)
+            let total = 0
+            if(total_median.length > 0)
+              total = ss.median(total_median)
             // let total = ss.median(Object.values(value['totalmem']))
 
             let free_median = []
             Object.each(value['freemem'], function(data, ts){
               free_median.push(data.median)
             })
-            let free = ss.median(free_median)
+            let free_median = 0
+            if(total_median.length > 0)
+              free = ss.median(free_median)
             // let free = Math.round(ss.median(Object.values(value['freemem'])))
 
             entry_point['memory'] = {}
