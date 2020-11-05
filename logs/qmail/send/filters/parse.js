@@ -160,9 +160,14 @@ module.exports = function(doc, opts, next, pipeline){
 
       // data.log = doc.log
 
+      /**
+      * BUGGY, for now use Date.now
+      *
       let timestamp = getTimestamp(doc.log)
       let doc_ts = (isNaN(timestamp)) ?  Date.now() : timestamp
-
+      **/
+      let doc_ts = Date.now()
+      
       let ts = Date.now()
       ts += (doc.counter) ? '-'+doc.counter : ''
 
