@@ -5,7 +5,7 @@ const PORT = 28015
 // const DATABASES = ['devel', 'production']
 const DATABASES = ['devel']
 // const TABLES = ['munin_historical', 'os_historical', 'logs_historical', 'os_tabular', 'ml']
-const TABLES = ['munin_historical', 'os_historical']
+const TABLES = ['munin_historical', 'os_historical', 'logs_historical_minute', 'logs_historical_hour', 'logs_historical_day']
 
 
 // const DATABASE = 'historical'
