@@ -317,7 +317,7 @@ module.exports = function(){
                     /**
                     * detail stats (os | engine | ua)
                     **/
-                    if(name === 'os' || name === 'engine' || name === 'us'){
+                    if(name === 'os' || name === 'engine' || name === 'ua'){
                       let val = undefined
                       if(item.family){
                         val = item.family
@@ -344,9 +344,9 @@ module.exports = function(){
                     }
 
                     /**
-                    * detail stats (brand)
+                    * detail stats (device)
                     **/
-                    if(name === 'brand'){
+                    if(name === 'device'){
                       let val = undefined
                       if(item.brand){
                         val = item.brand
