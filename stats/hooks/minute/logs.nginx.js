@@ -298,6 +298,15 @@ module.exports = function(){
                 // if(name !== 'major' && name !== 'minor'){
                   if(!stat[name]) stat[name] = {}
                   if(item !== undefined && item !== null){
+
+                    Object.each(item, function(val, key){
+                      if(val === null || val === '' || item[key] === undefined){
+                        delete item[key]
+                      }
+                    })
+                    /**
+                    * simple stats
+                    **/
                     Object.each(item, function(val, key){
                       if(key !== 'major' && key !== 'minor' && key !== 'patch' && key !== 'patchMinor' && val !== null){
                         if(!stat[name][key]) stat[name][key] = {}
@@ -305,6 +314,60 @@ module.exports = function(){
                         stat[name][key][val] += 1
                       }
                     })
+                    /**
+                    * detail stats (os | engine | ua)
+                    **/
+                    if(name === 'os' || name === 'engine' || name === 'us'){
+                      let val = undefined
+                      if(item.family){
+                        val = item.family
+                        if(item.major){
+                          val += ' '+item.major
+                          if(item.minor){
+                            val += '.'+item.minor
+                            if(item.patch){
+                              val += '.'+item.patch
+
+                              if(item.patchMinor){
+                                val += '.'+item.patchMinor
+                              }
+                            }
+                          }
+                        }
+                      }
+
+                      if(val !== undefined){
+                        if(!stat[name+'.detailed']) stat[name+'.detailed'] = {}
+                        if(!stat[name+'.detailed'][val]) stat[name+'.detailed'][val] = 0
+                        stat[name+'.detailed'][val] += 1
+                      }
+                    }
+
+                    /**
+                    * detail stats (brand)
+                    **/
+                    if(name === 'brand'){
+                      let val = undefined
+                      if(item.brand){
+                        val = item.brand
+                        if(item.family){
+                          val += ' '+item.family
+                          if(item.model){
+                            val += ' '+item.model
+                            if(item.type){
+                              val += ' '+item.type
+                            }
+                          }
+                        }
+                      }
+
+                      if(val !== undefined){
+                        if(!stat[name+'.detailed']) stat[name+'.detailed'] = {}
+                        if(!stat[name+'.detailed'][val]) stat[name+'.detailed'][val] = 0
+                        stat[name+'.detailed'][val] += 1
+                      }
+                    }
+
                   }
 
                 // }
