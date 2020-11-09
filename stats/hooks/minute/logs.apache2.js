@@ -352,7 +352,7 @@ module.exports = function(){
                         val = item.brand+' '
                       }
 
-                      if(item.family){
+                      if(item.family && item.family !== item.brand+" "+item.model){
                         val += item.family+' '
                       }
 
