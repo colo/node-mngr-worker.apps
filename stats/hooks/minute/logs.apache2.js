@@ -352,12 +352,15 @@ module.exports = function(){
                         val = item.brand
                         if(item.family){
                           val += ' '+item.family
-                          if(item.model){
-                            val += ' '+item.model
-                            if(item.type){
-                              val += ' '+item.type
-                            }
+                          if(item.type){
+                            val += ' '+item.type
                           }
+                          // if(item.model){
+                          //   val += ' '+item.model
+                          //   if(item.type){
+                          //     val += ' '+item.type
+                          //   }
+                          // }
                         }
                       }
 
