@@ -1,8 +1,10 @@
 'use strict'
 
-var debug = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Apache2');
-var debug_internals = require('debug')('Server:Apps:Stat:Hook:Hour:Logs:Apache2:Internals');
+var debug = require('debug')('Server:Apps:Stat:Hook:Day:Logs:Apache2');
+var debug_internals = require('debug')('Server:Apps:Stat:Hook:Day:Logs:Apache2:Internals');
 
+// let networkInterfaces = {} //temp obj to save data
+// let ss = require('simple-statistics')
 const ss_stat = require('../../libs/stat')
 
 
@@ -87,19 +89,22 @@ module.exports = function(){
               if(!entry_point[key][item]) entry_point[key][item] = {}
 
               Object.each(data, function(val, data_item){
+                if(isNaN(val)){
+                  if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = {}
 
-                if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = {}
+                  Object.each(val, function(agent, val_item){
+                    if(typeof val_item !== 'string')
+                      val_item = JSON.stringify(val_item)
 
-                Object.each(val, function(agent, val_item){
-                  if(typeof val_item !== 'string')
-                    val_item = JSON.stringify(val_item)
+                    if(!entry_point[key][item][data_item][val_item]) entry_point[key][item][data_item][val_item] = 0
 
-                  if(!entry_point[key][item][data_item][val_item]) entry_point[key][item][data_item][val_item] = 0
-
-                  entry_point[key][item][data_item][val_item] += agent
-                })
-
-
+                    entry_point[key][item][data_item][val_item] += agent
+                  })
+                }
+                else{//Numeric values => os.detailed | device.detailed | etc
+                  if(!entry_point[key][item][data_item]) entry_point[key][item][data_item] = 0
+                  entry_point[key][item][data_item] += val
+                }
 
               })
 
