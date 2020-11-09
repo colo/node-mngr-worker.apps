@@ -349,21 +349,22 @@ module.exports = function(){
                     if(name === 'device'){
                       let val = ''
                       if(item.brand){
-                        val = item.brand
+                        val = item.brand+' '
                       }
 
                       if(item.family){
-                        val += ' '+item.family
+                        val += item.family+' '
                       }
 
                       if(item.model && item.model !== item.family){
-                        val += ' '+item.model
-                      }
-                      
-                      if(item.type){
-                        val += ' '+item.type
+                        val += item.model+' '
                       }
 
+                      if(item.type){
+                        val += item.type+' '
+                      }
+
+                      val = val.trim()
 
                       if(val !== undefined){
                         if(!stat[name+'.detailed']) stat[name+'.detailed'] = {}
