@@ -347,22 +347,23 @@ module.exports = function(){
                     * detail stats (device)
                     **/
                     if(name === 'device'){
-                      let val = undefined
+                      let val = ''
                       if(item.brand){
                         val = item.brand
-                        if(item.family){
-                          val += ' '+item.family
-                          if(item.type){
-                            val += ' '+item.type
-                          }
-                          // if(item.model){
-                          //   val += ' '+item.model
-                          //   if(item.type){
-                          //     val += ' '+item.type
-                          //   }
-                          // }
-                        }
                       }
+
+                      if(item.family){
+                        val += ' '+item.family
+                      }
+
+                      if(item.model && item.model !== item.family){
+                        val += ' '+item.model
+                      }
+                      
+                      if(item.type){
+                        val += ' '+item.type
+                      }
+
 
                       if(val !== undefined){
                         if(!stat[name+'.detailed']) stat[name+'.detailed'] = {}
