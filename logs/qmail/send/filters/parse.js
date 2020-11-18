@@ -86,7 +86,7 @@ module.exports = function(doc, opts, next, pipeline){
     switch (arr[1]) {
       case 'status:':
         type = 'status'
-        data = {
+        data = Object.merge(data, {
           local: {
             used: arr[3].split('/')[0] * 1,
             max: arr[3].split('/')[1] * 1,
@@ -95,63 +95,66 @@ module.exports = function(doc, opts, next, pipeline){
             used: arr[5].split('/')[0] * 1,
             max: arr[5].split('/')[1] * 1,
           },
-        }
+        })
+        
         break;
 
       case 'new':
         type = 'msg.new'
-        data = {
+        data = Object.merge(data, {
           msg: arr[3] * 1
-        }
+        })
 
         break;
 
       case 'end':
         type = 'msg.end'
-        data = {
+        data = Object.merge(data, {
           msg: arr[3] * 1
-        }
+        })
 
         break;
 
       case 'bounce':
         type = 'msg.bounce'
-        data = {
+        data = Object.merge(data, {
           msg: arr[3] * 1,
           qp: arr[5] * 1,
-        }
+        })
 
         break;
 
       case 'info':
         type = 'msg.info'
-        data = {
+        data = Object.merge(data, {
           msg: arr[3].replace(':', '') * 1,
           bytes: arr[5] * 1,
           from: arr[7],
           qp: arr[9] * 1,
           uid: arr[11] * 1
-        }
+        })
 
         break;
 
       case 'starting':
         type = 'delivery.starting'
-        data = {
+        data = Object.merge(data, {
           id: arr[3].replace(':', '') * 1,
           msg: arr[5] * 1,
           type: arr[7],
           to: arr[8]
-        }
+        })
+
         break;
 
       case 'delivery':
         type = 'delivery.status'
-        data = {
+        data = Object.merge(data, {
           id: arr[2].replace(':', '') * 1,
           status: arr[3].replace(':', ''),
           response: arr[4],
-        }
+        })
+
         break;
 
     }
