@@ -79,7 +79,9 @@ module.exports = function(doc, opts, next, pipeline){
     debug('parse %o', arr)
 
     let type = undefined
-    let data = {}
+    let data = {
+      log: doc.log
+    }
 
     switch (arr[1]) {
       case 'status:':
@@ -167,7 +169,7 @@ module.exports = function(doc, opts, next, pipeline){
       let doc_ts = (isNaN(timestamp)) ?  Date.now() : timestamp
       **/
       let doc_ts = Date.now()
-      
+
       let ts = Date.now()
       ts += (doc.counter) ? '-'+doc.counter : ''
 
